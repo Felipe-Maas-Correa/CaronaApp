@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🚗 CaronaApp
+# CaronaApp
 
 **Controle de caronas e pagamentos — dark, elegante e minimalista.**
 
@@ -16,7 +16,7 @@ com painel administrativo completo, avaliação de viagens e pagamento via PIX.
 
 ---
 
-## ✨ Sobre o projeto
+## Sobre o projeto
 
 O **CaronaApp** nasceu de uma necessidade real: organizar a cobrança de caronas diárias
 (um valor fixo por viagem) entre várias pessoas. Cada passageiro registra as caronas que
@@ -27,27 +27,27 @@ Foi construído com **JavaScript puro (ES Modules), sem frameworks nem build ste
 foi arquitetura limpa, componentização por módulos e uma identidade visual **premium dark gold**
 consistente. Todo o backend roda no plano **gratuito** do Firebase.
 
-## 🎯 Funcionalidades
+## Funcionalidades
 
 ### Para o usuário
-- 🔐 **Login** com e-mail e senha (Firebase Auth)
-- 📅 **Calendário** para marcar as próprias caronas
-- 💳 **Pagamentos via PIX** — chave copiável com um toque
-- 🧾 **Comprovante** anexável (imagem/PDF) — comprimido e salvo em Base64
-- ⭐ **Avaliação da viagem** — nota de 0 a 5 estrelas + nível de velocidade (🐢 / 🚗 / 🏎)
-- 👤 **Perfil personalizável** — nome, foto, troca de senha e estatísticas pessoais
+- **Login** com e-mail e senha (Firebase Auth)
+- **Calendário** para marcar as próprias caronas
+- **Pagamentos via PIX** — chave copiável com um toque
+- **Comprovante** anexável (imagem/PDF) — comprimido e salvo em Base64
+- **Avaliação da viagem** — nota de 0 a 5 estrelas + nível de velocidade
+- **Perfil personalizável** — nome, foto, troca de senha e estatísticas pessoais
   (dias na plataforma, maior pagamento, recorde de dias sem pagar)
 
 ### Para o administrador
-- 📊 **Dashboard** com totais por **semana, mês, semestre, ano** ou todo o histórico
-- 📈 **Médias** por usuário, mensal e semanal + taxa de adimplência
-- 🏆 **Ranking por usuário** e **detalhe individual** por período
-- 🧑‍🤝‍🧑 **Marcação de passageiros** — o motorista escolhe quem estava em cada viagem
-- 💰 **Valor da viagem configurável** — vale para as próximas marcações
-- 📤 **Exportação de relatório** em CSV
-- 🛠️ **Gestão de usuários** — promover/rebaixar, ativar/desativar, excluir
+- **Dashboard** com totais por semana, mês, semestre, ano ou todo o histórico
+- **Médias** por usuário, mensal e semanal + taxa de adimplência
+- **Ranking por usuário** e detalhe individual por período
+- **Marcação de passageiros** — o motorista escolhe quem estava em cada viagem
+- **Valor da viagem configurável** — vale para as próximas marcações
+- **Exportação de relatório** em CSV
+- **Gestão de usuários** — promover/rebaixar, ativar/desativar, excluir
 
-## 🔒 Segurança
+## Segurança
 
 O controle de acesso **não depende do cliente**: está nas
 [**Security Rules do Firestore**](firestore.rules), validadas no servidor. Entre outras regras:
@@ -57,7 +57,7 @@ O controle de acesso **não depende do cliente**: está nas
 - Contas desativadas são bloqueadas de fato (não só na interface)
 - Só o admin exclui viagens e gerencia usuários
 
-## 🧰 Tecnologias
+## Tecnologias
 
 | Camada        | Ferramentas                                                        |
 |---------------|--------------------------------------------------------------------|
@@ -68,7 +68,7 @@ O controle de acesso **não depende do cliente**: está nas
 > **100% no plano gratuito:** os comprovantes e fotos de perfil são comprimidos e
 > guardados em **Base64** no próprio documento do Firestore, dispensando o Firebase Storage.
 
-## 📂 Estrutura
+## Estrutura
 
 ```
 caronaapp/
@@ -90,7 +90,7 @@ caronaapp/
 └── profile/              # Tela "Meu Perfil"
 ```
 
-## 🚀 Como rodar
+## Como rodar
 
 ### Pré-requisitos
 - Um projeto no [Firebase](https://console.firebase.google.com/) com **Authentication**
@@ -101,8 +101,8 @@ caronaapp/
 ### Passos
 1. **Clone** o repositório:
    ```bash
-   git clone https://github.com/<seu-usuario>/caronaapp.git
-   cd caronaapp
+   git clone https://github.com/Felipe-Maas-Correa/CaronaApp.git
+   cd CaronaApp
    ```
 2. **Configure as credenciais** — copie o modelo e preencha com os seus dados:
    ```bash
@@ -116,7 +116,7 @@ caronaapp/
 5. Crie o **primeiro admin**: no Firestore → Dados → coleção `users`, defina o campo
    `role` do seu usuário como `admin`.
 
-## 📝 Notas de arquitetura
+## Notas de arquitetura
 
 - **Sem build:** módulos ES nativos importados direto no navegador — simples de servir e ler.
 - **Componentização por pasta:** cada aba tem seu `.js`, `.css` e (quando aplicável) template.
@@ -126,5 +126,5 @@ caronaapp/
 ---
 
 <div align="center">
-Feito com ☕ e atenção aos detalhes.
+Feito com atenção aos detalhes.
 </div>
