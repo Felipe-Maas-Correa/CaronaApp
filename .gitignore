@@ -1,0 +1,26 @@
+# ── Configuração sensível (Firebase, chave PIX) ──────────────
+# Copie js/config.example.js para js/config.js e preencha.
+js/config.js
+
+# Variáveis de ambiente
+.env
+.env.*
+!.env.example
+
+# ── Dependências ─────────────────────────────────────────────
+node_modules/
+
+# ── Logs ─────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+
+# ── Sistema operacional ──────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Editores / IDEs ──────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*~

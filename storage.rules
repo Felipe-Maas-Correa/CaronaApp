@@ -1,0 +1,21 @@
+rules_version = '2';
+
+// ============================================================
+// Regras de segurança do Storage — CaronaApp
+//
+// A aplicação NÃO usa mais o Firebase Storage: os comprovantes de
+// pagamento são salvos em Base64 dentro do próprio documento do
+// Firestore (para manter tudo no plano gratuito).
+//
+// Portanto, o Storage fica totalmente bloqueado.
+//
+// Como aplicar:
+//   Firebase Console > Storage > Regras > cole este conteúdo > Publicar
+// ============================================================
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,141 @@
+/* ============================================================
+   modals.css — Overlay, modal-sheet e conteúdo de cada modal
+   Premium Dark Gold — CaronaApp
+   ============================================================ */
+
+/* ── BASE MODAL ──────────────────────────────────────────────── */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: flex-end;
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s ease;
+}
+
+.modal--open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.modal-sheet {
+  background: var(--bg-card);
+  border-top: 1px solid var(--border-light);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  max-height: 90dvh;
+  overflow-y: auto;
+  transform: translateY(100%);
+  transition: transform .35s cubic-bezier(.2, .8, .4, 1);
+  padding: 1.35rem 1.5rem;
+  padding-bottom: calc(1.35rem + var(--safe-bottom));
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.5);
+  position: relative;
+}
+
+/* Linha dourada decorativa no topo do sheet */
+.modal-sheet::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 15%; right: 15%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border-gold), transparent);
+}
+
+.modal--open .modal-sheet {
+  transform: translateY(0);
+}
+
+/* ── ELEMENTOS COMUNS ────────────────────────────────────────── */
+.modal-handle {
+  width: 32px;
+  height: 3px;
+  background: var(--border-light);
+  border-radius: 999px;
+  margin: 0 auto 1.25rem;
+}
+
+.modal-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 1.1rem;
+  color: var(--text);
+  letter-spacing: .01em;
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 1.1rem;
+  right: 1.25rem;
+  width: 28px;
+  height: 28px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-light);
+  border-radius: 50%;
+  font-size: .8rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color .2s, border-color .2s, background .2s;
+}
+.modal-close-btn:active {
+  background: var(--bg-hover);
+}
+
+/* ── MODAL DO DIA ────────────────────────────────────────────── */
+.modal-info {
+  font-size: .82rem;
+  color: var(--text-muted);
+  margin-bottom: 1.1rem;
+  line-height: 1.6;
+}
+
+.modal-hint {
+  font-size: .72rem;
+  color: var(--text-muted);
+  margin-top: .85rem;
+  text-align: center;
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+}
+
+.modal-trip-info {
+  background: var(--bg-elevated);
+  border-radius: var(--radius);
+  padding: .85rem 1rem;
+  border: 1px solid var(--border);
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: .4rem 0;
+  font-size: .85rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-row span {
+  color: var(--text-muted);
+  font-size: .78rem;
+  font-family: var(--font-mono);
+}
+
+/* ── MODAL DE CONFIRMAÇÃO ────────────────────────────────────── */
+.confirm-actions {
+  display: flex;
+  gap: .6rem;
+  margin-top: 1.1rem;
+}

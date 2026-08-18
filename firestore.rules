@@ -1,0 +1,97 @@
+rules_version = '2';
+
+// ============================================================
+// Regras de segurança do Firestore — CaronaApp
+// Projeto dedicado ao CaronaApp. Tudo que não estiver descrito
+// aqui é NEGADO por padrão.
+//
+// Como aplicar:
+//   Firebase Console > Firestore > Regras > cole este conteúdo > Publicar
+// ============================================================
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helpers ───────────────────────────────────────────────
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Documento de perfil do usuário logado
+    function myProfile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function hasProfile() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    // Conta ativa (active ausente é tratado como ativo)
+    function isActive() {
+      return hasProfile() && myProfile().active != false;
+    }
+
+    function isAdmin() {
+      return hasProfile()
+        && myProfile().role == 'admin'
+        && myProfile().active != false;
+    }
+
+    // ── Usuários ──────────────────────────────────────────────
+    match /users/{uid} {
+      // Ler o próprio perfil; admin lê qualquer um
+      allow get: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+      // Listar todos: só admin (painel de administração)
+      allow list: if isAdmin();
+
+      // Criar: admin cadastra qualquer um; OU o próprio usuário cria
+      // seu perfil inicial — mas SEM poder se tornar admin.
+      allow create: if isAdmin()
+        || (request.auth.uid == uid
+            && request.resource.data.role == 'user'
+            && request.resource.data.active == true);
+
+      // Atualizar: admin altera qualquer campo; o próprio usuário pode
+      // editar SOMENTE nome e foto do seu perfil (nunca role/active/email),
+      // impedindo auto-promoção ou auto-reativação.
+      allow update: if isAdmin()
+        || (request.auth.uid == uid
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'photo']));
+
+      // Excluir: somente admin.
+      allow delete: if isAdmin();
+    }
+
+    // ── Viagens (por usuário) ─────────────────────────────────
+    // Cada viagem pertence a um usuário (campo uid). O dono lê/escreve
+    // as suas; o admin lê/escreve todas (para o painel).
+    match /trips/{tripId} {
+      allow read:   if isSignedIn() && (isAdmin() || resource.data.uid == request.auth.uid);
+      // O admin cria/edita viagens de qualquer usuário (marca passageiros);
+      // o usuário comum só cria/edita (avalia) as próprias.
+      allow create: if isAdmin() || (isActive() && request.resource.data.uid == request.auth.uid);
+      allow update: if isAdmin() || (isActive() && resource.data.uid == request.auth.uid);
+      // Excluir viagem: SOMENTE admin (usuário não pode apagar).
+      allow delete: if isAdmin();
+    }
+
+    // ── Pagamentos (por usuário) ──────────────────────────────
+    match /payments/{paymentId} {
+      allow read:   if isSignedIn() && (isAdmin() || resource.data.uid == request.auth.uid);
+      allow create: if isAdmin() || (isActive() && request.resource.data.uid == request.auth.uid);
+      allow update, delete: if isAdmin() || (isActive() && resource.data.uid == request.auth.uid);
+    }
+
+    // ── Configurações (valor da viagem etc.) ──────────────────
+    // Todos os autenticados leem (para saber o preço); só admin altera.
+    match /settings/{docId} {
+      allow read:  if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // ── Tudo o mais: negado ───────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

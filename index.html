@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#0f0f0f" />
+  <title>CaronaApp</title>
+
+  <!-- Ícone da ferramenta: maleta dourada -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="apple-touch-icon" href="favicon.svg" />
+
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="auth/auth.css" />
+  <link rel="stylesheet" href="summary/summary.css" />
+  <link rel="stylesheet" href="calendar/calendar.css" />
+  <link rel="stylesheet" href="payments/payments.css" />
+  <link rel="stylesheet" href="admin/admin.css" />
+  <link rel="stylesheet" href="profile/profile.css" />
+  <link rel="stylesheet" href="modals/modals.css" />
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <style>
+    .lucide { display: inline-block; vertical-align: middle; flex-shrink: 0; }
+    .nav-btn__icon .lucide       { width: 22px; height: 22px; stroke: currentColor; stroke-width: 1.6; fill: none; }
+    .btn-icon .lucide,
+    .btn-logout .lucide,
+    .modal-close-btn .lucide     { width: 15px; height: 15px; stroke: currentColor; stroke-width: 2; fill: none; }
+    .app-header__title .lucide   { width: 18px; height: 18px; stroke: var(--accent); stroke-width: 1.8; fill: none; margin-right: 4px; }
+    .loading-screen__logo .lucide,
+    .auth-logo__icon .lucide     { width: 52px; height: 52px; stroke: var(--accent); stroke-width: 1.4; fill: none; }
+    .input-eye .lucide           { width: 17px; height: 17px; stroke: currentColor; stroke-width: 1.8; fill: none; }
+    .receipt-upload-icon .lucide { width: 28px; height: 28px; stroke: var(--text-muted); stroke-width: 1.5; fill: none; }
+    .admin-hint__icon .lucide    { width: 16px; height: 16px; stroke: var(--accent); stroke-width: 1.8; fill: none; }
+    .btn-new-payment .lucide     { width: 15px; height: 15px; stroke: currentColor; stroke-width: 2.2; fill: none; }
+    .btn-icon--delete .lucide    { stroke: var(--debt); }
+    .btn-icon--receipt .lucide   { stroke: var(--text-muted); }
+    .activity-item__info { display: flex; flex-direction: column; gap: 2px; }
+    .activity-item__sub  { font-size: .65rem; color: var(--text-muted); font-family: var(--font-mono); letter-spacing: .02em; }
+
+    /* Ícones de linha (Lucide) nos contextos dinâmicos — substituem os emojis */
+    .activity-item__icon .lucide { width: 17px; height: 17px; stroke-width: 1.8; fill: none; stroke: currentColor; }
+    .activity-item--payment     .activity-item__icon { color: var(--accent); }
+    .activity-item--trip-paid   .activity-item__icon { color: var(--paid); }
+    .activity-item--trip-unpaid .activity-item__icon { color: var(--text-muted); }
+
+    .empty-state__icon .lucide   { width: 38px; height: 38px; stroke-width: 1.3; fill: none; stroke: var(--text-muted); }
+
+    .badge .lucide               { width: 11px; height: 11px; stroke-width: 2.2; fill: none; stroke: currentColor; margin-right: 3px; }
+    .header-role .lucide         { width: 11px; height: 11px; stroke-width: 2.2; fill: none; stroke: currentColor; margin-right: 3px; vertical-align: -1px; }
+
+    .btn .lucide                 { width: 16px; height: 16px; stroke-width: 2; fill: none; stroke: currentColor; vertical-align: -3px; margin-right: 2px; }
+    .receipt-file-icon .lucide   { width: 15px; height: 15px; stroke-width: 1.8; fill: none; stroke: currentColor; vertical-align: -3px; margin-right: 3px; }
+    .no-receipt .lucide          { width: 15px; height: 15px; stroke-width: 1.8; fill: none; stroke: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <div id="app-root">
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SHELL EMBUTIDO NO DOCUMENTO PRINCIPAL
+         As telas (loading, login e o app com o menu inferior) ficam
+         diretamente aqui — NÃO são mais carregadas via fetch. Isso as
+         torna imunes à injeção do <script> de auto-reload do Live
+         Server, que antes corrompia o parsing do bottom-nav e fazia
+         só o primeiro botão aparecer. Apenas o conteúdo das abas e os
+         modais continuam sendo carregados dinamicamente.
+    ═══════════════════════════════════════════════════════════════ -->
+
+    <!-- LOADING SCREEN -->
+    <div id="loading-screen" class="screen screen--visible loading-screen">
+      <div class="loading-screen__logo">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><path d="M5 17H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1"/><path d="M19 17h2a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-1"/><path d="M14 17H10"/><path d="M17 17a2 2 0 1 0-4 0"/><path d="M7 17a2 2 0 1 0-4 0"/><path d="M5 7l1.5-4h11L19 7"/><path d="M5 7h14"/></svg>
+      </div>
+      <div class="loading-screen__name">Carona<span>App</span></div>
+      <div class="loading-dots"><span></span><span></span><span></span></div>
+    </div>
+
+    <!-- TELA DE LOGIN -->
+    <div id="auth-screen" class="screen auth-screen">
+      <div class="auth-container">
+        <div class="auth-logo">
+          <div class="auth-logo__icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><path d="M5 17H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1"/><path d="M19 17h2a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-1"/><path d="M14 17H10"/><path d="M17 17a2 2 0 1 0-4 0"/><path d="M7 17a2 2 0 1 0-4 0"/><path d="M5 7l1.5-4h11L19 7"/><path d="M5 7h14"/></svg>
+          </div>
+          <div class="auth-logo__name">Carona<span>App</span></div>
+          <div class="auth-logo__sub">Controle de viagens diárias</div>
+        </div>
+
+        <form id="form-login" class="auth-form" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="login-email">E-mail</label>
+            <input id="login-email" type="email" class="form-input" placeholder="seu@email.com" autocomplete="email" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="login-password">Senha</label>
+            <div class="input-wrap">
+              <input id="login-password" type="password" class="form-input" placeholder="••••••••" autocomplete="current-password" required />
+              <button type="button" id="btn-toggle-password" class="input-eye">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <p id="login-error" class="auth-error"></p>
+
+          <button id="btn-login" type="submit" style="display:block;width:100%;padding:.9rem;background:linear-gradient(135deg,#d4af37,#e8cc6e);color:#0f0f0f;border:none;border-radius:16px;font-size:.95rem;font-weight:700;letter-spacing:.04em;cursor:pointer;margin-top:.35rem;">
+            Entrar
+          </button>
+        </form>
+
+        <p class="auth-footer">Não tem acesso? Solicite ao administrador.</p>
+      </div>
+    </div>
+
+    <!-- APP PRINCIPAL (shell: header + tabs + bottom nav) -->
+    <div class="app screen">
+
+      <!-- Header -->
+      <header class="app-header">
+        <div class="app-header__inner">
+          <div class="app-header__brand">
+            <div class="app-header__title">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><path d="M5 17H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1"/><path d="M19 17h2a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-1"/><path d="M14 17H10"/><path d="M17 17a2 2 0 1 0-4 0"/><path d="M7 17a2 2 0 1 0-4 0"/><path d="M5 7l1.5-4h11L19 7"/><path d="M5 7h14"/></svg>
+              CaronaApp
+            </div>
+            <div class="app-header__subtitle" id="header-price">R$ 15 por viagem</div>
+          </div>
+          <div class="app-header__user">
+            <div class="header-user-info">
+              <span id="header-user-name" class="header-user-name">—</span>
+              <span id="header-user-role" class="header-role">—</span>
+            </div>
+            <button id="btn-profile" class="header-avatar" title="Meu perfil">
+              <span id="header-avatar-content">?</span>
+            </button>
+            <button id="btn-logout" class="btn-logout" title="Sair">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Tab Panels (conteúdo das abas é injetado aqui via fetch) -->
+      <div class="tab-panels"></div>
+
+      <!-- Bottom Nav -->
+      <nav class="bottom-nav">
+        <button class="nav-btn nav-btn--active" data-tab="tab-summary">
+          <span class="nav-btn__icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          </span>
+          Resumo
+        </button>
+        <button class="nav-btn" data-tab="tab-calendar">
+          <span class="nav-btn__icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </span>
+          Calendário
+        </button>
+        <button class="nav-btn" data-tab="tab-payments">
+          <span class="nav-btn__icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          </span>
+          Pagamentos
+        </button>
+        <button id="nav-admin" class="nav-btn hidden" data-tab="tab-admin">
+          <span class="nav-btn__icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </span>
+          Admin
+        </button>
+      </nav>
+
+    </div><!-- /app -->
+
+    <!-- ═══════════════════════════════════════════════════════════
+         MODAIS (também embutidos, pelo mesmo motivo do shell:
+         evitar que a injeção do Live Server corte o parsing e
+         faça sumir modais do fim do arquivo, como o modal-confirm).
+    ═══════════════════════════════════════════════════════════════ -->
+
+    <!-- Modal: Dia do calendário -->
+    <div id="modal-day" class="modal">
+      <div class="modal-sheet" style="position:relative">
+        <div class="modal-handle"></div>
+        <button class="modal-close-btn" onclick="document.getElementById('modal-day').classList.remove('modal--open')">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <div id="modal-day-title" class="modal-title">Dia</div>
+        <div id="modal-day-content"></div>
+      </div>
+    </div>
+
+    <!-- Modal: Novo pagamento -->
+    <div id="modal-payment" class="modal">
+      <div class="modal-sheet" style="position:relative">
+        <div class="modal-handle"></div>
+        <button id="btn-close-payment-modal" class="modal-close-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <div class="modal-title">Registrar Pagamento</div>
+
+        <!-- Chave PIX para o usuário pagar no app do banco -->
+        <div class="pix-box">
+          <div class="pix-box__head">
+            <span class="pix-box__label">Chave PIX (aleatória)</span>
+            <button type="button" id="btn-copy-pix" class="pix-copy-btn">Copiar</button>
+          </div>
+          <code id="pix-key" class="pix-box__key">—</code>
+          <div class="pix-box__hint">Copie a chave, pague no app do seu banco e depois registre o pagamento abaixo.</div>
+        </div>
+
+        <!-- Cabeçalho do calendário de seleção -->
+        <div class="pay-cal-header">
+          <button id="pay-cal-prev" class="pay-cal-nav">&#8249;</button>
+          <span id="pay-cal-label" class="pay-cal-label">—</span>
+          <button id="pay-cal-next" class="pay-cal-nav">&#8250;</button>
+          <button id="btn-select-all-trips" class="btn btn--sm btn--secondary">Todas</button>
+        </div>
+
+        <!-- Grid do calendário -->
+        <div id="pay-cal-grid" class="pay-cal-grid"></div>
+
+        <!-- Legenda -->
+        <div class="pay-cal-legend">
+          <div class="pay-cal-legend__item">
+            <span class="pay-cal-legend__dot pay-cal-legend__dot--unpaid"></span> Em aberto
+          </div>
+          <div class="pay-cal-legend__item">
+            <span class="pay-cal-legend__dot pay-cal-legend__dot--selected"></span> Selecionado
+          </div>
+        </div>
+
+        <div id="payment-selected-total" class="payment-total-bar">0 viagem(ns) • R$ 0,00</div>
+
+        <div class="section-title">Comprovante (opcional)</div>
+        <input type="file" id="receipt-input" accept="image/*,application/pdf" style="display:none" />
+        <label for="receipt-input" class="receipt-upload-area" style="cursor:pointer;display:flex;flex-direction:column;align-items:center">
+          <div class="receipt-upload-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+          </div>
+          <div class="receipt-upload-label">Toque para foto ou PDF</div>
+        </label>
+        <div id="receipt-preview"></div>
+
+        <button id="btn-confirm-payment" class="btn btn--primary btn--full" disabled>
+          Confirmar Pagamento
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal: Ver comprovante -->
+    <div id="modal-receipt" class="modal">
+      <div class="modal-sheet" style="position:relative">
+        <div class="modal-handle"></div>
+        <button id="btn-close-receipt-modal" class="modal-close-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <div class="modal-title">Comprovante</div>
+        <div id="receipt-modal-content"></div>
+        <a id="btn-open-receipt" href="#" target="_blank" class="btn btn--secondary btn--full">
+          Abrir em nova aba
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;margin-left:4px"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- Modal: Confirmação -->
+    <div id="modal-confirm" class="modal">
+      <div class="modal-sheet" style="position:relative">
+        <div class="modal-handle"></div>
+        <div class="modal-title">Confirmação</div>
+        <p id="confirm-message" style="font-size:.875rem;color:var(--text-muted);margin-bottom:1rem"></p>
+        <div class="confirm-actions">
+          <button id="btn-confirm-no"  class="btn btn--secondary" style="flex:1">Cancelar</button>
+          <button id="btn-confirm-yes" class="btn btn--danger"    style="flex:1">Confirmar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Meu Perfil -->
+    <div id="modal-profile" class="modal">
+      <div class="modal-sheet" style="position:relative">
+        <div class="modal-handle"></div>
+        <button class="modal-close-btn" onclick="document.getElementById('modal-profile').classList.remove('modal--open')">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <div class="modal-title">Meu Perfil</div>
+
+        <!-- Foto -->
+        <div class="profile-photo-wrap">
+          <div id="profile-photo" class="profile-photo">?</div>
+          <input type="file" id="profile-photo-input" accept="image/*" style="display:none" />
+          <label for="profile-photo-input" class="profile-photo-edit">Alterar foto</label>
+        </div>
+
+        <!-- Nome -->
+        <div class="form-group">
+          <label class="form-label" for="profile-name">Nome</label>
+          <input id="profile-name" type="text" class="form-input" placeholder="Seu nome" />
+        </div>
+        <button id="btn-save-profile" class="btn btn--primary btn--full">Salvar perfil</button>
+
+        <!-- Estatísticas -->
+        <div class="section-title" style="margin-top:1.4rem">Estatísticas</div>
+        <div class="profile-stats">
+          <div class="profile-stat">
+            <span class="profile-stat__value" id="stat-days">—</span>
+            <span class="profile-stat__label">dias na plataforma</span>
+          </div>
+          <div class="profile-stat">
+            <span class="profile-stat__value" id="stat-max-payment">—</span>
+            <span class="profile-stat__label">maior pagamento</span>
+          </div>
+          <div class="profile-stat">
+            <span class="profile-stat__value" id="stat-max-unpaid">—</span>
+            <span class="profile-stat__label">dias sem pagar (recorde)</span>
+          </div>
+        </div>
+
+        <!-- Trocar senha -->
+        <div class="section-title" style="margin-top:1.4rem">Trocar senha</div>
+        <div class="form-group">
+          <input id="profile-new-pass" type="password" class="form-input" placeholder="Nova senha (mín. 6 caracteres)" autocomplete="new-password" />
+        </div>
+        <div class="form-group">
+          <input id="profile-new-pass2" type="password" class="form-input" placeholder="Confirmar nova senha" autocomplete="new-password" />
+        </div>
+        <p id="profile-pass-error" class="auth-error"></p>
+        <button id="btn-change-pass" class="btn btn--secondary btn--full">Trocar senha</button>
+      </div>
+    </div>
+
+    <!-- Modal: Detalhe do usuário (admin) -->
+    <div id="modal-user-detail" class="modal">
+      <div class="modal-sheet" style="position:relative">
+        <div class="modal-handle"></div>
+        <button class="modal-close-btn" onclick="document.getElementById('modal-user-detail').classList.remove('modal--open')">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <div id="user-detail-title" class="modal-title">Usuário</div>
+        <div id="user-detail-content"></div>
+      </div>
+    </div>
+
+    <!-- Modal: Novo usuário (admin) -->
+    <div id="modal-new-user" class="modal">
+      <div class="modal-sheet" style="position:relative">
+        <div class="modal-handle"></div>
+        <button id="btn-close-user-modal" class="modal-close-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <div class="modal-title">Cadastrar Usuário</div>
+
+        <form id="form-new-user" novalidate>
+          <div class="form-group">
+            <label class="form-label">Nome completo</label>
+            <input id="new-user-name" type="text" class="form-input" placeholder="Nome do usuário" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">E-mail</label>
+            <input id="new-user-email" type="email" class="form-input" placeholder="email@exemplo.com" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Senha inicial</label>
+            <input id="new-user-password" type="password" class="form-input" placeholder="Mínimo 6 caracteres" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Papel</label>
+            <select id="new-user-role" class="form-input form-select">
+              <option value="user">Usuário</option>
+              <option value="admin">Administrador</option>
+            </select>
+          </div>
+
+          <p id="user-create-error" class="auth-error"></p>
+
+          <button id="btn-submit-new-user" type="submit" class="btn btn--primary btn--full">
+            Criar Usuário
+          </button>
+        </form>
+      </div>
+    </div>
+
+  </div><!-- /app-root -->
+
+  <script type="module">
+    // Remove qualquer tag de auto-reload injetada por dev-servers
+    // (Live Server, browser-sync, etc.) nos fragmentos carregados via fetch.
+    // Mantido como defesa para as abas.
+    function stripInjectedScripts(html) {
+      // Montamos "script" por concatenação para que a tag literal de
+      // fechamento nunca apareça no codigo-fonte deste bloco — assim o
+      // analisador de HTML do editor nao pensa que o bloco terminou aqui
+      // (eram 4 avisos falsos no painel Problems). No navegador e identico.
+      const S = 'scr' + 'ipt';
+      const marked = new RegExp('<!--\\s*Code injected by live-server\\s*-->[\\s\\S]*?<\\/' + S + '>', 'gi');
+      const reload = new RegExp('<' + S + '\\b[^>]*(?:livereload|live-server|browser-sync|__browser_sync__|ws:\\/\\/)[^>]*>[\\s\\S]*?<\\/' + S + '>', 'gi');
+      return html.replace(marked, '').replace(reload, '');
+    }
+
+    async function loadModule(file, target, position = 'beforeend') {
+      const res = await fetch(file);
+      if (!res.ok) throw new Error(`Falha ao carregar módulo: ${file} (${res.status})`);
+      target.insertAdjacentHTML(position, stripInjectedScripts(await res.text()));
+    }
+
+    async function bootstrap() {
+      // O shell (loading + auth + app + bottom-nav) já está inline no HTML.
+      // Aqui só carregamos o conteúdo das abas e os modais.
+      const panels = document.querySelector('.tab-panels');
+      if (!panels) {
+        console.error('[CaronaApp] .tab-panels não encontrado no index.html');
+        return;
+      }
+
+      for (const tab of [
+        'summary/tab-summary.htm',
+        'calendar/tab-calendar.htm',
+        'payments/tab-payments.htm',
+        'admin/tab-admin.htm',
+      ]) {
+        try { await loadModule(tab, panels); }
+        catch (e) { console.error(`[CaronaApp] Aba não carregada: ${tab}`, e); }
+      }
+
+      // Os modais agora estão embutidos no index.html (não são mais buscados
+      // por fetch), então nada a carregar aqui.
+
+      if (window.lucide) window.lucide.createIcons();
+
+      const appModule = await import('./js/app.js');
+      if (typeof appModule.default === 'function') appModule.default();
+    }
+
+    bootstrap().catch(err => console.error('[CaronaApp] Erro fatal:', err));
+  </script>
+
+</body>
+</html>

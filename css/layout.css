@@ -1,0 +1,250 @@
+/* ============================================================
+   layout.css — App shell, header, bottom nav, tab panels
+   Premium Dark Gold — CaronaApp
+   ============================================================ */
+
+/* ── APP SHELL ───────────────────────────────────────────────── */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  max-width: 480px;
+  margin: 0 auto;
+  position: relative;
+  background: var(--bg);
+}
+
+/* ── HEADER ──────────────────────────────────────────────────── */
+.app-header {
+  padding: 1.1rem 1.5rem .9rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  flex-shrink: 0;
+  position: relative;
+}
+
+/* Linha dourada sutil no topo */
+.app-header::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 1.5rem; right: 1.5rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-border), transparent);
+}
+
+.app-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.app-header__brand {}
+
+.app-header__title {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  color: var(--accent);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.app-header__subtitle {
+  font-size: .65rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.06em;
+}
+
+.app-header__badge {
+  background: var(--accent-dim);
+  border: 1px solid var(--border-gold);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: .62rem;
+  padding: .25rem .65rem;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+}
+
+.app-header__user {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+}
+
+.header-user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.header-user-name {
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--text);
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header-role {
+  font-family: var(--font-mono);
+  font-size: .58rem;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+}
+
+.header-role--admin {
+  color: var(--accent);
+}
+
+.btn-logout {
+  width: 34px;
+  height: 34px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-light);
+  border-radius: 50%;
+  color: var(--text-muted);
+  font-size: .85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color .25s, border-color .25s, background .25s;
+}
+.btn-logout:hover {
+  color: var(--debt);
+  border-color: var(--debt);
+  background: var(--debt-dim);
+}
+
+/* ── TAB PANELS ──────────────────────────────────────────────── */
+.tab-panels {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 1rem);
+  /* Scrollbar elegante */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-light) transparent;
+}
+
+.tab-panel {
+  display: none;
+  animation: fadeSlideIn .3s ease;
+}
+.tab-panel--active {
+  display: block;
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── BOTTOM NAV ──────────────────────────────────────────────── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  height: calc(var(--nav-h) + var(--safe-bottom));
+  padding-bottom: var(--safe-bottom);
+  background: rgba(26, 26, 26, 0.80);
+  border-top: 1px solid var(--border);
+  display: flex;
+  z-index: 100;
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+}
+
+/* Linha dourada no topo da nav */
+.bottom-nav::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 10%; right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-border), transparent);
+}
+
+.nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-family: var(--font-display);
+  font-size: .6rem;
+  font-weight: 500;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  transition: color .25s;
+  position: relative;
+}
+
+.nav-btn__icon {
+  font-size: 1.25rem;
+  line-height: 1;
+  transition: transform .25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.nav-btn--active {
+  color: var(--accent);
+}
+
+.nav-btn--active .nav-btn__icon {
+  transform: translateY(-1px);
+}
+
+/* Indicador dourado no topo */
+.nav-btn--active::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 28px;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 0 0 3px 3px;
+  box-shadow: var(--accent-glow);
+}
+
+/* Ponto sutil sob o ícone ativo */
+.nav-btn--active::after {
+  content: "";
+  position: absolute;
+  bottom: 22px; left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: .4;
+}
+
+/* ── CONTROLE DE TELAS ───────────────────────────────────────── */
+/*
+  CORREÇÃO: ".screen { display:none !important }" derrubava
+  ".app.screen { display:flex }" pois !important vence qualquer especificidade.
+  Isso fazia o .app sumir mesmo logado, e o bottom-nav (position:fixed)
+  ficava flutuando sobre a auth-screen que tem z-index:500.
+  Solução: remover !important do seletor base — a cascata resolve corretamente.
+*/
+.screen                     { display: none; }
+.screen--visible            { display: flex !important; }
+.app.screen                 { display: flex; }
+.app.screen.screen--visible { display: flex !important; }

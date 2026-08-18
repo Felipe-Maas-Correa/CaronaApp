@@ -1,0 +1,199 @@
+/* ============================================================
+   summary.css — Tab Resumo: hero, stats, progress, activity
+   Premium Dark Gold — CaronaApp
+   ============================================================ */
+
+#tab-summary { padding-top: 1.25rem; }
+
+/* ── HERO ────────────────────────────────────────────────────── */
+.summary-hero {
+  margin: 0 1.25rem 1.25rem;
+  padding: 1.75rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Textura de fundo sutil */
+.summary-hero::before {
+  content: "";
+  position: absolute;
+  top: -60px; right: -60px;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(212,175,55,0.06) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Linha decorativa lateral */
+.summary-hero::after {
+  content: "";
+  position: absolute;
+  top: 1.75rem; bottom: 1.75rem; left: 0;
+  width: 3px;
+  background: linear-gradient(180deg, transparent, var(--accent), transparent);
+  border-radius: 0 2px 2px 0;
+}
+
+.summary-hero__label {
+  font-family: var(--font-mono);
+  font-size: .62rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  margin-bottom: .6rem;
+}
+
+.summary-hero__amount {
+  font-family: var(--font-mono);
+  font-size: 3rem;
+  font-weight: 500;
+  color: var(--debt);
+  line-height: 1;
+  margin-bottom: 1.25rem;
+  letter-spacing: -0.02em;
+}
+
+.summary-hero__amount.is-zero {
+  color: var(--accent);
+}
+
+/* ── PROGRESS ────────────────────────────────────────────────── */
+.progress-bar-wrap {
+  background: var(--bg-elevated);
+  height: 4px;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: .5rem;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent) 0%, var(--accent-soft) 100%);
+  border-radius: 999px;
+  transition: width .7s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+}
+
+.progress-label {
+  font-family: var(--font-mono);
+  font-size: .62rem;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+
+/* ── STATS GRID ──────────────────────────────────────────────── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: .6rem;
+  margin: 0 1.25rem 1.25rem;
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem .75rem;
+  text-align: center;
+  transition: border-color .25s, background .25s;
+}
+
+.stat-card:active {
+  background: var(--bg-elevated);
+}
+
+.stat-card__value {
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--text);
+  display: block;
+  letter-spacing: -0.02em;
+}
+
+.stat-card__label {
+  font-size: .58rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin-top: 4px;
+  line-height: 1.3;
+}
+
+/* ── RECEIVED CARD ───────────────────────────────────────────── */
+.received-card {
+  margin: 0 1.25rem 1.25rem;
+  padding: 1rem 1.25rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, var(--bg-card) 0%, rgba(212,175,55,0.04) 100%);
+}
+
+.received-card__label {
+  font-size: .72rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
+}
+
+.received-card__value {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--accent);
+}
+
+/* ── ACTIVITY ────────────────────────────────────────────────── */
+.activity-section {
+  margin: 0 1.25rem 1.25rem;
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+  padding: .75rem 0;
+  border-bottom: 1px solid var(--border);
+  transition: opacity .2s;
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-item__icon {
+  font-size: .9rem;
+  flex-shrink: 0;
+  width: 32px; height: 32px;
+  background: var(--bg-elevated);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+}
+
+.activity-item__info {
+  flex: 1;
+}
+
+.activity-item__label {
+  font-size: .82rem;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.activity-item__amount {
+  font-family: var(--font-mono);
+  font-size: .82rem;
+  font-weight: 600;
+  flex-shrink: 0;
+  color: var(--text);
+}

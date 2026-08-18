@@ -1,0 +1,44 @@
+<!-- ══ TAB: RESUMO ══════════════════════════════════════════ -->
+<div id="tab-summary" class="tab-panel tab-panel--active">
+  <div style="padding-top:1rem">
+    <div class="summary-hero">
+      <div class="summary-hero__label">Total em aberto</div>
+      <div id="sum-total-debt" class="summary-hero__amount">R$ 0,00</div>
+      <div class="progress-bar-wrap">
+        <div id="sum-progress-bar" class="progress-bar" style="width:0%"></div>
+      </div>
+      <div id="sum-progress-label" class="progress-label">0% das viagens pagas</div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span id="sum-total-trips" class="stat-card__value">0</span>
+        <span class="stat-card__label">Viagens</span>
+      </div>
+      <div class="stat-card">
+        <span id="sum-paid-trips" class="stat-card__value" style="color:var(--paid)">0</span>
+        <span class="stat-card__label">Pagas</span>
+      </div>
+      <div class="stat-card">
+        <span id="sum-unpaid-trips" class="stat-card__value" style="color:var(--debt)">0</span>
+        <span class="stat-card__label">Em aberto</span>
+      </div>
+    </div>
+
+    <div class="received-card">
+      <div>
+        <div class="received-card__label">Total recebido</div>
+        <div id="sum-total-received" class="received-card__value">R$ 0,00</div>
+      </div>
+      <div style="text-align:right">
+        <div class="received-card__label">Pagamentos</div>
+        <div id="sum-total-payments" class="received-card__value" style="color:var(--text)">0</div>
+      </div>
+    </div>
+
+    <div class="activity-section">
+      <div class="section-title">Atividade recente</div>
+      <div id="sum-recent-activity"><div class="loading-spinner"></div></div>
+    </div>
+  </div>
+</div>

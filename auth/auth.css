@@ -1,0 +1,182 @@
+/* ============================================================
+   auth.css — Tela de autenticação e formulários
+   Premium Dark Gold — CaronaApp
+   ============================================================ */
+
+/* ── AUTH SCREEN ─────────────────────────────────────────────── */
+.auth-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.75rem;
+  z-index: 200;
+  overflow-y: auto;
+  background-image:
+    radial-gradient(ellipse at 20% 20%, rgba(212,175,55,0.04) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(212,175,55,0.03) 0%, transparent 50%);
+}
+
+.auth-container {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+/* ── LOGO ────────────────────────────────────────────────────── */
+.auth-logo {
+  text-align: center;
+}
+
+.auth-logo__icon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: .65rem;
+  filter: drop-shadow(0 0 20px rgba(212,175,55,0.3));
+  opacity: 0.85;
+}
+
+.auth-logo__name {
+  font-family: var(--font-serif);
+  font-size: 2.1rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--text);
+}
+
+.auth-logo__name span {
+  color: var(--accent);
+}
+
+.auth-logo__sub {
+  font-size: .72rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  margin-top: .35rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+/* ── FORM ────────────────────────────────────────────────────── */
+.auth-form {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Brilho sutil no topo */
+.auth-form::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 20%; right: 20%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border-gold), transparent);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: .45rem;
+}
+
+.form-label {
+  font-size: .62rem;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .12em;
+}
+
+.form-input {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: .8rem 1.1rem;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: .9rem;
+  transition: border-color .25s, box-shadow .25s, background .25s;
+  -webkit-appearance: none;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--border-gold);
+  background: var(--bg-hover);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+.form-input::placeholder {
+  color: var(--text-dim);
+}
+
+.form-select {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%237a7570' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  padding-right: 2.5rem;
+}
+.form-select option {
+  background: var(--bg-card);
+}
+
+.input-wrap {
+  position: relative;
+}
+.input-wrap .form-input {
+  width: 100%;
+  padding-right: 3rem;
+}
+
+.input-eye {
+  position: absolute;
+  right: .8rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: .9rem;
+  cursor: pointer;
+  padding: .25rem;
+  color: var(--text-muted);
+  transition: color .2s;
+}
+.input-eye:hover {
+  color: var(--text);
+}
+
+/* ── FEEDBACK ────────────────────────────────────────────────── */
+.auth-error {
+  font-size: .75rem;
+  color: var(--debt);
+  font-family: var(--font-mono);
+  min-height: 1.2em;
+  text-align: center;
+  letter-spacing: 0.02em;
+}
+
+.auth-btn {
+  margin-top: .35rem;
+  padding: .9rem;
+  font-size: .95rem;
+  letter-spacing: .04em;
+}
+
+.auth-footer {
+  text-align: center;
+  font-size: .72rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}

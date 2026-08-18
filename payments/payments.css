@@ -1,0 +1,476 @@
+/* ============================================================
+   payments.css — Tab Pagamentos: cards, chips, upload de comprovante
+   Premium Dark Gold — CaronaApp
+   ============================================================ */
+
+#tab-payments { padding-top: 1.25rem; }
+
+/* ── HEADER ──────────────────────────────────────────────────── */
+.payments-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.25rem 1.1rem;
+}
+
+.payments-header h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: .01em;
+}
+
+.btn-new-payment {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-soft) 100%);
+  color: #0f0f0f;
+  border: none;
+  border-radius: var(--radius);
+  padding: .55rem .95rem;
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+  transition: opacity .2s, transform .15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow .2s;
+  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.2);
+}
+
+.btn-new-payment:active {
+  transform: scale(.93);
+  opacity: .9;
+}
+
+/* ── LISTA ───────────────────────────────────────────────────── */
+.payments-list {
+  padding: 0 1.25rem;
+}
+
+.payment-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.1rem 1.25rem;
+  margin-bottom: .75rem;
+  transition: border-color .2s, box-shadow .2s;
+  box-shadow: var(--shadow-sm);
+}
+
+.payment-card:active {
+  border-color: var(--border-gold);
+}
+
+.payment-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: .7rem;
+}
+
+.payment-card__amount {
+  font-family: var(--font-mono);
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: var(--accent);
+  letter-spacing: -0.02em;
+}
+
+.payment-card__meta {
+  font-size: .68rem;
+  color: var(--text-muted);
+  margin-top: 3px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+}
+
+.payment-card__actions {
+  display: flex;
+  gap: .4rem;
+}
+
+.payment-card__dates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .3rem;
+}
+
+/* ── DATE CHIP ───────────────────────────────────────────────── */
+.date-chip {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: .15rem .55rem;
+  font-family: var(--font-mono);
+  font-size: .62rem;
+  color: var(--text-muted);
+}
+
+.date-chip--more {
+  border-color: var(--border-gold);
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+
+/* ── MODAL DE NOVO PAGAMENTO ─────────────────────────────────── */
+.trips-select-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: .65rem;
+}
+
+.unpaid-trips-list {
+  max-height: 240px;
+  overflow-y: auto;
+  margin-bottom: 1.1rem;
+}
+
+.trip-check-item {
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+  padding: .7rem .6rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background .15s;
+  border: 1px solid transparent;
+}
+
+.trip-check-item:active {
+  background: var(--bg-hover);
+}
+
+.trip-check-item input[type="checkbox"] {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--accent);
+  flex-shrink: 0;
+}
+
+.trip-check-info {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+}
+
+.trip-check-date {
+  font-size: .85rem;
+  color: var(--text);
+}
+
+.trip-check-amount {
+  font-family: var(--font-mono);
+  font-size: .8rem;
+  color: var(--text-muted);
+}
+
+.payment-total-bar {
+  background: linear-gradient(135deg, var(--bg-elevated) 0%, rgba(212,175,55,0.05) 100%);
+  border-radius: var(--radius);
+  padding: .85rem;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: .85rem;
+  color: var(--text-muted);
+  margin-bottom: 1.1rem;
+  border: 1px solid var(--border-gold);
+}
+
+/* ── COMPROVANTE ─────────────────────────────────────────────── */
+.receipt-upload-area {
+  border: 1.5px dashed var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  margin-bottom: 1.1rem;
+  transition: border-color .25s, background .25s;
+  position: relative;
+}
+
+.receipt-upload-area:hover {
+  border-color: var(--border-gold);
+  background: var(--accent-dim);
+}
+
+.receipt-upload-area input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.receipt-upload-icon {
+  font-size: 1.35rem;
+  margin-bottom: .45rem;
+  opacity: .5;
+}
+
+.receipt-upload-label {
+  font-size: .78rem;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+.receipt-thumb {
+  width: 100%;
+  max-height: 120px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  margin-top: .5rem;
+}
+
+.receipt-file-icon {
+  font-size: .8rem;
+  color: var(--accent);
+  margin-top: .5rem;
+}
+
+/* ── CHAVE PIX ────────────────────────────────────────────────── */
+.pix-box {
+  background: var(--accent-dim);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius);
+  padding: .85rem 1rem;
+  margin-bottom: 1.1rem;
+}
+
+.pix-box__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: .5rem;
+}
+
+.pix-box__label {
+  font-family: var(--font-mono);
+  font-size: .62rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.pix-copy-btn {
+  background: var(--accent);
+  color: #0f0f0f;
+  border: none;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .03em;
+  padding: .3rem .8rem;
+  transition: background .2s, transform .1s;
+}
+.pix-copy-btn:active { transform: scale(.96); }
+.pix-copy-btn--done  { background: #00cec9; color: #0f0f0f; }
+
+.pix-box__key {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: .8rem;
+  color: var(--text);
+  word-break: break-all;
+  line-height: 1.4;
+  user-select: all;
+  -webkit-user-select: all;
+}
+
+.pix-box__hint {
+  font-size: .65rem;
+  color: var(--text-muted);
+  margin-top: .5rem;
+  line-height: 1.35;
+}
+
+/* ── VISUALIZAÇÃO DO COMPROVANTE ─────────────────────────────── */
+.receipt-full-img {
+  width: 100%;
+  border-radius: var(--radius);
+  margin-bottom: 1.1rem;
+  box-shadow: var(--shadow);
+}
+
+.receipt-iframe {
+  width: 100%;
+  height: 60dvh;
+  border: none;
+  border-radius: var(--radius);
+  margin-bottom: 1.1rem;
+}
+/* ============================================================
+   CALENDÁRIO DE SELEÇÃO DE PAGAMENTO
+   ============================================================ */
+
+.pay-cal-header {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin-bottom: .75rem;
+}
+
+.pay-cal-nav {
+  width: 30px;
+  height: 30px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--text);
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s, border-color .15s;
+  flex-shrink: 0;
+}
+.pay-cal-nav:active {
+  background: var(--bg-hover);
+  border-color: var(--border-gold);
+}
+
+.pay-cal-label {
+  flex: 1;
+  text-align: center;
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: .02em;
+}
+
+/* Grid */
+.pay-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+  margin-bottom: .75rem;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none; /* permite captura de pointermove sem scroll */
+}
+
+.pcal-weekday {
+  text-align: center;
+  font-size: .6rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: .2rem 0 .4rem;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.pcal-day {
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: .78rem;
+  color: var(--text-muted);
+  position: relative;
+  transition: background .1s, transform .1s;
+  cursor: default;
+}
+
+.pcal-day--empty { visibility: hidden; }
+
+.pcal-day--disabled {
+  opacity: .28;
+  cursor: default;
+}
+
+.pcal-day--weekend {
+  color: var(--text-muted);
+}
+
+.pcal-day--today .pcal-day__num {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* FIX: quando o dia de hoje está selecionado, o número ficava preto sobre
+   fundo preto. Forçamos branco para manter legibilidade. */
+.pcal-day--today.pcal-day--selected .pcal-day__num {
+  color: #0f0f0f;
+}
+
+/* Anel branco ao redor do número de hoje para destacar mesmo quando selecionado */
+.pcal-day--today .pcal-day__num::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  pointer-events: none;
+}
+.pcal-day--today.pcal-day--selected .pcal-day__num::after {
+  border-color: #0f0f0f;
+}
+
+.pcal-day__num {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  font-size: .78rem;
+}
+
+/* Dia com viagem em aberto — clicável */
+.pcal-day--unpaid {
+  cursor: pointer;
+  color: var(--text);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+}
+.pcal-day--unpaid:active {
+  transform: scale(.9);
+}
+
+/* Dia selecionado */
+.pcal-day--selected {
+  cursor: pointer;
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  color: #0f0f0f;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(212,175,55,0.35);
+}
+.pcal-day--selected .pcal-day__dot {
+  background: #0f0f0f;
+}
+
+/* regra movida para cima, junto com position:relative */
+
+/* Ponto indicador de viagem */
+.pcal-day__dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+/* Legenda */
+.pay-cal-legend {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: .85rem;
+}
+.pay-cal-legend__item {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  font-size: .68rem;
+  color: var(--text-muted);
+}
+.pay-cal-legend__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.pay-cal-legend__dot--unpaid   { background: var(--bg-elevated); border: 1px solid var(--border); }
+.pay-cal-legend__dot--selected { background: var(--accent); }

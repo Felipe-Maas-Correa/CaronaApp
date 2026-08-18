@@ -1,0 +1,320 @@
+/* ============================================================
+   calendar.css — Tab Calendário: grid, stats do mês, legenda
+   Premium Dark Gold — CaronaApp
+   ============================================================ */
+
+#tab-calendar { padding-top: 1.25rem; }
+
+/* ── HEADER DO MÊS ───────────────────────────────────────────── */
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.25rem .85rem;
+}
+
+.calendar-month-label {
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: .01em;
+}
+
+.calendar-nav-btns {
+  display: flex;
+  gap: .4rem;
+}
+
+.btn-today {
+  font-size: .62rem;
+  font-family: var(--font-mono);
+  padding: 0 .65rem;
+  width: auto;
+  color: var(--accent);
+  border-color: var(--border-gold);
+  background: var(--accent-dim);
+  letter-spacing: 0.04em;
+}
+
+/* ── GRID ────────────────────────────────────────────────────── */
+.calendar-wrap {
+  position: relative;
+  margin: 0 1.25rem .85rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  padding: 1rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.calendar-loading {
+  position: absolute;
+  inset: 0;
+  background: var(--bg-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border-radius: var(--radius-xl);
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  transition: opacity .2s;
+}
+
+.cal-weekday {
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: .58rem;
+  color: var(--text-dim);
+  padding: .3rem 0 .6rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+/* ── DIA ─────────────────────────────────────────────────────── */
+.cal-day {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  cursor: pointer;
+  position: relative;
+  transition: background .15s, transform .12s, opacity .15s;
+  border: 1px solid transparent;
+}
+
+.cal-day:active {
+  transform: scale(.88);
+}
+
+.cal-day--empty {
+  background: transparent;
+  border-color: transparent;
+  cursor: default;
+  pointer-events: none;
+}
+
+.cal-day--weekend .cal-day__number {
+  color: var(--text-muted);
+}
+
+.cal-day--today {
+  background: var(--bg-elevated);
+  border-color: var(--border-gold) !important;
+}
+.cal-day--today .cal-day__number {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.cal-day--paid {
+  background: var(--accent-dim);
+  border-color: rgba(212, 175, 55, 0.2);
+}
+.cal-day--paid .cal-day__number {
+  color: var(--accent);
+}
+
+.cal-day--unpaid {
+  background: var(--debt-dim);
+  border-color: rgba(224, 92, 92, 0.2);
+}
+.cal-day--unpaid .cal-day__number {
+  color: var(--debt);
+}
+
+.cal-day__number {
+  font-family: var(--font-mono);
+  font-size: .72rem;
+  line-height: 1;
+  color: var(--text-muted);
+}
+
+.cal-day__badge {
+  font-size: .5rem;
+  line-height: 1;
+  opacity: .75;
+}
+
+.cal-day--paid   .cal-day__badge { color: var(--accent); }
+.cal-day--unpaid .cal-day__badge { color: var(--debt); }
+
+/* ── AVALIAÇÃO (estrelas + velocidade) ───────────────────────── */
+.rate-block { margin-top: 1rem; text-align: center; }
+.rate-label {
+  font-family: var(--font-mono);
+  font-size: .62rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: .6rem 0 .4rem;
+  text-align: center;
+}
+.rate-stars { display: flex; gap: .35rem; justify-content: center; }
+.rate-star {
+  background: none;
+  border: none;
+  padding: 2px;
+  color: var(--text-dim);
+  line-height: 0;
+  transition: transform .1s;
+}
+.rate-star:active { transform: scale(1.2); }
+.rate-star .lucide { width: 30px; height: 30px; stroke: currentColor; stroke-width: 1.6; fill: none; }
+.rate-star.is-on { color: var(--accent); }
+.rate-star.is-on .lucide { fill: var(--accent); stroke: var(--accent); }
+
+.rate-speeds { display: flex; gap: .5rem; }
+.rate-speed {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .25rem;
+  padding: .6rem .3rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  transition: border-color .2s, background .2s;
+}
+.rate-speed__emoji {
+  /* Renderiza os MESMOS emojis (🐢 🚗 🏎️) com a fonte Noto Emoji
+     monocromática, em vez do emoji colorido do sistema. Assim eles
+     viram glifos de cor única que herdam o `color` do card: cinza
+     quando não selecionado e dourado quando selecionado — integrando
+     com a identidade da CaronaApp, sem trocar o conceito. */
+  font-family: 'Noto Emoji', sans-serif;
+  font-variant-emoji: text;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: inherit;
+  transition: color .2s;
+}
+.rate-speed__label { font-size: .58rem; letter-spacing: .02em; }
+.rate-speed.is-on {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+/* ── LISTA DE PASSAGEIROS (admin) ────────────────────────────── */
+.pax-list {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  max-height: 46vh;
+  overflow-y: auto;
+  margin: .5rem 0;
+  padding-right: 2px;
+}
+.pax-item {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  padding: .55rem .7rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+}
+.pax-item:active { background: var(--bg-hover); }
+.pax-item input { width: 18px; height: 18px; accent-color: var(--accent); flex-shrink: 0; }
+.pax-item--locked { opacity: .7; cursor: default; }
+.pax-item__avatar {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-light);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .72rem; font-weight: 700; color: var(--text-muted);
+  flex-shrink: 0;
+}
+.pax-item__name {
+  flex: 1;
+  font-size: .85rem;
+  color: var(--text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pax-item__tag {
+  font-size: .58rem;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.pax-item--locked .pax-item__tag { color: var(--accent); }
+
+/* ── STATS DO MÊS ────────────────────────────────────────────── */
+.month-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: .6rem;
+  margin: 0 1.25rem 1.25rem;
+}
+
+.month-stat {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .85rem 1rem;
+}
+
+.month-stat__label {
+  font-size: .6rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  margin-bottom: .3rem;
+}
+
+.month-stat__value {
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.month-stat--debt .month-stat__value {
+  color: var(--debt);
+}
+
+/* ── LEGENDA ─────────────────────────────────────────────────── */
+.calendar-legend {
+  display: flex;
+  gap: 1.25rem;
+  justify-content: center;
+  padding: 0 1.25rem .85rem;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  font-size: .62rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
+}
+
+.legend-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.legend-dot--paid   { background: var(--accent); }
+.legend-dot--unpaid { background: var(--debt); }
+.legend-dot--none   { background: var(--bg-elevated); border: 1px solid var(--border-light); }
