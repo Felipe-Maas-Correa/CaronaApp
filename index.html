@@ -424,7 +424,10 @@
     }
 
     async function loadModule(file, target, position = 'beforeend') {
-      const res = await fetch(file);
+      // Cache-busting: evita que dev-servers (Go Live/Live Server) sirvam uma
+      // versão velha/parcial do fragmento — causa de abas carregando pela metade.
+      const url = file + (file.includes('?') ? '&' : '?') + 'v=' + Date.now();
+      const res = await fetch(url, { cache: 'no-store' });
       if (!res.ok) throw new Error(`Falha ao carregar módulo: ${file} (${res.status})`);
       target.insertAdjacentHTML(position, stripInjectedScripts(await res.text()));
     }
