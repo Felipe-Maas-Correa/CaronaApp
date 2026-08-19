@@ -3,9 +3,19 @@
   <div class="calendar-header">
     <span id="calendar-month-label" class="calendar-month-label">—</span>
     <div class="calendar-nav-btns">
+      <button id="btn-multi-toggle" class="btn-nav btn-multi hidden">Vários dias</button>
       <button id="btn-today" class="btn-nav btn-today">Hoje</button>
       <button id="btn-prev-month" class="btn-nav">‹</button>
       <button id="btn-next-month" class="btn-nav">›</button>
+    </div>
+  </div>
+
+  <!-- Barra de ação do modo "vários dias" (admin) -->
+  <div id="multi-bar" class="multi-bar hidden">
+    <span class="multi-bar__count"><strong id="multi-count">0</strong> dia(s) selecionado(s)</span>
+    <div class="multi-bar__actions">
+      <button id="btn-multi-cancel" class="btn btn--secondary">Cancelar</button>
+      <button id="btn-multi-apply" class="btn btn--primary">Marcar passageiros</button>
     </div>
   </div>
 
