@@ -405,14 +405,21 @@
     // (Live Server, browser-sync, etc.) nos fragmentos carregados via fetch.
     // Mantido como defesa para as abas.
     function stripInjectedScripts(html) {
-      // Montamos "script" por concatenação para que a tag literal de
-      // fechamento nunca apareça no codigo-fonte deste bloco — assim o
-      // analisador de HTML do editor nao pensa que o bloco terminou aqui
-      // (eram 4 avisos falsos no painel Problems). No navegador e identico.
+      // Os fragmentos de aba (.htm) NÃO contêm nenhum <script> legítimo.
+      // Dev-servers (Live Server, browser-sync, etc.) injetam um script de
+      // auto-reload dentro deles; se sobrar qualquer resquício, a inserção
+      // via insertAdjacentHTML pode cortar o restante do fragmento (era o
+      // bug do painel admin aparecendo pela metade). Então removemos QUALQUER
+      // <script>...</script> e o comentário marcador — assim é imune a
+      // variações de formato entre versões desses servidores.
+      // Montamos "script" por concatenação para a tag literal de fechamento
+      // nunca aparecer no código-fonte deste bloco (evita avisos falsos no
+      // editor). No navegador é idêntico.
       const S = 'scr' + 'ipt';
-      const marked = new RegExp('<!--\\s*Code injected by live-server\\s*-->[\\s\\S]*?<\\/' + S + '>', 'gi');
-      const reload = new RegExp('<' + S + '\\b[^>]*(?:livereload|live-server|browser-sync|__browser_sync__|ws:\\/\\/)[^>]*>[\\s\\S]*?<\\/' + S + '>', 'gi');
-      return html.replace(marked, '').replace(reload, '');
+      const anyScript = new RegExp('<' + S + '\\b[\\s\\S]*?<\\/' + S + '>', 'gi');
+      const looseOpen = new RegExp('<' + S + '\\b[^>]*>', 'gi'); // tag de abertura solta
+      const marker    = /<!--\s*Code injected by live-server\s*-->/gi;
+      return html.replace(anyScript, '').replace(looseOpen, '').replace(marker, '');
     }
 
     async function loadModule(file, target, position = 'beforeend') {
