@@ -7,7 +7,7 @@ import {
   doc, updateDoc, deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../js/firebase-config.js";
-import { getAllTrips, getAllPayments, getAllUsers, getTripValue, setTripValueSetting } from "../js/db.js";
+import { getAllTrips, getAllPayments, getAllUsers, getTripValue, setTripValueSetting, clearTripsAndPayments } from "../js/db.js";
 import { registerUser, currentProfile } from "../auth/auth.js";
 import { showToast, formatDateTime, formatCurrency, icon, escapeHtml, todayISO } from "../js/utils.js";
 
@@ -47,6 +47,9 @@ function bindAdminEvents() {
 
   // Exportar CSV
   document.getElementById("btn-export-csv")?.addEventListener("click", exportCSV);
+
+  // Limpar dados de teste (viagens + pagamentos)
+  document.getElementById("btn-clear-data")?.addEventListener("click", confirmClearData);
 
   // Valor da viagem: campo, stepper e salvar
   const priceInput = document.getElementById("adm-price-input");
@@ -394,6 +397,56 @@ function confirmDeleteUser(uid) {
     }
   };
   btnNo.onclick = () => modal.classList.remove("modal--open");
+}
+
+// ── LIMPAR DADOS DE TESTE ─────────────────────────────────────
+
+// Reutiliza o modal de confirmação com uma mensagem e uma ação.
+function askConfirm(message, onYes) {
+  const modal  = document.getElementById("modal-confirm");
+  const msg    = document.getElementById("confirm-message");
+  const btnYes = document.getElementById("btn-confirm-yes");
+  const btnNo  = document.getElementById("btn-confirm-no");
+
+  msg.textContent = message;
+  modal.classList.add("modal--open");
+
+  btnYes.onclick = () => { modal.classList.remove("modal--open"); onYes(); };
+  btnNo.onclick  = () => modal.classList.remove("modal--open");
+}
+
+function confirmClearData() {
+  const nTrips = cache.trips.length;
+  const nPays  = cache.payments.length;
+
+  if (nTrips === 0 && nPays === 0) {
+    showToast("Não há viagens nem pagamentos para apagar.", "info");
+    return;
+  }
+
+  // 1ª confirmação
+  askConfirm(
+    `Apagar ${nTrips} viagem(ns) e ${nPays} pagamento(s)? Os usuários e o valor da viagem serão mantidos.`,
+    () => {
+      // 2ª confirmação (ação irreversível)
+      askConfirm("Tem certeza? Esta ação NÃO pode ser desfeita.", doClearData);
+    }
+  );
+}
+
+async function doClearData() {
+  const btn = document.getElementById("btn-clear-data");
+  if (btn) { btn.disabled = true; btn.style.opacity = ".6"; }
+  try {
+    const { trips, payments } = await clearTripsAndPayments();
+    showToast(`Limpo: ${trips} viagem(ns) e ${payments} pagamento(s).`, "success");
+    await loadUsersList();
+  } catch (e) {
+    console.error(e);
+    showToast("Erro ao limpar os dados.", "error");
+  } finally {
+    if (btn) { btn.disabled = false; btn.style.opacity = "1"; }
+  }
 }
 
 // ── CRIAR USUÁRIO ─────────────────────────────────────────────

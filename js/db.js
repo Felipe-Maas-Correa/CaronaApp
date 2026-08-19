@@ -177,6 +177,30 @@ export async function getAllUsers() {
   return snap.docs.map(d => d.data());
 }
 
+/**
+ * Apaga TODAS as viagens e pagamentos (limpeza de dados de teste).
+ * Mantém usuários e configurações. Ação irreversível.
+ * Deleta em lotes de 400 para respeitar o limite de 500 do writeBatch.
+ * @returns {Promise<{trips:number, payments:number}>} quantidades apagadas
+ */
+export async function clearTripsAndPayments() {
+  const counts = { trips: 0, payments: 0 };
+
+  for (const coll of ["trips", "payments"]) {
+    const snap = await getDocs(collection(db, coll));
+    const docs = snap.docs;
+    counts[coll] = docs.length;
+
+    for (let i = 0; i < docs.length; i += 400) {
+      const batch = writeBatch(db);
+      for (const d of docs.slice(i, i + 400)) batch.delete(d.ref);
+      await batch.commit();
+    }
+  }
+
+  return counts;
+}
+
 // ── HELPERS ──────────────────────────────────────────────────
 
 // Converte Firestore Timestamp | Date | número em milissegundos
