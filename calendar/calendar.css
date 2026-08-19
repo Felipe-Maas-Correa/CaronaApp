@@ -256,16 +256,17 @@
 .pax-item--locked .pax-item__tag { color: var(--accent); }
 .pax-item__remove {
   flex-shrink: 0;
-  width: 30px; height: 30px;
+  width: 34px; height: 34px;
   display: flex; align-items: center; justify-content: center;
-  border: 1px solid #ff6b6b44;
-  border-radius: 8px;
-  background: transparent;
-  color: #ff6b6b;
+  border: none;
+  border-radius: 9px;
+  background: #ff5b5b;
+  color: #fff;
   cursor: pointer;
+  box-shadow: 0 1px 4px rgba(255, 91, 91, .35);
 }
-.pax-item__remove:active { background: #ff6b6b22; }
-.pax-item__remove svg { width: 15px; height: 15px; }
+.pax-item__remove:active { background: #e04545; transform: scale(.92); }
+.pax-item__remove svg { width: 17px; height: 17px; stroke: #fff; fill: none; }
 
 /* ── STATS DO MÊS ────────────────────────────────────────────── */
 .month-stats {
