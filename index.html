@@ -405,16 +405,16 @@
     // (Live Server, browser-sync, etc.) nos fragmentos carregados via fetch.
     // Mantido como defesa para as abas.
     function stripInjectedScripts(html) {
-      // Os fragmentos de aba (.htm) NÃO contêm nenhum <script> legítimo.
+      // Os fragmentos de aba (.htm) NAO contem nenhum script legitimo.
       // Dev-servers (Live Server, browser-sync, etc.) injetam um script de
-      // auto-reload dentro deles; se sobrar qualquer resquício, a inserção
+      // auto-reload dentro deles; se sobrar qualquer resquicio, a insercao
       // via insertAdjacentHTML pode cortar o restante do fragmento (era o
-      // bug do painel admin aparecendo pela metade). Então removemos QUALQUER
-      // <script>...</script> e o comentário marcador — assim é imune a
-      // variações de formato entre versões desses servidores.
-      // Montamos "script" por concatenação para a tag literal de fechamento
-      // nunca aparecer no código-fonte deste bloco (evita avisos falsos no
-      // editor). No navegador é idêntico.
+      // bug do painel admin aparecendo pela metade). Entao removemos QUALQUER
+      // bloco de script e o comentario marcador — assim e imune a variacoes
+      // de formato entre versoes desses servidores.
+      // Montamos a palavra por concatenacao para a tag literal de fechamento
+      // nunca aparecer no codigo-fonte deste bloco (senao o parser de HTML
+      // encerraria este script aqui). No navegador e identico.
       const S = 'scr' + 'ipt';
       const anyScript = new RegExp('<' + S + '\\b[\\s\\S]*?<\\/' + S + '>', 'gi');
       const looseOpen = new RegExp('<' + S + '\\b[^>]*>', 'gi'); // tag de abertura solta
