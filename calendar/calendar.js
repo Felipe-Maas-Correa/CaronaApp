@@ -321,7 +321,7 @@ function openDayModalAdmin(dateStr, isWeekend) {
       <label class="pax-item ${paid ? "pax-item--locked" : ""}">
         <input type="checkbox" class="pax-check" data-uid="${u.uid}" data-name="${escapeHtml(u.name || "")}"
           ${checked ? "checked" : ""} ${paid ? "disabled" : ""}>
-        <span class="pax-item__avatar">${escapeHtml((u.name || "?").charAt(0).toUpperCase())}</span>
+        <span class="pax-item__avatar">${u.photo ? `<img src="${u.photo}" alt="" class="avatar-img">` : escapeHtml((u.name || "?").charAt(0).toUpperCase())}</span>
         <span class="pax-item__name">${escapeHtml(u.name || "—")}</span>
         <span class="pax-item__tag">${paid ? "pago" : (checked ? "em aberto" : "")}</span>
         ${removeBtn}

@@ -14,6 +14,12 @@ import { showToast, formatDateTime, formatCurrency, icon, escapeHtml, todayISO }
 // Valor de cada viagem (respeita preços diferentes ao longo do tempo)
 const amt = t => (typeof t.amount === "number" ? t.amount : 15);
 
+// Conteúdo de um avatar: foto (se houver) ou a inicial do nome.
+function avatarInner(name, photo) {
+  if (photo) return `<img src="${photo}" alt="" class="avatar-img">`;
+  return escapeHtml((name || "?").charAt(0).toUpperCase());
+}
+
 // Estado
 let currentPeriod = "month";
 let cache = { trips: [], payments: [], users: [] };
@@ -205,10 +211,11 @@ function renderPerUser() {
     if (t.paid) u.paid += amt(t); else u.open += amt(t);
   }
 
-  // Nome mais atual vindo do cadastro
+  // Nome/foto mais atuais vindos do cadastro
   for (const u of byUser.values()) {
     const prof = cache.users.find(x => x.uid === u.uid);
-    if (prof?.name) u.name = prof.name;
+    if (prof?.name)  u.name  = prof.name;
+    if (prof?.photo) u.photo = prof.photo;
   }
 
   const rows = [...byUser.values()].sort((a, b) => (b.open - a.open) || (b.count - a.count));
@@ -220,7 +227,7 @@ function renderPerUser() {
 
   container.innerHTML = rows.map(u => `
     <button class="adm-user" data-user-detail="${u.uid}">
-      <div class="adm-user__avatar" style="background:${avatarColor(u.name)}">${escapeHtml((u.name || "?").charAt(0).toUpperCase())}</div>
+      <div class="adm-user__avatar" style="background:${avatarColor(u.name)}">${avatarInner(u.name, u.photo)}</div>
       <div class="adm-user__info">
         <div class="adm-user__name">${escapeHtml(u.name || "—")}</div>
         <div class="adm-user__sub">${u.count} viagem(ns)</div>
@@ -311,7 +318,7 @@ function renderUserCard(user) {
   return `
     <div class="user-card ${!isActive ? "user-card--inactive" : ""}">
       <div class="user-card__avatar" style="background:${avatarColor(user.name)}">
-        ${escapeHtml(user.name?.charAt(0).toUpperCase() || "?")}
+        ${avatarInner(user.name, user.photo)}
       </div>
       <div class="user-card__info">
         <div class="user-card__name">
