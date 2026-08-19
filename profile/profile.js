@@ -41,6 +41,7 @@ async function openProfile() {
 
   document.getElementById("profile-name").value = currentProfile?.name || "";
   renderPhoto(currentProfile?.photo || null);
+  renderRegistered();
 
   // limpa campos de senha
   document.getElementById("profile-new-pass").value  = "";
@@ -50,6 +51,15 @@ async function openProfile() {
   document.getElementById("modal-profile").classList.add("modal--open");
 
   await renderStats();
+}
+
+function renderRegistered() {
+  const el = document.getElementById("profile-registered");
+  if (!el) return;
+  const ms = toMillis(currentProfile?.createdAt);
+  el.textContent = ms
+    ? `Registrado em ${new Date(ms).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}`
+    : "";
 }
 
 function renderPhoto(dataUrl) {

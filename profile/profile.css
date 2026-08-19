@@ -65,6 +65,12 @@
   transition: background .2s;
 }
 .profile-photo-edit:active { background: var(--accent-dim); }
+.profile-registered {
+  font-size: .68rem;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  letter-spacing: .03em;
+}
 
 /* ── ESTATÍSTICAS ────────────────────────────────────────────── */
 .profile-stats {
