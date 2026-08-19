@@ -254,6 +254,18 @@
   text-transform: uppercase;
 }
 .pax-item--locked .pax-item__tag { color: var(--accent); }
+.pax-item__remove {
+  flex-shrink: 0;
+  width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid #ff6b6b44;
+  border-radius: 8px;
+  background: transparent;
+  color: #ff6b6b;
+  cursor: pointer;
+}
+.pax-item__remove:active { background: #ff6b6b22; }
+.pax-item__remove svg { width: 15px; height: 15px; }
 
 /* ── STATS DO MÊS ────────────────────────────────────────────── */
 .month-stats {

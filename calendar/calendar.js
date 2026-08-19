@@ -310,6 +310,13 @@ function openDayModalAdmin(dateStr, isWeekend) {
     const trip   = tripByUid.get(u.uid);
     const paid   = !!trip?.paid;
     const checked = !!trip;
+    // Só admin, e só quando o passageiro JÁ tem viagem no dia, mostra a lixeira.
+    const removeBtn = checked
+      ? `<button type="button" class="pax-item__remove" title="Remover viagem"
+           data-remove-uid="${u.uid}" data-remove-name="${escapeHtml(u.name || "")}" data-remove-paid="${paid}">
+           ${icon("trash")}
+         </button>`
+      : "";
     return `
       <label class="pax-item ${paid ? "pax-item--locked" : ""}">
         <input type="checkbox" class="pax-check" data-uid="${u.uid}" data-name="${escapeHtml(u.name || "")}"
@@ -317,6 +324,7 @@ function openDayModalAdmin(dateStr, isWeekend) {
         <span class="pax-item__avatar">${escapeHtml((u.name || "?").charAt(0).toUpperCase())}</span>
         <span class="pax-item__name">${escapeHtml(u.name || "—")}</span>
         <span class="pax-item__tag">${paid ? "pago" : (checked ? "em aberto" : "")}</span>
+        ${removeBtn}
       </label>
     `;
   }).join("");
@@ -335,6 +343,48 @@ function openDayModalAdmin(dateStr, isWeekend) {
     const date = e.target.closest("button").dataset.date;
     await savePassengers(date);
   });
+
+  // Remover viagem individual (admin) — inclusive se já estiver paga.
+  content.querySelectorAll(".pax-item__remove").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      // Não deixa o clique marcar/desmarcar o checkbox do label.
+      e.preventDefault();
+      e.stopPropagation();
+      const uid  = btn.dataset.removeUid;
+      const name = btn.dataset.removeName || "este passageiro";
+      const paid = btn.dataset.removePaid === "true";
+      const msg  = paid
+        ? `Remover a viagem PAGA de ${name} em ${formatDate(dateStr, "short")}? O pagamento já registrado NÃO será alterado.`
+        : `Remover a viagem de ${name} em ${formatDate(dateStr, "short")}?`;
+      askConfirm(msg, () => removeTrip(uid, dateStr));
+    });
+  });
+}
+
+// Confirmação reutilizando o modal padrão do app.
+function askConfirm(message, onYes) {
+  const modal  = document.getElementById("modal-confirm");
+  const msg    = document.getElementById("confirm-message");
+  const btnYes = document.getElementById("btn-confirm-yes");
+  const btnNo  = document.getElementById("btn-confirm-no");
+  msg.textContent = message;
+  modal.classList.add("modal--open");
+  btnYes.onclick = () => { modal.classList.remove("modal--open"); onYes(); };
+  btnNo.onclick  = () => modal.classList.remove("modal--open");
+}
+
+async function removeTrip(uid, dateStr) {
+  if (!isAdmin()) return; // trava extra no cliente (as regras garantem no servidor)
+  try {
+    await deleteTrip(uid, dateStr);
+    closeModal("modal-day");
+    await loadAndRender();
+    await refreshSummary();
+    showToast("Viagem removida.", "info");
+  } catch (e) {
+    console.error(e);
+    showToast("Erro ao remover a viagem", "error");
+  }
 }
 
 async function savePassengers(dateStr) {
