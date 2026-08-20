@@ -215,10 +215,12 @@ function renderMonthStats() {
 
   const unpaid = total - paid;
 
-  // Dívida = soma dos valores das viagens em aberto (respeita preços variados)
+  // Dívida = soma das viagens em aberto cuja data já chegou (<= hoje).
+  // Dias futuros já marcados ainda não são dívida.
   let debt = 0;
+  const today = todayISO();
   const lists = isAdmin() ? Object.values(dayTrips) : [Object.values(tripsMap)];
-  lists.forEach(list => list.forEach(t => { if (!t.paid) debt += (t.amount ?? 15); }));
+  lists.forEach(list => list.forEach(t => { if (!t.paid && t.date <= today) debt += (t.amount ?? 15); }));
 
   document.getElementById("month-total-trips").textContent  = total;
   document.getElementById("month-paid-trips").textContent   = paid;

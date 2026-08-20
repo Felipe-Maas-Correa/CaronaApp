@@ -160,8 +160,10 @@ function renderPeriodStats() {
   const total     = trips.length;
   const rate      = total > 0 ? Math.round((paidCount / total) * 100) : 0;
 
+  // "Em aberto" só conta dias que já chegaram (<= hoje); futuros são agendados.
+  const today    = todayISO();
   const received = trips.filter(t => t.paid).reduce((s, t) => s + amt(t), 0);
-  const open     = trips.filter(t => !t.paid).reduce((s, t) => s + amt(t), 0);
+  const open     = trips.filter(t => !t.paid && t.date <= today).reduce((s, t) => s + amt(t), 0);
 
   setText("adm-received", formatCurrency(received));
   setText("adm-open",     formatCurrency(open));
@@ -202,13 +204,15 @@ function renderPerUser() {
   const range = getPeriodRange(currentPeriod);
   const trips = cache.trips.filter(t => inPeriod(t.date, range));
 
-  // Agrupa por uid (paid/open em VALOR)
+  // Agrupa por uid (paid/open em VALOR). "open" só conta dias já chegados.
+  const today = todayISO();
   const byUser = new Map();
   for (const t of trips) {
     if (!byUser.has(t.uid)) byUser.set(t.uid, { uid: t.uid, name: t.userName, count: 0, paid: 0, open: 0 });
     const u = byUser.get(t.uid);
     u.count++;
-    if (t.paid) u.paid += amt(t); else u.open += amt(t);
+    if (t.paid) u.paid += amt(t);
+    else if (t.date <= today) u.open += amt(t);
   }
 
   // Nome/foto mais atuais vindos do cadastro
@@ -251,11 +255,12 @@ function openUserDetail(uid) {
   const trips = cache.trips.filter(t => t.uid === uid);
   const name  = prof?.name || trips[0]?.userName || "Usuário";
 
+  const today = todayISO();
   const stat = (period) => {
     const r = getPeriodRange(period);
     const t = trips.filter(x => inPeriod(x.date, r));
     const paid = t.filter(x => x.paid).reduce((s, x) => s + amt(x), 0);
-    const open = t.filter(x => !x.paid).reduce((s, x) => s + amt(x), 0);
+    const open = t.filter(x => !x.paid && x.date <= today).reduce((s, x) => s + amt(x), 0);
     return { trips: t.length, paid, open };
   };
 
@@ -493,13 +498,15 @@ async function handleCreateUser(e) {
 // ── EXPORTAR CSV ─────────────────────────────────────────────
 
 function exportCSV() {
-  // Consolida por usuário (histórico completo)
+  // Consolida por usuário (histórico completo). "open" só conta dias já chegados.
+  const today = todayISO();
   const byUser = new Map();
   for (const t of cache.trips) {
     if (!byUser.has(t.uid)) byUser.set(t.uid, { name: t.userName, count: 0, paid: 0, open: 0 });
     const u = byUser.get(t.uid);
     u.count++;
-    if (t.paid) u.paid += amt(t); else u.open += amt(t);
+    if (t.paid) u.paid += amt(t);
+    else if (t.date <= today) u.open += amt(t);
   }
   for (const prof of cache.users) {
     if (!byUser.has(prof.uid)) byUser.set(prof.uid, { name: prof.name, count: 0, paid: 0, open: 0 });

@@ -101,6 +101,8 @@ async function renderStats() {
     const todayMs = Date.now();
     for (const t of trips) {
       const tripMs = new Date(t.date + "T12:00:00").getTime();
+      // Viagem em aberto de um dia que ainda não chegou não conta (é agendada).
+      if (!t.paid && tripMs > todayMs) continue;
       const endMs = t.paid ? (payDateById.get(t.paymentId) || tripMs) : todayMs;
       const d = Math.floor((endMs - tripMs) / 86400000);
       if (d > maxUnpaid) maxUnpaid = d;
