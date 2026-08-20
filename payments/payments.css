@@ -474,3 +474,62 @@
 }
 .pay-cal-legend__dot--unpaid   { background: var(--bg-elevated); border: 1px solid var(--border); }
 .pay-cal-legend__dot--selected { background: var(--accent); }
+/* ── Validação do comprovante (PDF) ─────────────────────────── */
+.receipt-check {
+  display: flex;
+  align-items: flex-start;
+  gap: .5rem;
+  margin-top: .6rem;
+  padding: .6rem .75rem;
+  border-radius: var(--radius-sm);
+  font-size: .78rem;
+  line-height: 1.35;
+  border: 1px solid transparent;
+}
+.receipt-check svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px; }
+
+.receipt-check--reading {
+  color: var(--warning);
+  background: rgba(201, 147, 58, 0.10);
+  border-color: rgba(201, 147, 58, 0.30);
+}
+.receipt-check--ok {
+  color: var(--paid);
+  background: var(--accent-dim);
+  border-color: var(--accent-border);
+}
+.receipt-check--mismatch,
+.receipt-check--error {
+  color: var(--debt);
+  background: var(--debt-dim);
+  border-color: rgba(224, 92, 92, 0.30);
+}
+
+/* Usuário (avatar + nome) no card de pagamento (visão admin) */
+.payment-card__user {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: .35rem;
+}
+.payment-card__avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .72rem;
+  font-weight: 700;
+  color: var(--text);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.payment-card__avatar .avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

@@ -478,15 +478,16 @@
 
         <div id="payment-selected-total" class="payment-total-bar">0 viagem(ns) • R$ 0,00</div>
 
-        <div class="section-title">Comprovante (opcional)</div>
-        <input type="file" id="receipt-input" accept="image/*,application/pdf" style="display:none" />
+        <div class="section-title">Comprovante em PDF (obrigatório)</div>
+        <input type="file" id="receipt-input" accept="application/pdf,.pdf" style="display:none" />
         <label for="receipt-input" class="receipt-upload-area" style="cursor:pointer;display:flex;flex-direction:column;align-items:center">
           <div class="receipt-upload-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
           </div>
-          <div class="receipt-upload-label">Toque para foto ou PDF</div>
+          <div class="receipt-upload-label">Toque para enviar o comprovante (PDF)</div>
         </label>
         <div id="receipt-preview"></div>
+        <div id="receipt-check" class="receipt-check" hidden></div>
 
         <button id="btn-confirm-payment" class="btn btn--primary btn--full" disabled>
           Confirmar Pagamento

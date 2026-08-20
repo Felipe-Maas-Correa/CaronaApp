@@ -3,8 +3,9 @@
 // Registro e listagem de pagamentos com comprovantes
 // ============================================================
 
-import { registerPayment, deletePayment, getUserPayments, getUserUnpaidTrips, getTripValue } from "../js/db.js";
-import { showToast, formatCurrency, formatDate, formatDateTime, icon, todayISO, escapeHtml, copyToClipboard, readFileAsDataURL, compressImageToDataURL } from "../js/utils.js";
+import { registerPayment, deletePayment, getUserPayments, getAllPayments, getAllUsers, getUserUnpaidTrips, getTripValue, toMillis } from "../js/db.js";
+import { showToast, formatCurrency, formatDate, formatDateTime, icon, todayISO, escapeHtml, copyToClipboard, readFileAsDataURL } from "../js/utils.js";
+import { readPdfReceipt, valuesMatch } from "../js/receipt-parser.js";
 import { loadAndRender } from "../calendar/calendar.js";
 import { refreshSummary } from "../summary/summary.js";
 import { currentProfile } from "../auth/auth.js";
@@ -15,6 +16,14 @@ let unpaidDatesSet = new Set(); // datas com viagem em aberto
 let selectedDates  = new Set();
 let loadedPayments = [];        // cache dos pagamentos carregados (para abrir comprovante)
 let amountByDate   = {};        // valor de cada viagem em aberto (respeita preços variados)
+
+// Estado da validação do comprovante (PDF) do pagamento em andamento
+let receiptState = {
+  file:   null,   // File selecionado
+  data:   null,   // Base64 (data URL) já preparado para salvar
+  value:  null,   // valor detectado no PDF (número) ou null
+  status: "empty" // "empty" | "reading" | "ok" | "error"
+};
 
 // Limite do comprovante em Base64. Documento do Firestore tem teto de 1 MB;
 // deixamos folga para os demais campos.
@@ -47,8 +56,19 @@ export async function loadPaymentsList() {
   const container = document.getElementById("payments-list");
   container.innerHTML = `<div class="loading-spinner"></div>`;
 
+  // Admin vê os pagamentos de TODOS os usuários; usuário comum vê só os seus.
+  const isAdmin = currentProfile?.role === "admin";
+
   try {
-    const payments = await getUserPayments(currentProfile.uid);
+    let usersByUid = {};
+    let payments;
+    if (isAdmin) {
+      const [pays, users] = await Promise.all([getAllPayments(), getAllUsers()]);
+      payments = pays.sort((a, b) => toMillis(b.createdAt) - toMillis(a.createdAt));
+      users.forEach(u => { usersByUid[u.uid] = u; });
+    } else {
+      payments = await getUserPayments(currentProfile.uid);
+    }
     loadedPayments = payments; // cache p/ abrir o comprovante sem recarregar
 
     if (payments.length === 0) {
@@ -60,7 +80,7 @@ export async function loadPaymentsList() {
       return;
     }
 
-    container.innerHTML = payments.map(p => renderPaymentCard(p)).join("");
+    container.innerHTML = payments.map(p => renderPaymentCard(p, isAdmin, usersByUid[p.uid])).join("");
 
     container.querySelectorAll("[data-view-receipt-id]").forEach(btn => {
       btn.addEventListener("click", () => openReceiptModalById(btn.dataset.viewReceiptId));
@@ -74,17 +94,25 @@ export async function loadPaymentsList() {
   }
 }
 
-function renderPaymentCard(payment) {
+function renderPaymentCard(payment, showUser = false, profile = null) {
   const datesList = payment.tripDates
     .slice(0, 4)
     .map(d => `<span class="date-chip">${formatDate(d, "short")}</span>`)
     .join("");
   const moreCount = payment.tripDates.length - 4;
 
+  const name  = profile?.name || payment.userName || "—";
+  const photo = profile?.photo;
+
   return `
     <div class="payment-card" data-id="${payment.id}">
       <div class="payment-card__header">
         <div>
+          ${showUser ? `
+            <div class="payment-card__user">
+              <span class="payment-card__avatar" style="background:${avatarColor(name)}">${avatarInner(name, photo)}</span>
+              <span>${escapeHtml(name)}</span>
+            </div>` : ""}
           <div class="payment-card__amount">${formatCurrency(payment.totalAmount)}</div>
           <div class="payment-card__meta">${payment.tripDates.length} viagem(ns) • ${formatDateTime(payment.createdAt)}</div>
         </div>
@@ -102,6 +130,19 @@ function renderPaymentCard(payment) {
       </div>
     </div>
   `;
+}
+
+// ── AVATAR (foto do usuário ou inicial) ───────────────────────
+
+function avatarInner(name, photo) {
+  if (photo) return `<img src="${photo}" alt="" class="avatar-img">`;
+  return escapeHtml((name || "?").charAt(0).toUpperCase());
+}
+
+function avatarColor(name = "") {
+  const colors = ["#00e676","#ff6b6b","#ffd60a","#74b9ff","#a29bfe","#fd79a8","#00cec9"];
+  const code = name && name.length ? name.charCodeAt(0) : "?".charCodeAt(0);
+  return colors[code % colors.length] + "33";
 }
 
 // ── BIND MODAL ────────────────────────────────────────────────
@@ -333,52 +374,104 @@ function sumSelected() {
 function updatePaymentTotal() {
   document.getElementById("payment-selected-total").textContent =
     `${selectedDates.size} viagem(ns) • ${formatCurrency(sumSelected())}`;
-  document.getElementById("btn-confirm-payment").disabled = selectedDates.size === 0;
+  // O total mudou → revalida o comprovante contra o novo valor.
+  refreshReceiptCheck();
+}
+
+// Habilita o botão só quando há viagens E o comprovante confere.
+function updateConfirmState() {
+  const total = sumSelected();
+  const matches = receiptState.status === "ok" && valuesMatch(receiptState.value, total);
+  document.getElementById("btn-confirm-payment").disabled =
+    selectedDates.size === 0 || !matches;
 }
 
 // ── COMPROVANTE ───────────────────────────────────────────────
 
-function handleReceiptPreview(e) {
-  const file    = e.target.files[0];
-  const preview = document.getElementById("receipt-preview");
+// Só aceitamos PDF: é o único formato do qual conseguimos LER o valor e
+// conferir automaticamente contra o total selecionado.
+async function handleReceiptPreview(e) {
+  const file = e.target.files[0];
   if (!file) { clearReceiptPreview(); return; }
-  if (file.type.startsWith("image/")) {
-    const url = URL.createObjectURL(file);
-    preview.innerHTML = `<img src="${url}" alt="Comprovante" class="receipt-thumb">`;
-  } else {
-    preview.innerHTML = `<div class="receipt-file-icon">${icon("fileText")} ${escapeHtml(file.name)}</div>`;
+
+  const isPdf = file.type === "application/pdf" || /\.pdf$/i.test(file.name);
+  if (!isPdf) {
+    resetReceiptState("error");
+    document.getElementById("receipt-preview").innerHTML = "";
+    showReceiptCheck("error", "Envie o comprovante em PDF. Fotos/imagens não podem ser conferidas automaticamente.");
+    showToast("O comprovante precisa ser um PDF.", "error");
+    return;
   }
+
+  // Mostra o arquivo e o estado "lendo..."
+  document.getElementById("receipt-preview").innerHTML =
+    `<div class="receipt-file-icon">${icon("fileText")} ${escapeHtml(file.name)}</div>`;
+  receiptState = { file, data: null, value: null, status: "reading" };
+  showReceiptCheck("reading", "Lendo o comprovante…");
+  updateConfirmState();
+
+  try {
+    // Prepara o Base64 (para salvar) e lê o valor em paralelo.
+    const [data, parsed] = await Promise.all([
+      readFileAsDataURL(file),
+      readPdfReceipt(file)
+    ]);
+
+    if (data.length > RECEIPT_MAX_CHARS) {
+      resetReceiptState("error");
+      showReceiptCheck("error", "Arquivo muito grande (máx. ~700 KB). Envie um PDF menor.");
+      return;
+    }
+    if (parsed.value == null) {
+      resetReceiptState("error");
+      showReceiptCheck("error", "Não consegui identificar o valor neste PDF. Confira se é o comprovante correto.");
+      return;
+    }
+
+    receiptState = { file, data, value: parsed.value, status: "ok" };
+    refreshReceiptCheck();
+  } catch (err) {
+    console.error("Erro ao ler o comprovante:", err);
+    resetReceiptState("error");
+    showReceiptCheck("error", "Não foi possível ler o PDF. Tente outro arquivo.");
+  }
+}
+
+// Reavalia o comprovante contra o total atual e ajusta a UI + botão.
+function refreshReceiptCheck() {
+  if (receiptState.status !== "ok") { updateConfirmState(); return; }
+
+  const total = sumSelected();
+  if (valuesMatch(receiptState.value, total)) {
+    showReceiptCheck("ok", `Comprovante confere: ${formatCurrency(receiptState.value)}.`);
+  } else {
+    showReceiptCheck("mismatch",
+      `Valor do comprovante (${formatCurrency(receiptState.value)}) diferente do total selecionado (${formatCurrency(total)}). ` +
+      `Ajuste as viagens ou envie o comprovante correto.`);
+  }
+  updateConfirmState();
+}
+
+// Renderiza a faixa de status abaixo do comprovante.
+function showReceiptCheck(kind, message) {
+  const el = document.getElementById("receipt-check");
+  if (!el) return;
+  el.hidden = false;
+  el.className = `receipt-check receipt-check--${kind}`;
+  const ic = kind === "ok" ? "check" : kind === "reading" ? "clock" : "alert";
+  el.innerHTML = `${icon(ic)} <span>${escapeHtml(message)}</span>`;
+}
+
+function resetReceiptState(status = "empty") {
+  receiptState = { file: null, data: null, value: null, status };
 }
 
 function clearReceiptPreview() {
   document.getElementById("receipt-preview").innerHTML = "";
   document.getElementById("receipt-input").value = "";
-}
-
-// ── CONVERSÃO PARA BASE64 (sem Firebase Storage) ──────────────
-
-/**
- * Prepara o comprovante para salvar: imagens são comprimidas; PDFs (ou
- * outros) vão direto. Lança erro amigável se passar do limite.
- * @returns {Promise<string|null>} data URL (Base64) ou null
- */
-async function prepareReceipt(file) {
-  if (!file) return null;
-
-  if (file.type.startsWith("image/")) {
-    const data = await compressImageToDataURL(file, 1200, RECEIPT_MAX_CHARS);
-    if (data.length > RECEIPT_MAX_CHARS) {
-      throw new Error("A imagem ficou grande demais mesmo após compressão. Tente uma foto menor.");
-    }
-    return data;
-  }
-
-  // PDF ou outro tipo: não dá para comprimir aqui
-  const data = await readFileAsDataURL(file);
-  if (data.length > RECEIPT_MAX_CHARS) {
-    throw new Error("Arquivo muito grande (máx. ~700 KB). Envie uma imagem ou um PDF menor.");
-  }
-  return data;
+  const check = document.getElementById("receipt-check");
+  if (check) { check.hidden = true; check.innerHTML = ""; }
+  resetReceiptState("empty");
 }
 
 // ── CONFIRMAR ─────────────────────────────────────────────────
@@ -386,16 +479,21 @@ async function prepareReceipt(file) {
 async function handleConfirmPayment() {
   if (selectedDates.size === 0) return;
 
-  const btn  = document.getElementById("btn-confirm-payment");
-  const file = document.getElementById("receipt-input").files[0] || null;
+  const total = sumSelected();
 
+  // Trava de segurança: só finaliza se o comprovante (PDF) conferir com o total.
+  if (receiptState.status !== "ok" || !valuesMatch(receiptState.value, total)) {
+    showToast("Envie um comprovante em PDF cujo valor bata com o total selecionado.", "error");
+    refreshReceiptCheck();
+    return;
+  }
+
+  const btn = document.getElementById("btn-confirm-payment");
   btn.disabled    = true;
   btn.textContent = "Salvando...";
 
   try {
-    const receiptData = await prepareReceipt(file);
-    const total = sumSelected();
-    await registerPayment(currentProfile.uid, currentProfile.name, [...selectedDates], total, receiptData);
+    await registerPayment(currentProfile.uid, currentProfile.name, [...selectedDates], total, receiptState.data);
     document.getElementById("modal-payment").classList.remove("modal--open");
     showToast(`Pagamento de ${formatCurrency(total)} registrado!`, "success");
     await loadPaymentsList();
