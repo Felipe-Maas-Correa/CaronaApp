@@ -127,7 +127,7 @@
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 1rem);
+  padding-bottom: calc(var(--nav-h) + var(--nav-safe) + 1rem);
   /* Scrollbar elegante */
   scrollbar-width: thin;
   scrollbar-color: var(--border-light) transparent;
@@ -160,8 +160,8 @@
   transform: translateX(-50%);
   width: 100%;
   max-width: 480px;
-  height: calc(var(--nav-h) + var(--safe-bottom));
-  padding-bottom: var(--safe-bottom);
+  height: calc(var(--nav-h) + var(--nav-safe));
+  padding-bottom: var(--nav-safe);
   background: rgba(26, 26, 26, 0.80);
   border-top: 1px solid var(--border);
   display: flex;
