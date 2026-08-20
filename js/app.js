@@ -73,14 +73,14 @@ function initLoginForm() {
     e.preventDefault();
     errorEl.textContent = "";
     const btn      = document.getElementById("btn-login");
-    const email    = document.getElementById("login-email").value.trim();
-    const password = document.getElementById("login-password").value;
+    const identifier = document.getElementById("login-email").value.trim();
+    const password   = document.getElementById("login-password").value;
 
     btn.disabled    = true;
     btn.textContent = "Entrando...";
 
     try {
-      await loginUser(email, password);
+      await loginUser(identifier, password);
     } catch (err) {
       errorEl.textContent = translateLoginError(err.code);
       btn.disabled    = false;
@@ -97,6 +97,7 @@ function translateLoginError(code) {
     "auth/invalid-credential": "E-mail ou senha incorretos.",
     "auth/too-many-requests":  "Muitas tentativas. Tente mais tarde.",
     "auth/user-disabled":      "Esta conta foi desativada.",
+    "app/name-not-found":      "Nome não encontrado. Tente o e-mail.",
   };
   return map[code] || "Erro ao entrar. Verifique seus dados.";
 }

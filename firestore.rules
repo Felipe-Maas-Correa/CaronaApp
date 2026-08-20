@@ -62,6 +62,17 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // ── Tabela de nomes (login por nome) ──────────────────────
+    // Liga um nome ao e-mail para permitir login por nome. Precisa ser
+    // LEGÍVEL sem autenticação (o login acontece antes de haver sessão).
+    // Só expõe { name, email, uid }. Escrita: admin, ou o próprio dono.
+    match /usernames/{slug} {
+      allow read: if true;
+      allow write: if isAdmin()
+        || (isSignedIn() && request.resource.data.uid == request.auth.uid)
+        || (isSignedIn() && resource != null && resource.data.uid == request.auth.uid);
+    }
+
     // ── Viagens (por usuário) ─────────────────────────────────
     // Cada viagem pertence a um usuário (campo uid). O dono lê/escreve
     // as suas; o admin lê/escreve todas (para o painel).

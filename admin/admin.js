@@ -8,7 +8,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../js/firebase-config.js";
 import { getAllTrips, getAllPayments, getAllUsers, getTripValue, setTripValueSetting, clearTripsAndPayments } from "../js/db.js";
-import { registerUser, currentProfile } from "../auth/auth.js";
+import { registerUser, currentProfile, saveUsername } from "../auth/auth.js";
 import { showToast, formatDateTime, formatCurrency, icon, escapeHtml, todayISO } from "../js/utils.js";
 
 // Valor de cada viagem (respeita preços diferentes ao longo do tempo)
@@ -101,6 +101,8 @@ export async function loadUsersList() {
     ]);
     cache = { trips, payments, users };
     renderAll();
+    // Backfill da tabela de nomes: garante que todo usuário possa logar por nome.
+    users.forEach(u => { if (u.name && u.email) saveUsername(u.uid, u.name, u.email); });
   } catch (e) {
     console.error("Erro ao carregar painel admin:", e);
     const c = document.getElementById("users-list");
