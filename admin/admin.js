@@ -7,12 +7,18 @@ import {
   doc, updateDoc, deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../js/firebase-config.js";
-import { getAllTrips, getAllPayments, getAllUsers, getTripValue, setTripValueSetting } from "../js/db.js";
-import { registerUser, currentProfile } from "../auth/auth.js";
+import { getAllTrips, getAllPayments, getAllUsers, getTripValue, setTripValueSetting, clearTripsAndPayments } from "../js/db.js";
+import { registerUser, currentProfile, saveUsername } from "../auth/auth.js";
 import { showToast, formatDateTime, formatCurrency, icon, escapeHtml, todayISO } from "../js/utils.js";
 
 // Valor de cada viagem (respeita preços diferentes ao longo do tempo)
 const amt = t => (typeof t.amount === "number" ? t.amount : 15);
+
+// Conteúdo de um avatar: foto (se houver) ou a inicial do nome.
+function avatarInner(name, photo) {
+  if (photo) return `<img src="${photo}" alt="" class="avatar-img">`;
+  return escapeHtml((name || "?").charAt(0).toUpperCase());
+}
 
 // Estado
 let currentPeriod = "month";
@@ -47,6 +53,9 @@ function bindAdminEvents() {
 
   // Exportar CSV
   document.getElementById("btn-export-csv")?.addEventListener("click", exportCSV);
+
+  // Limpar dados de teste (viagens + pagamentos)
+  document.getElementById("btn-clear-data")?.addEventListener("click", confirmClearData);
 
   // Valor da viagem: campo, stepper e salvar
   const priceInput = document.getElementById("adm-price-input");
@@ -92,6 +101,8 @@ export async function loadUsersList() {
     ]);
     cache = { trips, payments, users };
     renderAll();
+    // Backfill da tabela de nomes: garante que todo usuário possa logar por nome.
+    users.forEach(u => { if (u.name && u.email) saveUsername(u.uid, u.name, u.email); });
   } catch (e) {
     console.error("Erro ao carregar painel admin:", e);
     const c = document.getElementById("users-list");
@@ -151,8 +162,10 @@ function renderPeriodStats() {
   const total     = trips.length;
   const rate      = total > 0 ? Math.round((paidCount / total) * 100) : 0;
 
+  // "Em aberto" só conta dias que já chegaram (<= hoje); futuros são agendados.
+  const today    = todayISO();
   const received = trips.filter(t => t.paid).reduce((s, t) => s + amt(t), 0);
-  const open     = trips.filter(t => !t.paid).reduce((s, t) => s + amt(t), 0);
+  const open     = trips.filter(t => !t.paid && t.date <= today).reduce((s, t) => s + amt(t), 0);
 
   setText("adm-received", formatCurrency(received));
   setText("adm-open",     formatCurrency(open));
@@ -193,19 +206,22 @@ function renderPerUser() {
   const range = getPeriodRange(currentPeriod);
   const trips = cache.trips.filter(t => inPeriod(t.date, range));
 
-  // Agrupa por uid (paid/open em VALOR)
+  // Agrupa por uid (paid/open em VALOR). "open" só conta dias já chegados.
+  const today = todayISO();
   const byUser = new Map();
   for (const t of trips) {
     if (!byUser.has(t.uid)) byUser.set(t.uid, { uid: t.uid, name: t.userName, count: 0, paid: 0, open: 0 });
     const u = byUser.get(t.uid);
     u.count++;
-    if (t.paid) u.paid += amt(t); else u.open += amt(t);
+    if (t.paid) u.paid += amt(t);
+    else if (t.date <= today) u.open += amt(t);
   }
 
-  // Nome mais atual vindo do cadastro
+  // Nome/foto mais atuais vindos do cadastro
   for (const u of byUser.values()) {
     const prof = cache.users.find(x => x.uid === u.uid);
-    if (prof?.name) u.name = prof.name;
+    if (prof?.name)  u.name  = prof.name;
+    if (prof?.photo) u.photo = prof.photo;
   }
 
   const rows = [...byUser.values()].sort((a, b) => (b.open - a.open) || (b.count - a.count));
@@ -217,7 +233,7 @@ function renderPerUser() {
 
   container.innerHTML = rows.map(u => `
     <button class="adm-user" data-user-detail="${u.uid}">
-      <div class="adm-user__avatar" style="background:${avatarColor(u.name)}">${escapeHtml((u.name || "?").charAt(0).toUpperCase())}</div>
+      <div class="adm-user__avatar" style="background:${avatarColor(u.name)}">${avatarInner(u.name, u.photo)}</div>
       <div class="adm-user__info">
         <div class="adm-user__name">${escapeHtml(u.name || "—")}</div>
         <div class="adm-user__sub">${u.count} viagem(ns)</div>
@@ -241,11 +257,12 @@ function openUserDetail(uid) {
   const trips = cache.trips.filter(t => t.uid === uid);
   const name  = prof?.name || trips[0]?.userName || "Usuário";
 
+  const today = todayISO();
   const stat = (period) => {
     const r = getPeriodRange(period);
     const t = trips.filter(x => inPeriod(x.date, r));
     const paid = t.filter(x => x.paid).reduce((s, x) => s + amt(x), 0);
-    const open = t.filter(x => !x.paid).reduce((s, x) => s + amt(x), 0);
+    const open = t.filter(x => !x.paid && x.date <= today).reduce((s, x) => s + amt(x), 0);
     return { trips: t.length, paid, open };
   };
 
@@ -308,7 +325,7 @@ function renderUserCard(user) {
   return `
     <div class="user-card ${!isActive ? "user-card--inactive" : ""}">
       <div class="user-card__avatar" style="background:${avatarColor(user.name)}">
-        ${escapeHtml(user.name?.charAt(0).toUpperCase() || "?")}
+        ${avatarInner(user.name, user.photo)}
       </div>
       <div class="user-card__info">
         <div class="user-card__name">
@@ -396,6 +413,56 @@ function confirmDeleteUser(uid) {
   btnNo.onclick = () => modal.classList.remove("modal--open");
 }
 
+// ── LIMPAR DADOS DE TESTE ─────────────────────────────────────
+
+// Reutiliza o modal de confirmação com uma mensagem e uma ação.
+function askConfirm(message, onYes) {
+  const modal  = document.getElementById("modal-confirm");
+  const msg    = document.getElementById("confirm-message");
+  const btnYes = document.getElementById("btn-confirm-yes");
+  const btnNo  = document.getElementById("btn-confirm-no");
+
+  msg.textContent = message;
+  modal.classList.add("modal--open");
+
+  btnYes.onclick = () => { modal.classList.remove("modal--open"); onYes(); };
+  btnNo.onclick  = () => modal.classList.remove("modal--open");
+}
+
+function confirmClearData() {
+  const nTrips = cache.trips.length;
+  const nPays  = cache.payments.length;
+
+  if (nTrips === 0 && nPays === 0) {
+    showToast("Não há viagens nem pagamentos para apagar.", "info");
+    return;
+  }
+
+  // 1ª confirmação
+  askConfirm(
+    `Apagar ${nTrips} viagem(ns) e ${nPays} pagamento(s)? Os usuários e o valor da viagem serão mantidos.`,
+    () => {
+      // 2ª confirmação (ação irreversível)
+      askConfirm("Tem certeza? Esta ação NÃO pode ser desfeita.", doClearData);
+    }
+  );
+}
+
+async function doClearData() {
+  const btn = document.getElementById("btn-clear-data");
+  if (btn) { btn.disabled = true; btn.style.opacity = ".6"; }
+  try {
+    const { trips, payments } = await clearTripsAndPayments();
+    showToast(`Limpo: ${trips} viagem(ns) e ${payments} pagamento(s).`, "success");
+    await loadUsersList();
+  } catch (e) {
+    console.error(e);
+    showToast("Erro ao limpar os dados.", "error");
+  } finally {
+    if (btn) { btn.disabled = false; btn.style.opacity = "1"; }
+  }
+}
+
 // ── CRIAR USUÁRIO ─────────────────────────────────────────────
 
 function openNewUserModal() {
@@ -433,13 +500,15 @@ async function handleCreateUser(e) {
 // ── EXPORTAR CSV ─────────────────────────────────────────────
 
 function exportCSV() {
-  // Consolida por usuário (histórico completo)
+  // Consolida por usuário (histórico completo). "open" só conta dias já chegados.
+  const today = todayISO();
   const byUser = new Map();
   for (const t of cache.trips) {
     if (!byUser.has(t.uid)) byUser.set(t.uid, { name: t.userName, count: 0, paid: 0, open: 0 });
     const u = byUser.get(t.uid);
     u.count++;
-    if (t.paid) u.paid += amt(t); else u.open += amt(t);
+    if (t.paid) u.paid += amt(t);
+    else if (t.date <= today) u.open += amt(t);
   }
   for (const prof of cache.users) {
     if (!byUser.has(prof.uid)) byUser.set(prof.uid, { name: prof.name, count: 0, paid: 0, open: 0 });

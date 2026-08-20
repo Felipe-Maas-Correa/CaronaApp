@@ -37,6 +37,23 @@
   letter-spacing: 0.04em;
 }
 
+/* Botão "Vários dias" — largura automática, sem quebra de linha */
+.btn-multi {
+  font-size: .62rem;
+  font-family: var(--font-mono);
+  padding: 0 .7rem;
+  width: auto;
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+.btn-multi--on {
+  color: #1a1a1a;
+  background: var(--accent);
+  border-color: var(--accent);
+  font-weight: 700;
+}
+
 /* ── GRID ────────────────────────────────────────────────────── */
 .calendar-wrap {
   position: relative;
@@ -131,6 +148,42 @@
 .cal-day--unpaid .cal-day__number {
   color: var(--debt);
 }
+
+/* Dia escolhido no modo "vários dias" */
+.cal-day--selected {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px var(--accent);
+}
+.cal-day--selected .cal-day__number,
+.cal-day--selected .cal-day__badge {
+  color: #1a1a1a !important;
+  font-weight: 700;
+}
+
+/* Botão de alternância e barra de ação do modo lote */
+.btn-multi--on {
+  background: var(--accent);
+  color: #1a1a1a;
+  border-color: var(--accent);
+  font-weight: 700;
+}
+.multi-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .8rem;
+  flex-wrap: wrap;
+  margin: 0 1rem .8rem;
+  padding: .7rem .9rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius);
+}
+.multi-bar__count { font-size: .8rem; color: var(--text-muted); }
+.multi-bar__count strong { color: var(--accent); font-size: 1rem; }
+.multi-bar__actions { display: flex; gap: .5rem; }
+.multi-bar__actions .btn { width: auto; padding: .5rem .9rem; font-size: .8rem; }
 
 .cal-day__number {
   font-family: var(--font-mono);
@@ -254,6 +307,19 @@
   text-transform: uppercase;
 }
 .pax-item--locked .pax-item__tag { color: var(--accent); }
+.pax-item__remove {
+  flex-shrink: 0;
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  border: none;
+  border-radius: 9px;
+  background: #ff5b5b;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(255, 91, 91, .35);
+}
+.pax-item__remove:active { background: #e04545; transform: scale(.92); }
+.pax-item__remove svg { width: 17px; height: 17px; stroke: #fff; fill: none; }
 
 /* ── STATS DO MÊS ────────────────────────────────────────────── */
 .month-stats {

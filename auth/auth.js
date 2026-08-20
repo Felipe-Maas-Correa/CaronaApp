@@ -14,7 +14,7 @@ import {
   updatePassword
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-  doc, setDoc, getDoc, updateDoc, serverTimestamp
+  doc, setDoc, getDoc, updateDoc, deleteDoc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db, firebaseConfig } from "../js/firebase-config.js";
 import { showToast } from "../js/utils.js";
@@ -51,6 +51,11 @@ export function startAuthListener() {
       if (!currentProfile) {
         currentProfile = await createProfile(firebaseUser, "user");
       }
+
+      // Garante o registro na tabela de nomes (backfill para contas antigas).
+      if (currentProfile?.name && currentProfile?.email) {
+        saveUsername(firebaseUser.uid, currentProfile.name, currentProfile.email);
+      }
     } else {
       currentUser    = null;
       currentProfile = null;
@@ -63,6 +68,35 @@ export function startAuthListener() {
       onUserChanged?.(currentUser, currentProfile);
     }
   });
+}
+
+// ── TABELA DE NOMES (login por nome) ──────────────────────────
+// Coleção pública `usernames/{slug}` que liga um nome ao e-mail, para
+// permitir login por nome (o Firebase Auth só autentica por e-mail).
+// Contém apenas { email, uid, name }.
+
+export function slugifyName(name = "") {
+  return name
+    .normalize("NFD").replace(/[̀-ͯ]/g, "") // remove acentos
+    .trim().toLowerCase()
+    .replace(/\s+/g, " ");
+}
+
+// Cria/atualiza o registro de nome do usuário (idempotente).
+export async function saveUsername(uid, name, email) {
+  const slug = slugifyName(name);
+  if (!slug) return;
+  try {
+    await setDoc(doc(db, "usernames", slug), { uid, name, email }, { merge: true });
+  } catch (e) { /* não bloqueia o fluxo se falhar */ }
+}
+
+// Resolve um nome para o e-mail correspondente (leitura pública, pré-login).
+export async function emailFromName(name) {
+  const slug = slugifyName(name);
+  if (!slug) return null;
+  const snap = await getDoc(doc(db, "usernames", slug));
+  return snap.exists() ? (snap.data().email || null) : null;
 }
 
 // ── PERFIL NO FIRESTORE ───────────────────────────────────────
@@ -117,6 +151,7 @@ export async function registerUser(name, email, password, role = "user") {
     };
     // Gravado pelo db do app PRIMÁRIO (sessão do admin)
     await setDoc(doc(db, "users", cred.user.uid), profile);
+    await saveUsername(cred.user.uid, name, email); // permite login por nome
 
     await signOut(secondaryAuth);
     return { user: cred.user, profile };
@@ -128,7 +163,19 @@ export async function registerUser(name, email, password, role = "user") {
 
 // ── LOGIN ─────────────────────────────────────────────────────
 
-export async function loginUser(email, password) {
+export async function loginUser(identifier, password) {
+  // Aceita nome OU e-mail. Se não tiver "@", tratamos como nome e buscamos
+  // o e-mail na tabela pública `usernames`.
+  let email = identifier;
+  if (!identifier.includes("@")) {
+    const found = await emailFromName(identifier);
+    if (!found) {
+      const err = new Error("Nome não encontrado.");
+      err.code = "app/name-not-found";
+      throw err;
+    }
+    email = found;
+  }
   const cred = await signInWithEmailAndPassword(auth, email, password);
   return cred.user;
 }
@@ -158,6 +205,14 @@ export async function updateMyProfile(fields = {}) {
 
   if (fields.name !== undefined) {
     try { await updateProfile(currentUser, { displayName: fields.name }); } catch { /* opcional */ }
+
+    // Atualiza a tabela de nomes: cria o novo slug e remove o antigo (se mudou).
+    const oldSlug = slugifyName(currentProfile?.name || "");
+    const newSlug = slugifyName(fields.name);
+    await saveUsername(currentUser.uid, fields.name, currentProfile?.email);
+    if (oldSlug && oldSlug !== newSlug) {
+      try { await deleteDoc(doc(db, "usernames", oldSlug)); } catch { /* ignora */ }
+    }
   }
 
   currentProfile = { ...currentProfile, ...data };

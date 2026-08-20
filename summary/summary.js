@@ -4,7 +4,7 @@
 // ============================================================
 
 import { getUserTrips, getUserPayments } from "../js/db.js";
-import { formatCurrency, formatDate, formatDateTime, icon } from "../js/utils.js";
+import { formatCurrency, formatDate, formatDateTime, icon, todayISO } from "../js/utils.js";
 import { currentProfile } from "../auth/auth.js";
 
 // ── INIT ─────────────────────────────────────────────────────
@@ -29,10 +29,16 @@ export async function refreshSummary() {
 // ── CARDS ─────────────────────────────────────────────────────
 
 function renderSummaryCards(trips, payments) {
-  const totalTrips  = trips.length;
-  const paidTrips   = trips.filter(t => t.paid).length;
-  const unpaidTrips = totalTrips - paidTrips;
-  const totalDebt   = trips.filter(t => !t.paid).reduce((s, t) => s + (t.amount ?? 15), 0);
+  // Uma viagem só entra na contabilidade quando a data já chegou (<= hoje).
+  // As já pagas contam sempre (dinheiro liquidado); as futuras em aberto ficam
+  // "agendadas" e não entram como em aberto até o dia chegar.
+  const today = todayISO();
+  const relevant = trips.filter(t => t.paid || t.date <= today);
+
+  const totalTrips  = relevant.length;
+  const paidTrips   = relevant.filter(t => t.paid).length;
+  const unpaidTrips = relevant.filter(t => !t.paid).length;
+  const totalDebt   = relevant.filter(t => !t.paid).reduce((s, t) => s + (t.amount ?? 15), 0);
   const totalPaid   = payments.reduce((s, p) => s + p.totalAmount, 0);
 
   document.getElementById("sum-total-trips").textContent    = totalTrips;

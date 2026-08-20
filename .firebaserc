@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "default": "sistemafrotas-de4f1"
+  },
+  "targets": {
+    "sistemafrotas-de4f1": {
+      "hosting": {
+        "app": [
+          "caronaapp"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

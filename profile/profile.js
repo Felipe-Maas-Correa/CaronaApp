@@ -41,6 +41,7 @@ async function openProfile() {
 
   document.getElementById("profile-name").value = currentProfile?.name || "";
   renderPhoto(currentProfile?.photo || null);
+  renderRegistered();
 
   // limpa campos de senha
   document.getElementById("profile-new-pass").value  = "";
@@ -50,6 +51,15 @@ async function openProfile() {
   document.getElementById("modal-profile").classList.add("modal--open");
 
   await renderStats();
+}
+
+function renderRegistered() {
+  const el = document.getElementById("profile-registered");
+  if (!el) return;
+  const ms = toMillis(currentProfile?.createdAt);
+  el.textContent = ms
+    ? `Registrado em ${new Date(ms).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}`
+    : "";
 }
 
 function renderPhoto(dataUrl) {
@@ -91,6 +101,8 @@ async function renderStats() {
     const todayMs = Date.now();
     for (const t of trips) {
       const tripMs = new Date(t.date + "T12:00:00").getTime();
+      // Viagem em aberto de um dia que ainda não chegou não conta (é agendada).
+      if (!t.paid && tripMs > todayMs) continue;
       const endMs = t.paid ? (payDateById.get(t.paymentId) || tripMs) : todayMs;
       const d = Math.floor((endMs - tripMs) / 86400000);
       if (d > maxUnpaid) maxUnpaid = d;

@@ -2,6 +2,9 @@
 # Copie js/config.example.js para js/config.js e preencha.
 js/config.js
 
+# ── Firebase (cache local do deploy) ─────────────────────────
+.firebase/
+
 # Variáveis de ambiente
 .env
 .env.*

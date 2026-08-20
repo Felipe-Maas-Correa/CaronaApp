@@ -24,6 +24,11 @@ const SPEEDS = [
 let currentYear  = new Date().getFullYear();
 let currentMonth = new Date().getMonth() + 1; // 1-12
 
+// Modo "vários dias" (só admin): seleciona várias datas e aplica
+// os mesmos passageiros a todas de uma vez.
+let multiMode = false;
+const selectedDays = new Set();
+
 let tripsMap  = {};   // usuário: { "YYYY-MM-DD": trip }
 let dayTrips  = {};   // admin:   { "YYYY-MM-DD": [trip, ...] }
 let allUsers  = [];   // admin: lista de usuários (passageiros)
@@ -38,6 +43,8 @@ const MONTHS   = [
 
 export async function initCalendar() {
   bindNavigation();
+  // O modo "vários dias" é exclusivo do admin.
+  if (isAdmin()) document.getElementById("btn-multi-toggle")?.classList.remove("hidden");
   await loadAndRender();
 }
 
@@ -57,6 +64,39 @@ function bindNavigation() {
     currentMonth = new Date().getMonth() + 1;
     await loadAndRender();
   });
+
+  // Modo "vários dias"
+  document.getElementById("btn-multi-toggle")?.addEventListener("click", () => toggleMultiMode());
+  document.getElementById("btn-multi-cancel")?.addEventListener("click", () => toggleMultiMode(false));
+  document.getElementById("btn-multi-apply")?.addEventListener("click", openMultiPassengerModal);
+}
+
+// ── MODO "VÁRIOS DIAS" ───────────────────────────────────────
+
+function toggleMultiMode(force) {
+  multiMode = typeof force === "boolean" ? force : !multiMode;
+  selectedDays.clear();
+  const toggleBtn = document.getElementById("btn-multi-toggle");
+  const bar       = document.getElementById("multi-bar");
+  toggleBtn?.classList.toggle("btn-multi--on", multiMode);
+  if (toggleBtn) toggleBtn.textContent = multiMode ? "Sair" : "Vários dias";
+  bar?.classList.toggle("hidden", !multiMode);
+  updateMultiCount();
+  renderCalendar();
+}
+
+function updateMultiCount() {
+  const el = document.getElementById("multi-count");
+  if (el) el.textContent = selectedDays.size;
+  const apply = document.getElementById("btn-multi-apply");
+  if (apply) apply.disabled = selectedDays.size === 0;
+}
+
+function toggleDaySelection(dateStr) {
+  if (selectedDays.has(dateStr)) selectedDays.delete(dateStr);
+  else selectedDays.add(dateStr);
+  updateMultiCount();
+  renderCalendar();
 }
 
 // ── LOAD & RENDER ────────────────────────────────────────────
@@ -144,6 +184,7 @@ function renderCalendar() {
     if (isToday)   el.classList.add("cal-day--today");
     if (isWeekend) el.classList.add("cal-day--weekend");
     if (info.has)  el.classList.add(info.allPaid ? "cal-day--paid" : "cal-day--unpaid");
+    if (multiMode && selectedDays.has(dateStr)) el.classList.add("cal-day--selected");
 
     let badge = "";
     if (info.has) {
@@ -152,7 +193,8 @@ function renderCalendar() {
     }
 
     el.innerHTML = `<span class="cal-day__number">${d}</span>${badge}`;
-    el.addEventListener("click", () => openDayModal(dateStr, isWeekend));
+    el.addEventListener("click", () =>
+      multiMode ? toggleDaySelection(dateStr) : openDayModal(dateStr, isWeekend));
     grid.appendChild(el);
   }
 }
@@ -173,10 +215,12 @@ function renderMonthStats() {
 
   const unpaid = total - paid;
 
-  // Dívida = soma dos valores das viagens em aberto (respeita preços variados)
+  // Dívida = soma das viagens em aberto cuja data já chegou (<= hoje).
+  // Dias futuros já marcados ainda não são dívida.
   let debt = 0;
+  const today = todayISO();
   const lists = isAdmin() ? Object.values(dayTrips) : [Object.values(tripsMap)];
-  lists.forEach(list => list.forEach(t => { if (!t.paid) debt += (t.amount ?? 15); }));
+  lists.forEach(list => list.forEach(t => { if (!t.paid && t.date <= today) debt += (t.amount ?? 15); }));
 
   document.getElementById("month-total-trips").textContent  = total;
   document.getElementById("month-paid-trips").textContent   = paid;
@@ -310,13 +354,21 @@ function openDayModalAdmin(dateStr, isWeekend) {
     const trip   = tripByUid.get(u.uid);
     const paid   = !!trip?.paid;
     const checked = !!trip;
+    // Só admin, e só quando o passageiro JÁ tem viagem no dia, mostra a lixeira.
+    const removeBtn = checked
+      ? `<button type="button" class="pax-item__remove" title="Remover viagem"
+           data-remove-uid="${u.uid}" data-remove-name="${escapeHtml(u.name || "")}" data-remove-paid="${paid}">
+           ${icon("trash")}
+         </button>`
+      : "";
     return `
       <label class="pax-item ${paid ? "pax-item--locked" : ""}">
         <input type="checkbox" class="pax-check" data-uid="${u.uid}" data-name="${escapeHtml(u.name || "")}"
           ${checked ? "checked" : ""} ${paid ? "disabled" : ""}>
-        <span class="pax-item__avatar">${escapeHtml((u.name || "?").charAt(0).toUpperCase())}</span>
+        <span class="pax-item__avatar">${u.photo ? `<img src="${u.photo}" alt="" class="avatar-img">` : escapeHtml((u.name || "?").charAt(0).toUpperCase())}</span>
         <span class="pax-item__name">${escapeHtml(u.name || "—")}</span>
         <span class="pax-item__tag">${paid ? "pago" : (checked ? "em aberto" : "")}</span>
+        ${removeBtn}
       </label>
     `;
   }).join("");
@@ -335,6 +387,113 @@ function openDayModalAdmin(dateStr, isWeekend) {
     const date = e.target.closest("button").dataset.date;
     await savePassengers(date);
   });
+
+  // Remover viagem individual (admin) — inclusive se já estiver paga.
+  content.querySelectorAll(".pax-item__remove").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      // Não deixa o clique marcar/desmarcar o checkbox do label.
+      e.preventDefault();
+      e.stopPropagation();
+      const uid  = btn.dataset.removeUid;
+      const name = btn.dataset.removeName || "este passageiro";
+      const paid = btn.dataset.removePaid === "true";
+      const msg  = paid
+        ? `Remover a viagem PAGA de ${name} em ${formatDate(dateStr, "short")}? O pagamento já registrado NÃO será alterado.`
+        : `Remover a viagem de ${name} em ${formatDate(dateStr, "short")}?`;
+      askConfirm(msg, () => removeTrip(uid, dateStr));
+    });
+  });
+}
+
+// Confirmação reutilizando o modal padrão do app.
+function askConfirm(message, onYes) {
+  const modal  = document.getElementById("modal-confirm");
+  const msg    = document.getElementById("confirm-message");
+  const btnYes = document.getElementById("btn-confirm-yes");
+  const btnNo  = document.getElementById("btn-confirm-no");
+  msg.textContent = message;
+  modal.classList.add("modal--open");
+  btnYes.onclick = () => { modal.classList.remove("modal--open"); onYes(); };
+  btnNo.onclick  = () => modal.classList.remove("modal--open");
+}
+
+async function removeTrip(uid, dateStr) {
+  if (!isAdmin()) return; // trava extra no cliente (as regras garantem no servidor)
+  try {
+    await deleteTrip(uid, dateStr);
+    closeModal("modal-day");
+    await loadAndRender();
+    await refreshSummary();
+    showToast("Viagem removida.", "info");
+  } catch (e) {
+    console.error(e);
+    showToast("Erro ao remover a viagem", "error");
+  }
+}
+
+// Escolhe os passageiros e aplica a TODOS os dias selecionados no modo lote.
+function openMultiPassengerModal() {
+  if (selectedDays.size === 0) { showToast("Selecione ao menos um dia.", "info"); return; }
+
+  const modal   = document.getElementById("modal-day");
+  const title   = document.getElementById("modal-day-title");
+  const content = document.getElementById("modal-day-content");
+
+  title.textContent = `${selectedDays.size} dia(s) selecionado(s)`;
+
+  const selectable = allUsers.filter(u => u.active !== false);
+  const itemsHtml = selectable.map(u => `
+    <label class="pax-item">
+      <input type="checkbox" class="pax-check-multi" data-uid="${u.uid}" data-name="${escapeHtml(u.name || "")}">
+      <span class="pax-item__avatar">${u.photo ? `<img src="${u.photo}" alt="" class="avatar-img">` : escapeHtml((u.name || "?").charAt(0).toUpperCase())}</span>
+      <span class="pax-item__name">${escapeHtml(u.name || "—")}</span>
+    </label>
+  `).join("");
+
+  content.innerHTML = `
+    <p class="modal-info">Quem viaja nesses dias? (${formatCurrency(getTripValue())} por passageiro em cada dia). Dias que já tiverem a viagem do passageiro são mantidos como estão.</p>
+    <div class="pax-list">${itemsHtml || "<p class='modal-hint'>Nenhum usuário cadastrado.</p>"}</div>
+    <button class="btn btn--primary btn--full mt-sm" id="btn-apply-multi-pax">
+      ${icon("check")} Aplicar aos ${selectedDays.size} dia(s)
+    </button>
+  `;
+  modal.classList.add("modal--open");
+
+  document.getElementById("btn-apply-multi-pax")?.addEventListener("click", applyMultiPassengers);
+}
+
+async function applyMultiPassengers() {
+  const checks = [...document.querySelectorAll(".pax-check-multi")].filter(c => c.checked);
+  if (checks.length === 0) { showToast("Selecione ao menos um passageiro.", "info"); return; }
+
+  const btn = document.getElementById("btn-apply-multi-pax");
+  btn.disabled = true;
+  btn.textContent = "Aplicando...";
+
+  try {
+    // Evita sobrescrever viagens já existentes (inclusive pagas).
+    const existing = new Set((await getAllTrips()).map(t => `${t.uid}_${t.date}`));
+
+    const ops = [];
+    for (const date of selectedDays) {
+      for (const chk of checks) {
+        const key = `${chk.dataset.uid}_${date}`;
+        if (!existing.has(key)) ops.push(setTrip(chk.dataset.uid, chk.dataset.name, date));
+      }
+    }
+
+    await Promise.all(ops);
+    closeModal("modal-day");
+    toggleMultiMode(false);
+    await loadAndRender();
+    await refreshSummary();
+    showToast(`${ops.length} viagem(ns) registrada(s).`, "success");
+  } catch (e) {
+    console.error(e);
+    showToast("Erro ao aplicar as viagens.", "error");
+    btn.disabled = false;
+    btn.textContent = "Aplicar";
+  }
 }
 
 async function savePassengers(dateStr) {
