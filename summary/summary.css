@@ -197,3 +197,6 @@
   flex-shrink: 0;
   color: var(--text);
 }
+/* Filtro de período (Semana / Semestre / Total) no topo do resumo.
+   Mesma margem lateral do hero/stats para alinhar com os containers abaixo. */
+.sum-seg { margin: 0 1.25rem 1rem; }
