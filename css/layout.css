@@ -16,18 +16,20 @@
 
 /* ── HEADER ──────────────────────────────────────────────────── */
 .app-header {
-  padding: 1.1rem 1.5rem .9rem;
+  /* Soma o safe-area do topo (ilha dinâmica/notch do iPhone) para o
+     conteúdo não ficar escondido atrás da barra de status. */
+  padding: calc(1.1rem + var(--safe-top)) 1.5rem .9rem;
   border-bottom: 1px solid var(--border);
   background: var(--bg);
   flex-shrink: 0;
   position: relative;
 }
 
-/* Linha dourada sutil no topo */
+/* Linha dourada sutil no topo (abaixo do safe-area, alinhada ao conteúdo) */
 .app-header::before {
   content: "";
   position: absolute;
-  top: 0; left: 1.5rem; right: 1.5rem;
+  top: var(--safe-top); left: 1.5rem; right: 1.5rem;
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--accent-border), transparent);
 }
