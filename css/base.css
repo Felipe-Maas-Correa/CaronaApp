@@ -56,8 +56,12 @@
   --font-serif:   'Playfair Display', serif;
 
   /* Layout */
-  --nav-h:       72px;
+  --nav-h:       62px;
+  --safe-top:    env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+  /* Reserva reduzida para o indicador de home: metade do safe-area,
+     o suficiente para não sobrepor os botões sem deixar um vão enorme. */
+  --nav-safe:    calc(var(--safe-bottom) * 0.5);
 }
 
 /* ── RESET ─────────────────────────────────────────────────── */

@@ -19,3 +19,8 @@ export const firebaseConfig = {
 
 // Sua chave PIX (aleatória, e-mail, telefone, CPF/CNPJ...).
 export const PIX_KEY = "SUA-CHAVE-PIX";
+
+// URL do Worker administrativo. Nao e segredo: e um endpoint publico
+// que valida o ID token do Firebase antes de fazer qualquer coisa.
+// Usado apenas para apagar contas (o SDK web nao consegue fazer isso).
+export const WORKER_URL = "https://caronaapp-admin.SEU-SUBDOMINIO.workers.dev";

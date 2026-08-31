@@ -11,13 +11,16 @@ import {
   signOut,
   onAuthStateChanged,
   updateProfile,
-  updatePassword
+  updatePassword,
+  reauthenticateWithCredential,
+  EmailAuthProvider
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-  doc, setDoc, getDoc, updateDoc, deleteDoc, serverTimestamp
+  doc, setDoc, getDoc, updateDoc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db, firebaseConfig } from "../js/firebase-config.js";
 import { showToast } from "../js/utils.js";
+import { WORKER_URL } from "../js/config.js";
 
 export const auth = getAuth();
 
@@ -52,9 +55,11 @@ export function startAuthListener() {
         currentProfile = await createProfile(firebaseUser, "user");
       }
 
-      // Garante o registro na tabela de nomes (backfill para contas antigas).
-      if (currentProfile?.name && currentProfile?.email) {
-        saveUsername(firebaseUser.uid, currentProfile.name, currentProfile.email);
+      // Registra o próprio nome para login-por-nome (via Worker). Cada
+      // usuário registra o SEU nome ao logar — é assim que a tabela se
+      // popula, sem o cliente escrever direto na coleção.
+      if (currentProfile?.name) {
+        registerMyName(currentProfile.name);
       }
     } else {
       currentUser    = null;
@@ -71,9 +76,10 @@ export function startAuthListener() {
 }
 
 // ── TABELA DE NOMES (login por nome) ──────────────────────────
-// Coleção pública `usernames/{slug}` que liga um nome ao e-mail, para
-// permitir login por nome (o Firebase Auth só autentica por e-mail).
-// Contém apenas { email, uid, name }.
+// A coleção `usernames` agora é PRIVADA (A1/A4). O cliente não a lê nem
+// escreve mais: a resolução nome→e-mail e o registro do nome passam pelo
+// Worker, que guarda o e-mail fora do alcance público e grava só o slug
+// do próprio usuário autenticado.
 
 export function slugifyName(name = "") {
   return name
@@ -82,21 +88,34 @@ export function slugifyName(name = "") {
     .replace(/\s+/g, " ");
 }
 
-// Cria/atualiza o registro de nome do usuário (idempotente).
-export async function saveUsername(uid, name, email) {
-  const slug = slugifyName(name);
-  if (!slug) return;
+// Registra/atualiza o nome do PRÓPRIO usuário logado (via Worker).
+// Idempotente; nunca bloqueia o fluxo se falhar.
+export async function registerMyName(name) {
+  if (!name || !currentUser) return;
   try {
-    await setDoc(doc(db, "usernames", slug), { uid, name, email }, { merge: true });
-  } catch (e) { /* não bloqueia o fluxo se falhar */ }
+    const idToken = await currentUser.getIdToken();
+    await fetch(WORKER_URL + "/auth/register-name", {
+      method:  "POST",
+      headers: { Authorization: "Bearer " + idToken, "Content-Type": "application/json" },
+      body:    JSON.stringify({ name })
+    });
+  } catch (e) { /* silencioso: login por nome é conveniência */ }
 }
 
-// Resolve um nome para o e-mail correspondente (leitura pública, pré-login).
+// Resolve um nome para o e-mail (via Worker, ANTES do login — sem token).
 export async function emailFromName(name) {
-  const slug = slugifyName(name);
-  if (!slug) return null;
-  const snap = await getDoc(doc(db, "usernames", slug));
-  return snap.exists() ? (snap.data().email || null) : null;
+  if (!name) return null;
+  try {
+    const res = await fetch(WORKER_URL + "/auth/resolve-name", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ name })
+    });
+    if (!res.ok) return null;
+    return (await res.json()).email || null;
+  } catch (e) {
+    return null;
+  }
 }
 
 // ── PERFIL NO FIRESTORE ───────────────────────────────────────
@@ -112,7 +131,9 @@ export async function createProfile(firebaseUser, role = "user") {
     name:      firebaseUser.displayName || firebaseUser.email.split("@")[0],
     email:     firebaseUser.email,
     role,                         // "admin" | "user"
-    active:    true,
+    // Nasce INATIVO — inclusive quem se auto-cadastra. Só um admin que
+    // acabou de redigitar a senha consegue ativar.
+    active:    false,
     createdAt: serverTimestamp()
   };
   await setDoc(doc(db, "users", firebaseUser.uid), profile);
@@ -146,12 +167,16 @@ export async function registerUser(name, email, password, role = "user") {
       name,
       email,
       role,
-      active:    true,
+      // Nasce INATIVO. Ativar é um passo separado, no painel, e exige que
+      // o admin redigite a senha — as rules conferem isso pelo auth_time.
+      active:    false,
       createdAt: serverTimestamp()
     };
     // Gravado pelo db do app PRIMÁRIO (sessão do admin)
     await setDoc(doc(db, "users", cred.user.uid), profile);
-    await saveUsername(cred.user.uid, name, email); // permite login por nome
+    // O registro de nome para login-por-nome acontece quando o próprio
+    // usuário faz o primeiro login (startAuthListener → registerMyName).
+    // Até lá, ele entra pelo e-mail. O admin não escreve o nome de outro.
 
     await signOut(secondaryAuth);
     return { user: cred.user, profile };
@@ -206,13 +231,10 @@ export async function updateMyProfile(fields = {}) {
   if (fields.name !== undefined) {
     try { await updateProfile(currentUser, { displayName: fields.name }); } catch { /* opcional */ }
 
-    // Atualiza a tabela de nomes: cria o novo slug e remove o antigo (se mudou).
-    const oldSlug = slugifyName(currentProfile?.name || "");
-    const newSlug = slugifyName(fields.name);
-    await saveUsername(currentUser.uid, fields.name, currentProfile?.email);
-    if (oldSlug && oldSlug !== newSlug) {
-      try { await deleteDoc(doc(db, "usernames", oldSlug)); } catch { /* ignora */ }
-    }
+    // Registra o novo nome via Worker (self). Um eventual slug antigo fica
+    // como órfão apontando para o próprio uid/e-mail — inofensivo, e o
+    // cliente não pode mais apagá-lo (a coleção é privada).
+    await registerMyName(fields.name);
   }
 
   currentProfile = { ...currentProfile, ...data };
@@ -226,6 +248,36 @@ export async function updateMyProfile(fields = {}) {
 export async function changeMyPassword(newPassword) {
   if (!currentUser) throw new Error("Não autenticado.");
   await updatePassword(currentUser, newPassword);
+}
+
+// ── REAUTENTICAÇÃO (senha para ações sensíveis) ───────────────
+
+/**
+ * Confirma a identidade do usuário logado pedindo a senha de novo.
+ *
+ * O efeito importante não é o "true" devolvido aqui — é que o Firebase
+ * renova o ID token com um `auth_time` novo. As security rules leem esse
+ * campo para liberar a ativação de contas.
+ *
+ * Ou seja: a garantia é do servidor. Mesmo que alguém contorne esta
+ * função no navegador, sem a senha o `auth_time` não muda e o Firestore
+ * recusa a escrita.
+ *
+ * @param {string} password
+ * @returns {Promise<boolean>}
+ * @throws auth/wrong-password | auth/invalid-credential | auth/too-many-requests
+ */
+export async function reauthenticate(password) {
+  if (!currentUser?.email) throw new Error("Não autenticado.");
+
+  const credential = EmailAuthProvider.credential(currentUser.email, password);
+  await reauthenticateWithCredential(currentUser, credential);
+
+  // Força a emissão de um token novo já com o auth_time atualizado —
+  // sem isto o cliente seguiria usando o token antigo em cache e a regra
+  // recusaria a escrita mesmo com a senha correta.
+  await currentUser.getIdToken(true);
+  return true;
 }
 
 // ── HELPERS ───────────────────────────────────────────────────

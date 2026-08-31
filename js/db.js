@@ -9,7 +9,7 @@
 import { db } from "./firebase-config.js";
 import {
   collection, doc, setDoc, getDoc, getDocs,
-  updateDoc, deleteDoc, query, orderBy, where, Timestamp, writeBatch
+  updateDoc, deleteDoc, query, orderBy, where, writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // Helper: id determinístico da viagem
@@ -89,38 +89,12 @@ export async function getUserUnpaidTrips(uid) {
 }
 
 // ── PAGAMENTOS (por usuário) ─────────────────────────────────
-
-/**
- * Registra um pagamento de um usuário e marca as viagens dele como pagas.
- * @param {string} uid
- * @param {string} userName
- * @param {string[]} tripDates
- * @param {number} totalAmount - soma dos valores das viagens cobertas
- * @param {string|null} receiptData - comprovante em Base64 (data URL) ou null
- */
-export async function registerPayment(uid, userName, tripDates, totalAmount, receiptData = null) {
-  const paymentId = `pay_${Date.now()}`;
-
-  // Operação atômica: tudo ou nada.
-  const batch = writeBatch(db);
-
-  batch.set(doc(db, "payments", paymentId), {
-    id: paymentId,
-    uid,
-    userName,
-    tripDates,
-    totalAmount,
-    receiptData,          // Base64 (data URL) ou null
-    createdAt: Timestamp.now()
-  });
-
-  for (const date of tripDates) {
-    batch.update(doc(db, "trips", tripId(uid, date)), { paid: true, paymentId });
-  }
-
-  await batch.commit();
-  return paymentId;
-}
+//
+// Criar e apagar pagamento NÃO ficam mais aqui: passaram para o Worker
+// (js/worker-api.js), que recalcula o total a partir das viagens reais e
+// marca/desmarca as viagens com service account. As regras do Firestore
+// agora proíbem o cliente de escrever em `payments` ou de marcar viagem
+// como paga — fechando F-01 e F-02. Aqui sobra só a LEITURA.
 
 /**
  * Pagamentos de um usuário (ordenados por data desc no JS).
@@ -129,25 +103,6 @@ export async function getUserPayments(uid) {
   const q = query(collection(db, "payments"), where("uid", "==", uid));
   const snap = await getDocs(q);
   return snap.docs.map(d => d.data()).sort((a, b) => toMillis(b.createdAt) - toMillis(a.createdAt));
-}
-
-/**
- * Deleta um pagamento e desmarca as viagens associadas.
- */
-export async function deletePayment(paymentId) {
-  const paySnap = await getDoc(doc(db, "payments", paymentId));
-  if (!paySnap.exists()) return;
-
-  const payment = paySnap.data();
-
-  // Desmarca as viagens do dono do pagamento
-  for (const date of payment.tripDates) {
-    try {
-      await updateDoc(doc(db, "trips", tripId(payment.uid, date)), { paid: false, paymentId: null });
-    } catch (e) { /* ignora viagens deletadas */ }
-  }
-
-  await deleteDoc(doc(db, "payments", paymentId));
 }
 
 // ── ADMIN (todos os usuários) ────────────────────────────────

@@ -189,7 +189,7 @@
 /* ── TOAST ───────────────────────────────────────────────────── */
 .toast {
   position: fixed;
-  bottom: calc(var(--nav-h) + var(--safe-bottom) + 1rem);
+  bottom: calc(var(--nav-h) + var(--nav-safe) + 1rem);
   left: 50%;
   transform: translateX(-50%) translateY(16px);
   background: var(--bg-elevated);

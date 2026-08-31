@@ -7,7 +7,7 @@
 // ============================================================
 
 import { setTrip, deleteTrip, getUserTrips, getAllTrips, getAllUsers, getTripValue, rateTrip } from "../js/db.js";
-import { showToast, formatCurrency, formatDate, icon, todayISO, escapeHtml } from "../js/utils.js";
+import { showToast, formatCurrency, formatDate, icon, todayISO, escapeHtml, safeImageSrc } from "../js/utils.js";
 import { refreshSummary } from "../summary/summary.js";
 import { currentProfile, isAdmin } from "../auth/auth.js";
 
@@ -32,6 +32,15 @@ const selectedDays = new Set();
 let tripsMap  = {};   // usuário: { "YYYY-MM-DD": trip }
 let dayTrips  = {};   // admin:   { "YYYY-MM-DD": [trip, ...] }
 let allUsers  = [];   // admin: lista de usuários (passageiros)
+
+// Avatar do passageiro: foto (só se for data URL de imagem válida) ou inicial.
+// safeImageSrc fecha o XSS do campo `photo`, editável pelo próprio usuário.
+function paxAvatar(u) {
+  const safe = safeImageSrc(u.photo);
+  return safe
+    ? `<img src="${safe}" alt="" class="avatar-img">`
+    : escapeHtml((u.name || "?").charAt(0).toUpperCase());
+}
 
 const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 const MONTHS   = [
@@ -365,7 +374,7 @@ function openDayModalAdmin(dateStr, isWeekend) {
       <label class="pax-item ${paid ? "pax-item--locked" : ""}">
         <input type="checkbox" class="pax-check" data-uid="${u.uid}" data-name="${escapeHtml(u.name || "")}"
           ${checked ? "checked" : ""} ${paid ? "disabled" : ""}>
-        <span class="pax-item__avatar">${u.photo ? `<img src="${u.photo}" alt="" class="avatar-img">` : escapeHtml((u.name || "?").charAt(0).toUpperCase())}</span>
+        <span class="pax-item__avatar">${paxAvatar(u)}</span>
         <span class="pax-item__name">${escapeHtml(u.name || "—")}</span>
         <span class="pax-item__tag">${paid ? "pago" : (checked ? "em aberto" : "")}</span>
         ${removeBtn}
@@ -445,7 +454,7 @@ function openMultiPassengerModal() {
   const itemsHtml = selectable.map(u => `
     <label class="pax-item">
       <input type="checkbox" class="pax-check-multi" data-uid="${u.uid}" data-name="${escapeHtml(u.name || "")}">
-      <span class="pax-item__avatar">${u.photo ? `<img src="${u.photo}" alt="" class="avatar-img">` : escapeHtml((u.name || "?").charAt(0).toUpperCase())}</span>
+      <span class="pax-item__avatar">${paxAvatar(u)}</span>
       <span class="pax-item__name">${escapeHtml(u.name || "—")}</span>
     </label>
   `).join("");

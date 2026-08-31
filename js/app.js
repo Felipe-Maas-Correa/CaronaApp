@@ -169,32 +169,40 @@ async function initApp(profile) {
   buildAppForProfile(profile);
 }
 
+// ── PORTÃO DE ENTRADA
+//
+// O login é e-mail + senha, como sempre. O segundo fator NÃO fica aqui:
+// ele protege a criação de usuários (confirmação no e-mail do admin), e
+// não o acesso ao app. Colocá-lo aqui tornaria o Worker uma dependência
+// para qualquer login — se ele caísse, ninguém entraria.
+async function gateAndEnter(profile) {
+  // A conta ainda não passou pela confirmação por e-mail do admin?
+  if (profile.active === false) {
+    const pending = profile.approved !== true;
+    await logoutUser();
+    showScreen("auth");
+    document.getElementById("login-error").textContent = pending
+      ? "Cadastro aguardando confirmação do administrador."
+      : "Conta desativada. Fale com o administrador.";
+    return;
+  }
+
+  await initApp(profile);
+  showScreen("app");
+}
+
 // ── ENTRY POINT
 setAuthCallbacks({
   onReady: async () => {
     if (isLoggedIn() && currentProfile) {
-      if (currentProfile.active === false) {
-        await logoutUser();
-        showScreen("auth");
-        document.getElementById("login-error").textContent =
-          "Conta desativada. Fale com o administrador.";
-        return;
-      }
-      await initApp(currentProfile);
-      showScreen("app");
+      await gateAndEnter(currentProfile);
     } else {
       showScreen("auth");
     }
   },
   onChanged: async (user, profile) => {
     if (user && profile) {
-      if (profile.active === false) {
-        await logoutUser();
-        showScreen("auth");
-        return;
-      }
-      await initApp(profile);
-      showScreen("app");
+      await gateAndEnter(profile);
     } else {
       appInitialized = false;
       showScreen("auth");

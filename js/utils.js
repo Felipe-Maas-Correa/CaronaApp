@@ -27,6 +27,7 @@ const ICONS = {
   eye:       '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',
   eyeOff:    '<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/>',
   copy:      '<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
+  mail:      '<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
 };
 
 /**
@@ -49,6 +50,30 @@ export function escapeHtml(str = "") {
   return String(str).replace(/[&<>"']/g, (c) => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
   }[c]));
+}
+
+/**
+ * Devolve `src` apenas se for uma data URL de IMAGEM legítima; caso
+ * contrário devolve "". Fecha o XSS do campo `photo`: esse campo é editável
+ * pelo próprio usuário e era interpolado cru em `<img src="...">`, então um
+ * valor como  x" onerror="..."  executava script na sessão de quem abrisse
+ * a lista (o admin, tipicamente).
+ *
+ * Aceita só o formato que o app realmente gera (compressImageToDataURL):
+ * data:image/<tipo>;base64,<conteúdo>. Qualquer outra coisa vira "".
+ */
+export function safeImageSrc(src) {
+  return /^data:image\/(png|jpe?g|webp|gif);base64,[A-Za-z0-9+/=]+$/.test(src)
+    ? src : "";
+}
+
+/**
+ * Igual ao anterior, mas para o comprovante em PDF (data:application/pdf)
+ * OU imagem — usado ao exibir comprovantes salvos.
+ */
+export function safeReceiptSrc(src) {
+  return /^data:(image\/(png|jpe?g|webp|gif)|application\/pdf);base64,[A-Za-z0-9+/=]+$/.test(src)
+    ? src : "";
 }
 
 /**
