@@ -35,3 +35,6 @@ desktop.ini
 *service-account*.json
 sa.json
 *-firebase-adminsdk-*.json
+
+# Relatorio de auditoria de seguranca (NAO versionar — contem exploits)
+docs/
