@@ -4,10 +4,12 @@
 // Usa pdf.js (Mozilla) carregado sob demanda via CDN — sem build.
 // ============================================================
 
-// Versão fixada para estabilidade/cache. Mesmo padrão do Firebase (CDN).
-const PDFJS_VERSION = "4.7.76";
-const PDFJS_URL     = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDFJS_VERSION}/build/pdf.min.mjs`;
-const PDFJS_WORKER  = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDFJS_VERSION}/build/pdf.worker.min.mjs`;
+// A5: pdf.js hospedado no PRÓPRIO origin (vendor/pdfjs), não mais de um CDN
+// de terceiros. Assim o código executado vem só de 'self' — sem depender da
+// integridade do jsDelivr — e a CSP pode remover cdn.jsdelivr.net.
+// Versão 4.7.76 (baixada em vendor/pdfjs/). Ao atualizar, rebaixe os 2 .mjs.
+const PDFJS_URL    = "../vendor/pdfjs/pdf.min.mjs";
+const PDFJS_WORKER = "../vendor/pdfjs/pdf.worker.min.mjs";
 
 let _pdfjs = null;
 
