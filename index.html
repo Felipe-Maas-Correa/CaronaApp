@@ -30,8 +30,6 @@
   <link rel="stylesheet" href="profile/profile.css" />
   <link rel="stylesheet" href="modals/modals.css" />
 
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-
   <style>
     /* Padrão de segurança: qualquer ícone sem regra específica de contexto
        herda tamanho e traço, evitando SVGs gigantes/preenchidos. */
@@ -133,6 +131,7 @@
         <p class="auth-footer">Não tem acesso? Solicite ao administrador.</p>
       </div>
     </div>
+
 
     <!-- APP PRINCIPAL (shell: header + tabs + bottom nav) -->
     <div class="app screen">
@@ -428,7 +427,7 @@
     <div id="modal-day" class="modal">
       <div class="modal-sheet" style="position:relative">
         <div class="modal-handle"></div>
-        <button class="modal-close-btn" onclick="document.getElementById('modal-day').classList.remove('modal--open')">
+        <button class="modal-close-btn" data-close-modal="modal-day">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
         <div id="modal-day-title" class="modal-title">Dia</div>
@@ -504,7 +503,7 @@
         </button>
         <div class="modal-title">Comprovante</div>
         <div id="receipt-modal-content"></div>
-        <a id="btn-open-receipt" href="#" target="_blank" class="btn btn--secondary btn--full">
+        <a id="btn-open-receipt" href="#" target="_blank" rel="noopener noreferrer" class="btn btn--secondary btn--full">
           Abrir em nova aba
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;margin-left:4px"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
         </a>
@@ -524,11 +523,36 @@
       </div>
     </div>
 
+    <!-- Modal: Confirmação por SENHA (ativar usuário)
+         A tela não é a proteção — as security rules exigem um `auth_time`
+         recente, que só uma reautenticação de verdade produz. -->
+    <div id="modal-password" class="modal">
+      <div class="modal-sheet" style="position:relative">
+        <div class="modal-handle"></div>
+        <div id="password-confirm-title" class="modal-title">Confirmar com senha</div>
+        <p id="password-confirm-message"
+           style="font-size:.875rem;color:var(--text-muted);margin-bottom:1rem"></p>
+
+        <div class="form-group">
+          <label class="form-label" for="password-confirm-input">Sua senha de administrador</label>
+          <input id="password-confirm-input" type="password" class="form-input"
+                 autocomplete="current-password" placeholder="••••••••" />
+        </div>
+
+        <p id="password-confirm-error" class="auth-error"></p>
+
+        <div class="confirm-actions">
+          <button id="btn-password-cancel"  class="btn btn--secondary" style="flex:1">Cancelar</button>
+          <button id="btn-password-confirm" class="btn btn--primary"   style="flex:1">Confirmar</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Modal: Meu Perfil -->
     <div id="modal-profile" class="modal">
       <div class="modal-sheet" style="position:relative">
         <div class="modal-handle"></div>
-        <button class="modal-close-btn" onclick="document.getElementById('modal-profile').classList.remove('modal--open')">
+        <button class="modal-close-btn" data-close-modal="modal-profile">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
         <div class="modal-title">Meu Perfil</div>
@@ -582,7 +606,7 @@
     <div id="modal-user-detail" class="modal">
       <div class="modal-sheet" style="position:relative">
         <div class="modal-handle"></div>
-        <button class="modal-close-btn" onclick="document.getElementById('modal-user-detail').classList.remove('modal--open')">
+        <button class="modal-close-btn" data-close-modal="modal-user-detail">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
         <div id="user-detail-title" class="modal-title">Usuário</div>
@@ -631,23 +655,9 @@
 
   </div><!-- /app-root -->
 
-  <script type="module">
-    // Remove qualquer tag de auto-reload injetada por dev-servers
-    // (Live Server, browser-sync, etc.) nos fragmentos carregados via fetch.
-    // Mantido como defesa para as abas.
-    async function bootstrap() {
-      // As abas e os modais agora estão EMBUTIDOS neste index.html (não são
-      // mais buscados por fetch). Isso elimina a quebra intermitente em
-      // dev-servers (Go Live/Live Server) que injetavam scripts nos fragmentos
-      // e às vezes cortavam o conteúdo (ex.: painel admin pela metade).
-      if (window.lucide) window.lucide.createIcons();
-
-      const appModule = await import('./js/app.js');
-      if (typeof appModule.default === 'function') appModule.default();
-    }
-
-    bootstrap().catch(err => console.error('[CaronaApp] Erro fatal:', err));
-  </script>
+  <!-- A2: bootstrap externo (sem script inline) para a CSP dispensar
+       'unsafe-inline' em script-src. -->
+  <script type="module" src="js/bootstrap.js"></script>
 
 </body>
 </html>

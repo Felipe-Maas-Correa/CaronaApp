@@ -6,7 +6,7 @@
 import { currentProfile, updateMyProfile, changeMyPassword } from "../auth/auth.js";
 import { getUserTrips, getUserPayments, toMillis } from "../js/db.js";
 import {
-  showToast, formatCurrency, escapeHtml, compressImageToDataURL
+  showToast, formatCurrency, escapeHtml, safeImageSrc, compressImageToDataURL
 } from "../js/utils.js";
 
 const PHOTO_MAX_CHARS = 200 * 1024; // foto pequena (~200 KB)
@@ -27,8 +27,9 @@ export function initProfile() {
 export function updateHeaderAvatar(profile) {
   const el = document.getElementById("header-avatar-content");
   if (!el) return;
-  if (profile?.photo) {
-    el.innerHTML = `<img src="${profile.photo}" alt="Foto">`;
+  const safe = safeImageSrc(profile?.photo);
+  if (safe) {
+    el.innerHTML = `<img src="${safe}" alt="Foto">`;
   } else {
     el.textContent = (profile?.name || "?").charAt(0).toUpperCase();
   }
@@ -64,8 +65,9 @@ function renderRegistered() {
 
 function renderPhoto(dataUrl) {
   const el = document.getElementById("profile-photo");
-  if (dataUrl) {
-    el.innerHTML = `<img src="${dataUrl}" alt="Foto de perfil">`;
+  const safe = safeImageSrc(dataUrl);
+  if (safe) {
+    el.innerHTML = `<img src="${safe}" alt="Foto de perfil">`;
   } else {
     el.textContent = (currentProfile?.name || "?").charAt(0).toUpperCase();
   }
