@@ -3,8 +3,9 @@
 // Registro e listagem de pagamentos com comprovantes
 // ============================================================
 
-import { registerPayment, deletePayment, getUserPayments, getAllPayments, getAllUsers, getUserUnpaidTrips, getTripValue, toMillis } from "../js/db.js";
-import { showToast, formatCurrency, formatDate, formatDateTime, icon, todayISO, escapeHtml, copyToClipboard, readFileAsDataURL } from "../js/utils.js";
+import { getUserPayments, getAllPayments, getAllUsers, getUserUnpaidTrips, getTripValue, toMillis } from "../js/db.js";
+import { createPayment, deletePayment } from "../js/worker-api.js";
+import { showToast, formatCurrency, formatDate, formatDateTime, icon, todayISO, escapeHtml, safeImageSrc, safeReceiptSrc, copyToClipboard, readFileAsDataURL } from "../js/utils.js";
 import { readPdfReceipt, valuesMatch } from "../js/receipt-parser.js";
 import { loadAndRender } from "../calendar/calendar.js";
 import { refreshSummary } from "../summary/summary.js";
@@ -104,8 +105,12 @@ function renderPaymentCard(payment, showUser = false, profile = null) {
   const name  = profile?.name || payment.userName || "—";
   const photo = profile?.photo;
 
+  // payment.id vai para atributos HTML — escapa (é gerado no cliente, mas
+  // manter o escape evita que um id manipulado quebre o atributo).
+  const pid = escapeHtml(payment.id);
+
   return `
-    <div class="payment-card" data-id="${payment.id}">
+    <div class="payment-card" data-id="${pid}">
       <div class="payment-card__header">
         <div>
           ${showUser ? `
@@ -118,10 +123,10 @@ function renderPaymentCard(payment, showUser = false, profile = null) {
         </div>
         <div class="payment-card__actions">
           ${(payment.receiptData || payment.receiptUrl)
-            ? `<button class="btn-icon btn-icon--receipt" data-view-receipt-id="${payment.id}" title="Ver comprovante">${icon("fileText")}</button>`
+            ? `<button class="btn-icon btn-icon--receipt" data-view-receipt-id="${pid}" title="Ver comprovante">${icon("fileText")}</button>`
             : `<span class="no-receipt" title="Sem comprovante">${icon("file")}</span>`
           }
-          <button class="btn-icon btn-icon--delete" data-delete-payment="${payment.id}" title="Excluir pagamento">${icon("trash")}</button>
+          <button class="btn-icon btn-icon--delete" data-delete-payment="${pid}" title="Excluir pagamento">${icon("trash")}</button>
         </div>
       </div>
       <div class="payment-card__dates">
@@ -135,7 +140,8 @@ function renderPaymentCard(payment, showUser = false, profile = null) {
 // ── AVATAR (foto do usuário ou inicial) ───────────────────────
 
 function avatarInner(name, photo) {
-  if (photo) return `<img src="${photo}" alt="" class="avatar-img">`;
+  const safe = safeImageSrc(photo);
+  if (safe) return `<img src="${safe}" alt="" class="avatar-img">`;
   return escapeHtml((name || "?").charAt(0).toUpperCase());
 }
 
@@ -493,9 +499,11 @@ async function handleConfirmPayment() {
   btn.textContent = "Salvando...";
 
   try {
-    await registerPayment(currentProfile.uid, currentProfile.name, [...selectedDates], total, receiptState.data);
+    // O Worker recalcula o total a partir das viagens reais — `total` daqui
+    // é só para a UI. Se o cliente tentasse forjar, o servidor ignoraria.
+    const r = await createPayment([...selectedDates], receiptState.data);
     document.getElementById("modal-payment").classList.remove("modal--open");
-    showToast(`Pagamento de ${formatCurrency(total)} registrado!`, "success");
+    showToast(`Pagamento de ${formatCurrency(r.total)} registrado!`, "success");
     await loadPaymentsList();
     await loadAndRender();
     await refreshSummary();
@@ -515,11 +523,19 @@ function openReceiptModalById(paymentId) {
   if (!payment) return;
 
   // receiptData = Base64 (novo). receiptUrl = pagamentos antigos do Storage.
-  const src = payment.receiptData || payment.receiptUrl;
-  if (!src) return;
+  const raw = payment.receiptData || payment.receiptUrl;
+  if (!raw) return;
 
-  // Detecta se é imagem: por data URL (data:image/...) ou por extensão.
-  const isImage = src.startsWith("data:image/") || /\.(jpg|jpeg|png|gif|webp)/i.test(src);
+  // Só aceita data URL de imagem ou PDF. Bloqueia XSS: sem isto, um
+  // receiptData como  data:image/png;base64,x" onerror="..."  executava
+  // script, e um receiptUrl "javascript:..." rodaria ao clicar em abrir.
+  const src = safeReceiptSrc(raw);
+  if (!src) {
+    showToast("Comprovante em formato inválido.", "error");
+    return;
+  }
+
+  const isImage = src.startsWith("data:image/");
 
   const modal   = document.getElementById("modal-receipt");
   const content = document.getElementById("receipt-modal-content");
@@ -530,9 +546,9 @@ function openReceiptModalById(paymentId) {
   modal.classList.add("modal--open");
 
   // "Abrir em nova aba": navegadores bloqueiam abrir data: URL no topo,
-  // então convertemos Base64 para um blob URL temporário.
+  // então convertemos Base64 para um blob URL temporário. src já é seguro.
   const openBtn = document.getElementById("btn-open-receipt");
-  const openHref = src.startsWith("data:") ? dataURLToBlobURL(src) : src;
+  const openHref = dataURLToBlobURL(src);
   openBtn.href = openHref;
 
   document.getElementById("btn-close-receipt-modal").onclick = () => {

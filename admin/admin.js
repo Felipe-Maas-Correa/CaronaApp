@@ -4,19 +4,21 @@
 // ============================================================
 
 import {
-  doc, updateDoc, deleteDoc
+  doc, updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../js/firebase-config.js";
 import { getAllTrips, getAllPayments, getAllUsers, getTripValue, setTripValueSetting, clearTripsAndPayments } from "../js/db.js";
-import { registerUser, currentProfile, saveUsername } from "../auth/auth.js";
-import { showToast, formatDateTime, formatCurrency, icon, escapeHtml, todayISO } from "../js/utils.js";
+import { registerUser, currentProfile, reauthenticate } from "../auth/auth.js";
+import { deleteUserAccount } from "../js/worker-api.js";
+import { showToast, formatDateTime, formatCurrency, icon, escapeHtml, safeImageSrc, todayISO } from "../js/utils.js";
 
 // Valor de cada viagem (respeita preços diferentes ao longo do tempo)
 const amt = t => (typeof t.amount === "number" ? t.amount : 15);
 
 // Conteúdo de um avatar: foto (se houver) ou a inicial do nome.
 function avatarInner(name, photo) {
-  if (photo) return `<img src="${photo}" alt="" class="avatar-img">`;
+  const safe = safeImageSrc(photo);
+  if (safe) return `<img src="${safe}" alt="" class="avatar-img">`;
   return escapeHtml((name || "?").charAt(0).toUpperCase());
 }
 
@@ -101,8 +103,9 @@ export async function loadUsersList() {
     ]);
     cache = { trips, payments, users };
     renderAll();
-    // Backfill da tabela de nomes: garante que todo usuário possa logar por nome.
-    users.forEach(u => { if (u.name && u.email) saveUsername(u.uid, u.name, u.email); });
+    // O login-por-nome se popula sozinho: cada usuário registra o próprio
+    // nome ao logar (auth.js → registerMyName, via Worker). O admin não
+    // escreve mais o nome de terceiros na coleção (agora privada).
   } catch (e) {
     console.error("Erro ao carregar painel admin:", e);
     const c = document.getElementById("users-list");
@@ -372,45 +375,163 @@ function avatarColor(name = "") {
 
 async function toggleUserRole(uid, currentRole) {
   const newRole = currentRole === "admin" ? "user" : "admin";
-  try {
-    await updateDoc(doc(db, "users", uid), { role: newRole });
-    showToast(`Papel alterado para ${newRole === "admin" ? "Admin" : "Usuário"}`, "success");
-    await loadUsersList();
-  } catch (e) {
-    showToast("Erro ao alterar papel", "error");
+  const user    = cache.users.find(u => u.uid === uid);
+
+  // Rebaixar reduz privilégio: pode ir direto.
+  if (newRole === "user") {
+    try {
+      await updateDoc(doc(db, "users", uid), { role: "user" });
+      showToast("Rebaixado para Usuário", "info");
+      await loadUsersList();
+    } catch (e) {
+      console.error(e);
+      showToast("Erro ao alterar papel", "error");
+    }
+    return;
   }
+
+  // PROMOVER a admin concede acesso total: exige a senha, igual a ativar.
+  // As rules recusam a escrita sem um auth_time recente.
+  askPassword(
+    `Promover ${user?.name || "este usuário"} a admin?`,
+    `Ele passará a ver e alterar os dados de todos os usuários. ` +
+    `Confirme sua senha de administrador.`,
+    async () => {
+      await updateDoc(doc(db, "users", uid), { role: "admin" });
+      showToast(`${user?.name || "Usuário"} agora é administrador.`, "success");
+      await loadUsersList();
+    }
+  );
 }
 
 async function toggleUserActive(uid, currentActive) {
-  try {
-    await updateDoc(doc(db, "users", uid), { active: !currentActive });
-    showToast(!currentActive ? "Usuário ativado" : "Usuário desativado", "info");
-    await loadUsersList();
-  } catch (e) {
-    showToast("Erro ao alterar status", "error");
-  }
-}
-
-function confirmDeleteUser(uid) {
-  const modal  = document.getElementById("modal-confirm");
-  const msg    = document.getElementById("confirm-message");
-  const btnYes = document.getElementById("btn-confirm-yes");
-  const btnNo  = document.getElementById("btn-confirm-no");
-
-  msg.textContent = "Excluir este usuário do banco de dados? Esta ação não pode ser desfeita.";
-  modal.classList.add("modal--open");
-
-  btnYes.onclick = async () => {
-    modal.classList.remove("modal--open");
+  // Desativar reduz privilégio: pode ir direto.
+  if (currentActive) {
     try {
-      await deleteDoc(doc(db, "users", uid));
-      showToast("Usuário excluído", "info");
+      await updateDoc(doc(db, "users", uid), { active: false });
+      showToast("Usuário desativado", "info");
       await loadUsersList();
     } catch (e) {
-      showToast("Erro ao excluir usuário", "error");
+      console.error(e);
+      showToast("Erro ao desativar", "error");
+    }
+    return;
+  }
+
+  // Ativar CONCEDE acesso: exige a senha do admin.
+  const user = cache.users.find(u => u.uid === uid);
+  askPassword(
+    `Ativar ${user?.name || "este usuário"}?`,
+    "Confirme sua senha de administrador para liberar o acesso.",
+    async () => {
+      await updateDoc(doc(db, "users", uid), { active: true });
+      showToast(`${user?.name || "Usuário"} ativado.`, "success");
+      await loadUsersList();
+    }
+  );
+}
+
+// ── CONFIRMAÇÃO POR SENHA ─────────────────────────────────────
+
+/**
+ * Pede a senha do admin e só então executa a ação.
+ *
+ * A tela em si não é a proteção — as security rules é que exigem um
+ * `auth_time` recente. Aqui só produzimos esse auth_time e damos um
+ * retorno decente ao usuário.
+ *
+ * @param {string} title
+ * @param {string} message
+ * @param {() => Promise<void>} onConfirm executa DEPOIS da senha conferir
+ */
+function askPassword(title, message, onConfirm) {
+  const modal   = document.getElementById("modal-password");
+  const input   = document.getElementById("password-confirm-input");
+  const errorEl = document.getElementById("password-confirm-error");
+  const btnYes  = document.getElementById("btn-password-confirm");
+  const btnNo   = document.getElementById("btn-password-cancel");
+
+  document.getElementById("password-confirm-title").textContent   = title;
+  document.getElementById("password-confirm-message").textContent = message;
+
+  input.value         = "";
+  errorEl.textContent = "";
+  modal.classList.add("modal--open");
+  setTimeout(() => input.focus(), 50);
+
+  const close = () => {
+    modal.classList.remove("modal--open");
+    input.value = "";           // não deixa a senha no DOM
+  };
+
+  const submit = async () => {
+    const password = input.value;
+    if (!password) { errorEl.textContent = "Digite sua senha."; return; }
+
+    btnYes.disabled    = true;
+    btnYes.textContent = "Confirmando...";
+    errorEl.textContent = "";
+
+    try {
+      // Renova o auth_time. Sem isto, a regra recusa a escrita seguinte.
+      await reauthenticate(password);
+      await onConfirm();
+      close();
+    } catch (e) {
+      console.error(e);
+      errorEl.textContent = translateReauthError(e);
+      input.value = "";
+      input.focus();
+    } finally {
+      btnYes.disabled    = false;
+      btnYes.textContent = "Confirmar";
     }
   };
-  btnNo.onclick = () => modal.classList.remove("modal--open");
+
+  btnYes.onclick = submit;
+  btnNo.onclick  = close;
+  input.onkeydown = (e) => { if (e.key === "Enter") submit(); };
+}
+
+function translateReauthError(e) {
+  const map = {
+    "auth/wrong-password":     "Senha incorreta.",
+    "auth/invalid-credential": "Senha incorreta.",
+    "auth/too-many-requests":  "Muitas tentativas. Aguarde alguns minutos.",
+    "auth/user-mismatch":      "Credencial de outro usuário.",
+    "auth/network-request-failed": "Falha de rede. Tente de novo.",
+  };
+  if (map[e?.code]) return map[e.code];
+  // Escrita recusada pelas rules: quase sempre auth_time vencido.
+  if (String(e?.code || "").includes("permission-denied")) {
+    return "Permissão negada. A confirmação expirou — tente novamente.";
+  }
+  return "Não foi possível confirmar. Tente novamente.";
+}
+
+// A exclusão real (login do Firebase Auth + perfil) passa pelo Worker —
+// ver js/worker-api.js. O SDK web não apaga a conta de login de outra
+// pessoa; o Worker revalida token, papel de admin e senha recente.
+function confirmDeleteUser(uid) {
+  const user = cache.users.find(u => u.uid === uid);
+  const name = user?.name || "este usuário";
+
+  askPassword(
+    `Apagar ${name}?`,
+    `A conta de login e o perfil serão removidos definitivamente. ` +
+    `As viagens e pagamentos já registrados são mantidos no histórico. ` +
+    `Confirme sua senha de administrador.`,
+    async () => {
+      const r = await deleteUserAccount(uid);
+      showToast(
+        r.authDeleted
+          ? `${r.name || name} foi apagado.`
+          : `Perfil de ${r.name || name} removido (a conta de login já não existia).`,
+        "info"
+      );
+      await loadUsersList();
+    }
+  );
 }
 
 // ── LIMPAR DADOS DE TESTE ─────────────────────────────────────
@@ -481,15 +602,48 @@ async function handleCreateUser(e) {
   const role     = document.getElementById("new-user-role").value;
 
   errorEl.textContent = "";
-  btn.disabled        = true;
-  btn.textContent     = "Criando...";
 
-  try {
+  // Valida antes de bater no Firebase: erro local é mais claro que
+  // "auth/invalid-email" vindo de um 400 da API.
+  if (!name) {
+    errorEl.textContent = "Informe o nome.";
+    return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+    errorEl.textContent = "E-mail inválido. Confira se não faltou o @ ou o domínio.";
+    return;
+  }
+  if (password.length < 6) {
+    errorEl.textContent = "A senha precisa ter ao menos 6 caracteres.";
+    return;
+  }
+
+  // A criação em si — a conta nasce INATIVA (ativar é passo separado).
+  const doCreate = async () => {
     await registerUser(name, email, password, role);
     document.getElementById("modal-new-user").classList.remove("modal--open");
-    showToast(`${name} cadastrado como ${role === "admin" ? "Admin" : "Usuário"}!`, "success");
+    showToast(`${name} cadastrado. Ative no card abaixo com sua senha.`, "success");
     await loadUsersList();
+  };
+
+  // F-06: criar já como ADMIN é elevação — a regra exige senha recente.
+  // Peça a senha do admin ANTES; reauthenticate atualiza o auth_time.
+  if (role === "admin") {
+    askPassword(
+      `Criar ${name} como ADMINISTRADOR?`,
+      `Ele terá acesso total ao painel assim que for ativado. ` +
+      `Confirme sua senha de administrador.`,
+      doCreate   // askPassword já faz reauthenticate antes de chamar isto
+    );
+    return;
+  }
+
+  btn.disabled    = true;
+  btn.textContent = "Criando...";
+  try {
+    await doCreate();
   } catch (e) {
+    console.error(e);
     errorEl.textContent = translateAuthError(e.code);
   } finally {
     btn.disabled    = false;
@@ -529,8 +683,17 @@ function exportCSV() {
     (u.paid + u.open).toFixed(2).replace(".", ",")
   ]);
 
+  // F-07: neutraliza injeção de fórmula (CSV injection). Nome e e-mail são
+  // controlados pelo usuário; um nome como =HYPERLINK(...) viraria fórmula
+  // ativa ao abrir no Excel/LibreOffice. Prefixar com apóstrofo desarma
+  // qualquer célula que comece com =, +, -, @, TAB ou CR.
+  const csvSafe = (v) => {
+    const s = String(v);
+    return /^[=+\-@\t\r]/.test(s) ? "'" + s : s;
+  };
+
   const csv = [header, ...lines]
-    .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(";"))
+    .map(row => row.map(cell => `"${csvSafe(cell).replace(/"/g, '""')}"`).join(";"))
     .join("\r\n");
 
   // BOM para o Excel reconhecer acentos
