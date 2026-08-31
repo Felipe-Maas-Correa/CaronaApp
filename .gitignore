@@ -27,3 +27,11 @@ desktop.ini
 .idea/
 *.swp
 *~
+
+# ── Chaves de service account (NUNCA versionar) ──────────────
+# A chave-mestra do Firebase. Ela vai para os secrets do Worker
+# (wrangler secret put), não para um arquivo do repositório.
+*serviceaccount*.json
+*service-account*.json
+sa.json
+*-firebase-adminsdk-*.json

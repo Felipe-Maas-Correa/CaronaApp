@@ -2,8 +2,12 @@ rules_version = '2';
 
 // ============================================================
 // Regras de segurança do Firestore — CaronaApp
-// Projeto dedicado ao CaronaApp. Tudo que não estiver descrito
-// aqui é NEGADO por padrão.
+//
+// Princípios:
+//  1. Nada é validado só no cliente. Toda trava que importa está aqui.
+//  2. ELEVAR privilégio exige senha recente (auth_time). REDUZIR não.
+//  3. O usuário nunca altera o que ele deve (amount/date/uid da viagem).
+//  4. Tudo que não estiver descrito aqui é NEGADO.
 //
 // Como aplicar:
 //   Firebase Console > Firestore > Regras > cole este conteúdo > Publicar
@@ -11,12 +15,9 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── Helpers ───────────────────────────────────────────────
-    function isSignedIn() {
-      return request.auth != null;
-    }
+    // ── Helpers básicos ───────────────────────────────────────
+    function isSignedIn() { return request.auth != null; }
 
-    // Documento de perfil do usuário logado
     function myProfile() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
@@ -26,7 +27,7 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/users/$(request.auth.uid));
     }
 
-    // Conta ativa (active ausente é tratado como ativo)
+    // Conta ativa (active ausente é tratado como ativo, p/ contas antigas)
     function isActive() {
       return hasProfile() && myProfile().active != false;
     }
@@ -37,67 +38,185 @@ service cloud.firestore {
         && myProfile().active != false;
     }
 
+    // ── Reautenticação recente ────────────────────────────────
+    // `auth_time` é o instante em que o usuário provou a senha. Vem dentro
+    // do JWT assinado pelo Google, então o cliente NÃO consegue forjá-lo:
+    // só um reauthenticateWithCredential() de verdade o atualiza.
+    //
+    // É isto que faz o "digite sua senha" valer alguma coisa. Sem esta
+    // checagem no servidor, um script injetado na página pularia a tela de
+    // senha e escreveria active:true direto.
+    //
+    // Janela curta de propósito: o admin digita a senha imediatamente antes
+    // da ação, então 3 minutos sobram.
+    //
+    // ⚠️ TESTE NO RULES PLAYGROUND antes de publicar. Dependendo da versão,
+    // `auth_time` chega como número (segundos) ou timestamp. A linha ativa
+    // assume NÚMERO. Se der erro de tipo, troque pela linha comentada:
+    //
+    //   return request.time < request.auth.token.auth_time + duration.value(3, 'm');
+    //
+    function recentlyAuthed() {
+      return request.time.toMillis() - request.auth.token.auth_time * 1000 < 180000;
+    }
+
+    // ── Elevação de privilégio ────────────────────────────────
+    // Verdadeiro quando a alteração CONCEDE acesso: liberar uma conta
+    // inativa, ou tornar alguém administrador. Só essas exigem senha.
+    //
+    // Cobre os DOIS caminhos de escalada. Proteger só `active` deixava uma
+    // sessão sequestrada fazer updateDoc(users/atacante, {role:'admin'}).
+    function elevating() {
+      return (request.resource.data.active == true && resource.data.active != true)
+          || (request.resource.data.role == 'admin' && resource.data.role != 'admin');
+    }
+
+    // ── Validação de conteúdo ─────────────────────────────────
+    // A foto é editável pelo próprio usuário e acaba dentro de <img src>.
+    // Restringir ao formato que o app realmente gera fecha o XSS na ORIGEM,
+    // além do filtro na renderização (defesa em profundidade).
+    function validPhoto(p) {
+      return p == null
+        || (p is string
+            && p.size() < 300000
+            && p.matches('data:image/(png|jpeg|jpg|webp);base64,[A-Za-z0-9+/=]+'));
+    }
+
+    function validName(n) {
+      return n is string && n.size() > 0 && n.size() <= 60;
+    }
+
+    // Preço oficial da viagem. ⚠️ O documento settings/app PRECISA existir
+    // com o campo tripValue — senão a criação de viagens é negada para
+    // usuários comuns. Salve o valor uma vez no painel admin.
+    function officialTripValue() {
+      return get(/databases/$(database)/documents/settings/app).data.tripValue;
+    }
+
     // ── Usuários ──────────────────────────────────────────────
     match /users/{uid} {
-      // Ler o próprio perfil; admin lê qualquer um
-      allow get: if isSignedIn() && (request.auth.uid == uid || isAdmin());
-      // Listar todos: só admin (painel de administração)
+      allow get:  if isSignedIn() && (request.auth.uid == uid || isAdmin());
       allow list: if isAdmin();
 
-      // Criar: admin cadastra qualquer um; OU o próprio usuário cria
-      // seu perfil inicial — mas SEM poder se tornar admin.
-      allow create: if isAdmin()
+      // Criar: TODO perfil nasce INATIVO, venha do admin ou de auto-cadastro.
+      // Ativar é um passo separado que exige a senha do admin.
+      //
+      // O caminho de auto-cadastro continua permitido (para o app não quebrar
+      // se alguém autenticar sem perfil), mas produz uma conta sem NENHUM
+      // acesso. Para fechar de vez, desative o cadastro em
+      // Authentication > Settings > User actions > Enable create (sign-up).
+      allow create: if (isAdmin()
+            && request.resource.data.active == false
+            && request.resource.data.role in ['user', 'admin']
+            // F-06: criar já como admin é elevação — exige senha recente,
+            // igual a promover. Sem isto, uma sessão de admin sequestrada
+            // plantava uma conta admin nova sem passar pela tela de senha.
+            && (request.resource.data.role != 'admin' || recentlyAuthed()))
         || (request.auth.uid == uid
             && request.resource.data.role == 'user'
-            && request.resource.data.active == true);
+            && request.resource.data.active == false
+            && validName(request.resource.data.name)
+            && validPhoto(request.resource.data.get('photo', null)));
 
-      // Atualizar: admin altera qualquer campo; o próprio usuário pode
-      // editar SOMENTE nome e foto do seu perfil (nunca role/active/email),
-      // impedindo auto-promoção ou auto-reativação.
-      allow update: if isAdmin()
+      // Atualizar.
+      //   - admin: qualquer campo, mas ELEVAR exige senha recente.
+      //     Desativar, rebaixar e renomear seguem livres — reduzem acesso, e
+      //     travá-los atrapalharia cortar uma conta comprometida às pressas.
+      //   - o próprio usuário: só nome e foto, com formato validado.
+      allow update: if (isAdmin() && (!elevating() || recentlyAuthed()))
         || (request.auth.uid == uid
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'photo']));
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'photo'])
+            && validName(request.resource.data.name)
+            && validPhoto(request.resource.data.get('photo', null)));
 
-      // Excluir: somente admin.
-      allow delete: if isAdmin();
+      // Excluir: NINGUÉM, pelo cliente.
+      //
+      // Passa pelo Worker administrativo, que apaga a conta de login junto
+      // (o SDK web não consegue) e revalida no servidor: token assinado,
+      // quem pediu é admin, e senha digitada há pouco.
+      //
+      // Fechar aqui não é redundante: se o cliente pudesse apagar o perfil
+      // direto, uma sessão sequestrada faria isso pulando a senha — e ainda
+      // deixaria a conta de login viva, capaz de recriar o perfil sozinha.
+      allow delete: if false;
     }
 
     // ── Tabela de nomes (login por nome) ──────────────────────
-    // Liga um nome ao e-mail para permitir login por nome. Precisa ser
-    // LEGÍVEL sem autenticação (o login acontece antes de haver sessão).
-    // Só expõe { name, email, uid }. Escrita: admin, ou o próprio dono.
+    // A1/A4: agora PRIVADA para clientes. O e-mail não é mais legível por
+    // qualquer um (fim do vazamento de PII), e a escrita é exclusiva do
+    // Worker (service account), que só grava o slug do próprio chamador com
+    // o e-mail do token — acabando com o squatting de nome.
+    //
+    // A resolução nome→e-mail no login passou para o Worker
+    // (POST /auth/resolve-name), e o registro para POST /auth/register-name.
     match /usernames/{slug} {
-      allow read: if true;
-      allow write: if isAdmin()
-        || (isSignedIn() && request.resource.data.uid == request.auth.uid)
-        || (isSignedIn() && resource != null && resource.data.uid == request.auth.uid);
+      allow read:  if isAdmin();
+      allow write: if false;
     }
 
-    // ── Viagens (por usuário) ─────────────────────────────────
-    // Cada viagem pertence a um usuário (campo uid). O dono lê/escreve
-    // as suas; o admin lê/escreve todas (para o painel).
+    // ── Viagens ───────────────────────────────────────────────
     match /trips/{tripId} {
-      allow read:   if isSignedIn() && (isAdmin() || resource.data.uid == request.auth.uid);
-      // O admin cria/edita viagens de qualquer usuário (marca passageiros);
-      // o usuário comum só cria/edita (avalia) as próprias.
-      allow create: if isAdmin() || (isActive() && request.resource.data.uid == request.auth.uid);
-      allow update: if isAdmin() || (isActive() && resource.data.uid == request.auth.uid);
-      // Excluir viagem: SOMENTE admin (usuário não pode apagar).
+
+      // Avaliar: só estrelas e velocidade, com valores validados.
+      function onlyRating() {
+        return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stars', 'speed'])
+          && request.resource.data.stars is int
+          && request.resource.data.stars >= 0
+          && request.resource.data.stars <= 5
+          && (request.resource.data.get('speed', null) == null
+              || request.resource.data.speed in ['slow', 'mid', 'fast']);
+      }
+
+      allow read: if isSignedIn() && (isAdmin() || resource.data.uid == request.auth.uid);
+
+      // Criar: o usuário comum só cria a própria, com o ID casando com o dono
+      // e o VALOR fixado no preço oficial — sem isso ele criava a viagem já
+      // com amount:0.
+      allow create: if isAdmin()
+        || (isActive()
+            && request.resource.data.uid == request.auth.uid
+            && tripId == request.auth.uid + '_' + request.resource.data.date
+            && request.resource.data.paid == false
+            && request.resource.data.paymentId == null
+            && request.resource.data.amount == officialTripValue());
+
+      // Atualizar: o usuário comum SÓ avalia (stars/speed). Marcar como paga
+      // saiu daqui — antes o dono escrevia paid:true direto e zerava a dívida
+      // sem pagar (F-01). Agora só o Worker marca, junto de um pagamento real
+      // cujo total ele recalcula. O admin segue livre (painel).
+      allow update: if isAdmin()
+        || (isActive()
+            && resource.data.uid == request.auth.uid
+            && onlyRating());
+
       allow delete: if isAdmin();
     }
 
-    // ── Pagamentos (por usuário) ──────────────────────────────
+    // ── Pagamentos ────────────────────────────────────────────
+    // Leitura: dono ou admin. ESCRITA: ninguém pelo cliente.
+    //
+    // Criar e apagar pagamento passam pelo Worker (service account, que
+    // ignora estas regras). Foi a correção de F-01/F-02: as regras não
+    // conseguem somar o valor real das viagens nem garantir que "pago" só é
+    // marcado junto de um pagamento verdadeiro. O Worker recalcula o total a
+    // partir das viagens reais e IGNORA qualquer valor que o cliente mande —
+    // antes o usuário forjava um pagamento de R$0,01 cobrindo tudo.
     match /payments/{paymentId} {
-      allow read:   if isSignedIn() && (isAdmin() || resource.data.uid == request.auth.uid);
-      allow create: if isAdmin() || (isActive() && request.resource.data.uid == request.auth.uid);
-      allow update, delete: if isAdmin() || (isActive() && resource.data.uid == request.auth.uid);
+      allow read: if isSignedIn() && (isAdmin() || resource.data.uid == request.auth.uid);
+      allow create, update, delete: if false;
     }
 
     // ── Configurações (valor da viagem etc.) ──────────────────
-    // Todos os autenticados leem (para saber o preço); só admin altera.
+    // A3: valida o tipo e a faixa do tripValue no servidor. Antes, um admin
+    // (ou uma sessão de admin sequestrada) podia gravar tripValue com string,
+    // negativo ou absurdo, quebrando toda a contabilidade.
     match /settings/{docId} {
       allow read:  if isSignedIn();
-      allow write: if isAdmin();
+      allow write: if isAdmin()
+        && (docId != 'app'
+            || (request.resource.data.tripValue is number
+                && request.resource.data.tripValue >= 0
+                && request.resource.data.tripValue <= 100000));
     }
 
     // ── Tudo o mais: negado ───────────────────────────────────
