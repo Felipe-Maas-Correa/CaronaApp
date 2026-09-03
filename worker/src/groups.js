@@ -137,6 +137,12 @@ export async function handleCreateGroup(request, env) {
 
   const pixKey = String(body.pixKey || "").trim().slice(0, 140);
 
+  // Personalização (opcional). Cor só entra se for um hex #rgb/#rrggbb —
+  // é usada como fundo/realce na UI, então precisa ser um valor CSS seguro.
+  const description = String(body.description || "").trim().slice(0, 120);
+  const rawColor    = String(body.color || "").trim();
+  const color       = /^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/.test(rawColor) ? rawColor : "";
+
   // Valor da viagem: o que veio, senão o padrão do sistema, senão 15.
   let tripValue = Number(body.tripValue);
   if (!Number.isFinite(tripValue) || tripValue < 0 || tripValue > 100000) {
@@ -160,6 +166,8 @@ export async function handleCreateGroup(request, env) {
     ownerName:   profile.name || caller.email || "",
     pixKey,
     tripValue,
+    description,
+    color,
     memberCount: 1,
     active:      true,
     createdAt:   new Date()

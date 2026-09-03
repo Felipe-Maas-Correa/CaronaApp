@@ -181,92 +181,167 @@
     <div id="group-screen" class="screen group-screen">
       <div class="group-container">
 
-        <!-- Quem está logado. Fica no TOPO porque esta tela aparece quando a
-             sessão foi restaurada automaticamente: sem isso, quem reabre o
-             app cai aqui sem entender por que não viu a tela de login. -->
-        <div class="group-account">
-          <div class="group-account__info">
-            <span class="group-account__label">entrando como</span>
-            <span class="group-account__who" id="group-account-who">—</span>
+        <!-- ═══ IDENTITY BAR ═══ quem sou eu, onde estou. Fica no topo porque
+             esta tela aparece quando a sessão foi restaurada sozinha: sem
+             isto, quem reabre o app cai aqui sem entender por que não viu o
+             login. -->
+        <div class="hub-identity">
+          <div class="hub-identity__avatar" id="group-account-avatar">?</div>
+          <div class="hub-identity__who">
+            <span class="hub-identity__name" id="group-account-name">—</span>
+            <span class="hub-identity__mail" id="group-account-who">—</span>
           </div>
-          <button id="btn-group-logout" class="group-account__exit">Sair</button>
-        </div>
-
-        <div class="auth-logo">
-          <div class="auth-logo__icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <div class="hub-identity__actions">
+            <button id="btn-group-profile" class="hub-iconbtn" title="Meu perfil" aria-label="Meu perfil">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </button>
+            <button id="btn-group-logout" class="hub-iconbtn" title="Sair da conta" aria-label="Sair da conta">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            </button>
           </div>
-          <div class="auth-logo__name">Grupos de <span>Carona</span></div>
-          <div class="auth-logo__sub" id="group-screen-sub">Crie um grupo ou use um convite para começar</div>
         </div>
 
-        <!-- Seleção de grupo — some enquanto a pessoa não participa de nenhum,
-             para a tela de quem está chegando ficar igual à de login: logo,
-             abas e um formulário. -->
-        <div class="group-card hidden" id="group-list-card">
-          <div class="section-title">Meus grupos</div>
-          <div id="group-list"></div>
+        <!-- Título compacto (não o logo gigante do login: aqui o herói é o
+             grupo ativo, não a marca). -->
+        <div class="hub-title">
+          <h1 class="hub-title__h">Grupos de <span>Carona</span></h1>
+          <p class="hub-title__sub" id="group-screen-sub">Crie um grupo ou use um convite para começar</p>
         </div>
 
-        <!-- Convites recebidos (some quando não há nenhum) -->
-        <div class="group-card hidden" id="group-invites-card">
-          <div class="section-title">Convites recebidos</div>
-          <div id="group-invites"></div>
-        </div>
-
-        <!-- Entrar / Criar: mesmo componente de abas da tela de login. -->
-        <div class="auth-tabs" role="tablist">
-          <button type="button" id="tab-join-group"   class="auth-tab auth-tab--active" role="tab">Entrar em um grupo</button>
-          <button type="button" id="tab-create-group" class="auth-tab" role="tab">Criar um grupo</button>
-        </div>
-
-        <!-- Entrar com código -->
-        <form id="form-join-group" class="auth-form" novalidate>
-          <div class="form-group">
-            <label class="form-label" for="join-code">Código do convite</label>
-            <input id="join-code" type="text" class="form-input group-code-input"
-                   placeholder="ABCD2345" maxlength="12" autocomplete="off"
-                   autocapitalize="characters" spellcheck="false" />
+        <!-- ═══ CARD-HERÓI ═══ o grupo ativo em destaque; some quem não tem. -->
+        <section class="hub-hero hidden" id="group-hero" data-color="">
+          <div class="hub-hero__glow"></div>
+          <div class="hub-hero__top">
+            <span class="hub-hero__badge" id="hero-role">—</span>
+            <button class="hub-hero__fav" id="hero-fav" title="Favoritar" aria-label="Favoritar" hidden>★</button>
           </div>
+          <h2 class="hub-hero__name" id="hero-name">—</h2>
+          <div class="hub-hero__meta">
+            <span id="hero-members">— membros</span>
+            <span class="hub-dot">•</span>
+            <span id="hero-value">R$ —/viagem</span>
+          </div>
+          <div class="hub-hero__status" id="hero-status">
+            <span class="hub-status-pill" id="hero-status-pill">—</span>
+          </div>
+          <button class="btn btn--primary btn--full auth-btn" id="btn-hero-enter">Continuar no grupo</button>
+        </section>
 
-          <p id="join-error" class="auth-error"></p>
+        <!-- ═══ MEUS GRUPOS ═══ grid de cards. Some inteiro quando não há
+             nenhum, para a tela de quem chega ficar limpa (só título + ações). -->
+        <section class="hub-section hidden" id="group-list-card">
+          <div class="hub-section__head">
+            <span class="hub-section__title">Meus grupos</span>
+            <button class="hub-sort" id="group-sort" data-sort="recent">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><path d="M11 5h10"/><path d="M11 9h7"/><path d="M11 13h4"/><path d="m3 17 3 3 3-3"/><path d="M6 18V4"/></svg>
+              <span id="group-sort-label">Recentes</span>
+            </button>
+          </div>
+          <div class="hub-search hidden" id="group-search-wrap">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" id="group-search" class="hub-search__input" placeholder="Buscar grupo…" autocomplete="off" />
+          </div>
+          <div class="hub-grid" id="group-list"></div>
+        </section>
 
-          <button id="btn-join-group" type="submit" class="btn btn--primary btn--full auth-btn">
-            Entrar no grupo
+        <!-- Ações: dois tiles que abrem bottom-sheets. -->
+        <div class="hub-actions">
+          <button class="hub-tile hub-tile--accent" id="tile-create">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>Criar grupo</span>
           </button>
-        </form>
-
-        <!-- Criar grupo -->
-        <form id="form-create-group" class="auth-form hidden" novalidate>
-          <div class="form-group">
-            <label class="form-label" for="create-group-name">Nome do grupo</label>
-            <input id="create-group-name" type="text" class="form-input"
-                   placeholder="Ex.: Carona do trabalho" maxlength="60" required />
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="create-group-value">Valor por viagem (R$)</label>
-            <input id="create-group-value" type="number" class="form-input"
-                   min="0" step="0.5" inputmode="decimal" placeholder="15" />
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="create-group-pix">Chave PIX para receber</label>
-            <input id="create-group-pix" type="text" class="form-input"
-                   placeholder="opcional — dá para cadastrar depois" maxlength="140" />
-          </div>
-
-          <p id="create-group-error" class="auth-error"></p>
-
-          <button id="btn-create-group" type="submit" class="btn btn--primary btn--full auth-btn">
-            Criar grupo
+          <button class="hub-tile" id="tile-join">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            <span>Tenho um código</span>
           </button>
-        </form>
+        </div>
 
-        <p class="auth-footer" id="group-footer-note">
-          Recebeu um convite? Use o código que te mandaram.
-        </p>
+        <!-- Convites recebidos (some quando não há nenhum). -->
+        <section class="hub-section hidden" id="group-invites-card">
+          <div class="hub-section__head">
+            <span class="hub-section__title">Convites</span>
+            <span class="hub-section__count" id="group-invites-count"></span>
+          </div>
+          <div class="hub-invites" id="group-invites"></div>
+        </section>
 
         <button id="btn-group-back" class="btn btn--ghost btn--full hidden">Voltar ao app</button>
         <button id="btn-leave-group" class="btn btn--ghost btn--full hidden">Sair do grupo atual</button>
+      </div>
+
+      <!-- ═══ SHEET: CRIAR GRUPO ═══ -->
+      <div class="hub-sheet" id="sheet-create" hidden>
+        <div class="hub-sheet__backdrop" data-close-sheet="sheet-create"></div>
+        <div class="hub-sheet__panel" role="dialog" aria-modal="true" aria-label="Novo grupo">
+          <div class="hub-sheet__handle"></div>
+          <div class="hub-sheet__head">
+            <h3>Novo grupo</h3>
+            <button class="hub-iconbtn" data-close-sheet="sheet-create" aria-label="Fechar">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          <form id="form-create-group" novalidate>
+            <div class="form-group">
+              <label class="form-label" for="create-group-name">Nome do grupo</label>
+              <input id="create-group-name" type="text" class="form-input"
+                     placeholder="Ex.: Carona do trabalho" maxlength="60" required />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="create-group-value">Valor por viagem (R$)</label>
+                <input id="create-group-value" type="number" class="form-input"
+                       min="0" step="0.5" inputmode="decimal" placeholder="15" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="create-group-pix">Chave PIX para receber</label>
+              <input id="create-group-pix" type="text" class="form-input"
+                     placeholder="opcional — dá para cadastrar depois" maxlength="140" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="create-group-desc">Descrição <span class="form-opt">(opcional)</span></label>
+              <input id="create-group-desc" type="text" class="form-input"
+                     placeholder="Ex.: saída 7h, volta 18h" maxlength="120" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Cor do grupo <span class="form-opt">(opcional)</span></label>
+              <div class="hub-swatches" id="create-group-swatches"></div>
+            </div>
+
+            <p id="create-group-error" class="auth-error"></p>
+            <button id="btn-create-group" type="submit" class="btn btn--primary btn--full auth-btn">
+              Criar grupo
+            </button>
+            <p class="hub-sheet__hint">Quem cria o grupo vira o administrador dele.</p>
+          </form>
+        </div>
+      </div>
+
+      <!-- ═══ SHEET: ENTRAR POR CÓDIGO ═══ -->
+      <div class="hub-sheet" id="sheet-join" hidden>
+        <div class="hub-sheet__backdrop" data-close-sheet="sheet-join"></div>
+        <div class="hub-sheet__panel" role="dialog" aria-modal="true" aria-label="Entrar em um grupo">
+          <div class="hub-sheet__handle"></div>
+          <div class="hub-sheet__head">
+            <h3>Entrar em um grupo</h3>
+            <button class="hub-iconbtn" data-close-sheet="sheet-join" aria-label="Fechar">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          <form id="form-join-group" novalidate>
+            <div class="form-group">
+              <label class="form-label" for="join-code">Código do convite</label>
+              <input id="join-code" type="text" class="form-input group-code-input"
+                     placeholder="ABCD2345" maxlength="12" autocomplete="off"
+                     autocapitalize="characters" spellcheck="false" />
+            </div>
+            <p id="join-error" class="auth-error"></p>
+            <button id="btn-join-group" type="submit" class="btn btn--primary btn--full auth-btn">
+              Entrar no grupo
+            </button>
+            <p class="hub-sheet__hint">Recebeu um convite? Use o código que te mandaram.</p>
+          </form>
+        </div>
       </div>
     </div>
 

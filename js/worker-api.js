@@ -89,8 +89,8 @@ export function deleteUserAccount(uid) {
 // `invites`, e o Worker é a única porta.
 
 /** Cria um grupo e deixa quem criou como DONO. */
-export function createGroup({ name, pixKey, tripValue }) {
-  return callWorker("/groups/create", { name, pixKey, tripValue });
+export function createGroup({ name, pixKey, tripValue, description, color }) {
+  return callWorker("/groups/create", { name, pixKey, tripValue, description, color });
 }
 
 /**

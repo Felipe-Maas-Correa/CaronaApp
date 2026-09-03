@@ -21,8 +21,14 @@ import {
   createGroup, createInvite, revokeInvite, joinGroup, leaveGroup
 } from "../js/worker-api.js";
 import {
-  showToast, escapeHtml, formatDateTime, icon, copyToClipboard
+  getUserUnpaidTrips
+} from "../js/db.js";
+import {
+  showToast, escapeHtml, formatDateTime, formatCurrency, icon, copyToClipboard
 } from "../js/utils.js";
+
+// Paleta de cores do grupo. A primeira é o dourado da marca (default).
+const GROUP_COLORS = ["#d4af37", "#e05c5c", "#4f9dde", "#5fbf7f", "#a678de", "#e08a3c"];
 
 // ── ESTADO ────────────────────────────────────────────────────
 
@@ -64,9 +70,13 @@ export function groupName() {
   return currentGroup?.name || "";
 }
 
-// ── TELA DE GRUPOS ────────────────────────────────────────────
+// ── TELA DE GRUPOS (HUB) ──────────────────────────────────────
 
 let screenBound = false;
+let selectedColor = GROUP_COLORS[0];  // cor escolhida no sheet de criação
+let groupDocs = new Map();            // id -> doc do grupo (enriquece os cards)
+let searchTerm = "";
+let sortMode = "recent";              // "recent" | "name"
 
 export function initGroupScreen() {
   if (screenBound) return;
@@ -76,44 +86,102 @@ export function initGroupScreen() {
   document.getElementById("form-join-group")?.addEventListener("submit", handleJoinGroup);
   document.getElementById("btn-group-back")?.addEventListener("click", () => onGroupChanged());
   document.getElementById("btn-group-logout")?.addEventListener("click", () => logoutUser());
+  document.getElementById("btn-group-profile")?.addEventListener("click", goToProfile);
   document.getElementById("btn-leave-group")?.addEventListener("click", handleLeaveGroup);
 
-  document.getElementById("tab-join-group")?.addEventListener("click",   () => showGroupTab(false));
-  document.getElementById("tab-create-group")?.addEventListener("click", () => showGroupTab(true));
+  // Herói: entrar no grupo ativo / favoritar.
+  document.getElementById("btn-hero-enter")?.addEventListener("click", () => onGroupChanged());
+  document.getElementById("hero-fav")?.addEventListener("click", () => {
+    if (currentProfile?.groupId) { toggleFav(currentProfile.groupId); renderGroupScreen(); }
+  });
 
-  // Link de convite compartilhado: ...?convite=ABCD1234 já chega preenchido.
+  // Tiles abrem os sheets; qualquer [data-close-sheet] fecha o seu.
+  document.getElementById("tile-create")?.addEventListener("click", () => openSheet("sheet-create"));
+  document.getElementById("tile-join")?.addEventListener("click",   () => openSheet("sheet-join"));
+  document.querySelectorAll("[data-close-sheet]").forEach(el => {
+    el.addEventListener("click", () => closeSheet(el.dataset.closeSheet));
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") document.querySelectorAll(".hub-sheet:not([hidden])").forEach(s => closeSheet(s.id));
+  });
+
+  // Busca e ordenação da lista de grupos.
+  const search = document.getElementById("group-search");
+  search?.addEventListener("input", () => { searchTerm = search.value.trim().toLowerCase(); renderMyGroups(); });
+  document.getElementById("group-sort")?.addEventListener("click", () => {
+    sortMode = sortMode === "recent" ? "name" : "recent";
+    const lbl = document.getElementById("group-sort-label");
+    if (lbl) lbl.textContent = sortMode === "recent" ? "Recentes" : "Nome";
+    renderMyGroups();
+  });
+
+  buildColorSwatches();
+
+  // Link de convite compartilhado: ...?convite=ABCD1234 abre o sheet já cheio.
   const fromLink = new URLSearchParams(location.search).get("convite");
   const codeInput = document.getElementById("join-code");
-  if (fromLink && codeInput) codeInput.value = fromLink.trim().toUpperCase().slice(0, 12);
-
+  if (fromLink && codeInput) {
+    codeInput.value = fromLink.trim().toUpperCase().slice(0, 12);
+    openSheet("sheet-join");
+  }
   // O campo de código é sempre maiúsculo — o alfabeto do convite é.
   codeInput?.addEventListener("input", () => {
     codeInput.value = codeInput.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
   });
 }
 
-/**
- * Alterna entre "Entrar em um grupo" e "Criar um grupo" — mesmo padrão das
- * abas Entrar/Criar conta do login: uma aba ativa, um formulário à mostra.
- * @param {boolean} create true = mostrar o formulário de criação
- */
-function showGroupTab(create) {
-  document.getElementById("tab-join-group")?.classList.toggle("auth-tab--active", !create);
-  document.getElementById("tab-create-group")?.classList.toggle("auth-tab--active", create);
-  document.getElementById("form-join-group")?.classList.toggle("hidden", create);
-  document.getElementById("form-create-group")?.classList.toggle("hidden", !create);
+// ── FAVORITOS ─────────────────────────────────────────────────
+// Guardados por dispositivo (localStorage), presos ao uid para não vazarem
+// entre contas no mesmo navegador. É a marcação pessoal do usuário; quando a
+// fase de personalização chegar, migra para um campo na própria membership.
+function favKey() { return `caronaFavs:${currentProfile?.uid || "anon"}`; }
+function getFavs() {
+  try { return new Set(JSON.parse(localStorage.getItem(favKey()) || "[]")); }
+  catch { return new Set(); }
+}
+function isFav(id) { return getFavs().has(id); }
+function toggleFav(id) {
+  const favs = getFavs();
+  favs.has(id) ? favs.delete(id) : favs.add(id);
+  try { localStorage.setItem(favKey(), JSON.stringify([...favs])); } catch {}
+}
 
-  const note = document.getElementById("group-footer-note");
-  if (note) {
-    note.textContent = create
-      ? "Quem cria o grupo vira o administrador dele: define o valor da viagem, a chave PIX e quem entra."
-      : "Recebeu um convite? Use o código que te mandaram.";
-  }
+// ── SHEETS (bottom-sheet) ─────────────────────────────────────
+function openSheet(id) {
+  const s = document.getElementById(id);
+  if (!s) return;
+  s.hidden = false;
+  requestAnimationFrame(() => s.classList.add("hub-sheet--open"));
+  s.querySelector("input")?.focus();
+}
+function closeSheet(id) {
+  const s = document.getElementById(id);
+  if (!s) return;
+  s.classList.remove("hub-sheet--open");
+  setTimeout(() => { s.hidden = true; }, 220); // espera a transição
+}
 
-  const joinError   = document.getElementById("join-error");
-  const createError = document.getElementById("create-group-error");
-  if (joinError)   joinError.textContent = "";
-  if (createError) createError.textContent = "";
+// ── SWATCHES DE COR (sheet de criação) ────────────────────────
+function buildColorSwatches() {
+  const box = document.getElementById("create-group-swatches");
+  if (!box) return;
+  box.innerHTML = GROUP_COLORS.map((c, i) => `
+    <button type="button" class="hub-swatch ${i === 0 ? "hub-swatch--on" : ""}"
+            data-color="${c}" style="--sw:${c}" aria-label="Cor ${i + 1}"></button>
+  `).join("");
+  box.querySelectorAll(".hub-swatch").forEach(sw => {
+    sw.addEventListener("click", () => {
+      selectedColor = sw.dataset.color;
+      box.querySelectorAll(".hub-swatch").forEach(x => x.classList.toggle("hub-swatch--on", x === sw));
+    });
+  });
+}
+
+function goToProfile() {
+  // O perfil vive no app; se ainda não há grupo ativo, não há app para abrir,
+  // então caímos no fluxo de entrada normal.
+  if (currentProfile?.groupId) onGroupChanged().then(() => document.getElementById("btn-profile")?.click());
+  else showToast("Entre em um grupo para acessar seu perfil.", "info");
 }
 
 /**
@@ -131,40 +199,94 @@ export async function openGroupScreen() {
 
 /** Mostra a tela e (re)desenha tudo. */
 export async function renderGroupScreen() {
-  // Quem está logado. O e-mail vem primeiro por ser o identificador que a
-  // pessoa reconhece como "sou eu" — dois nomes iguais são comuns, dois
-  // e-mails iguais não existem.
-  const who = document.getElementById("group-account-who");
-  if (who) who.textContent = currentUser?.email || currentProfile?.name || "—";
+  const groups   = currentProfile?.groups || [];
+  const activeId = currentProfile?.groupId || null;
+  const hasGroups = groups.length > 0;
 
-  const back = document.getElementById("btn-group-back");
-  back?.classList.toggle("hidden", !currentProfile?.groupId);
+  // Identity bar: avatar (inicial), nome e e-mail. O e-mail é o "sou eu"
+  // inequívoco; o nome é o rótulo humano.
+  const name = currentProfile?.name || "";
+  const mail = currentUser?.email || "";
+  const nameEl = document.getElementById("group-account-name");
+  const mailEl = document.getElementById("group-account-who");
+  const avEl   = document.getElementById("group-account-avatar");
+  if (nameEl) nameEl.textContent = name || mail || "—";
+  if (mailEl) mailEl.textContent = mail || "—";
+  if (avEl)   avEl.textContent = (name || mail || "?").charAt(0).toUpperCase();
 
   const sub = document.getElementById("group-screen-sub");
-  if (sub) {
-    sub.textContent = currentProfile?.groupId
-      ? "Troque de grupo ou crie um novo"
-      : "Crie um grupo ou use um convite para começar";
-  }
+  if (sub) sub.textContent = hasGroups
+    ? "Escolha um grupo ou crie um novo"
+    : "Crie um grupo ou use um convite para começar";
 
-  // Sair só aparece para quem NÃO é o dono: o dono transfere a posse ou
-  // apaga o grupo (o Worker recusa a saída dele de qualquer forma, para não
-  // deixar um grupo com passageiros e sem administrador).
+  document.getElementById("btn-group-back")?.classList.toggle("hidden", !activeId);
   document.getElementById("btn-leave-group")
-    ?.classList.toggle("hidden", !currentProfile?.groupId || currentProfile.groupRole === "owner");
+    ?.classList.toggle("hidden", !activeId || currentProfile.groupRole === "owner");
 
-  // Sugere o valor padrão do sistema no formulário de criação.
   const valueInput = document.getElementById("create-group-value");
   if (valueInput && !valueInput.value) valueInput.value = getDefaultTripValue();
 
-  renderMyGroups();
-  const pendingInvites = await renderMyInvites();
+  // Enriquece os cards com o documento de cada grupo (membros, valor, cor) —
+  // a membership no perfil só guarda id/nome/cargo.
+  const docs = await Promise.all(groups.map(g => getGroup(g.id).catch(() => null)));
+  groupDocs = new Map();
+  groups.forEach((g, i) => { if (docs[i]) groupDocs.set(g.id, docs[i]); });
 
-  // Abre na aba que resolve o caso da pessoa: quem chegou com um código na
-  // mão (link de convite ou convite pendente) cai em "Entrar"; quem não tem
-  // nada disso está aqui para montar o próprio grupo.
-  const hasCode = !!document.getElementById("join-code")?.value;
-  showGroupTab(!hasCode && pendingInvites === 0);
+  await renderHero(activeId);
+  renderMyGroups();
+  await renderMyInvites();
+}
+
+// ── CARD-HERÓI (grupo ativo) ──────────────────────────────────
+async function renderHero(activeId) {
+  const hero = document.getElementById("group-hero");
+  if (!hero) return;
+  if (!activeId) { hero.classList.add("hidden"); return; }
+  hero.classList.remove("hidden");
+
+  const doc  = groupDocs.get(activeId) || currentGroup || {};
+  const role = currentProfile?.groupRole === "owner" ? "owner" : "member";
+  const color = doc.color || "";
+  hero.style.setProperty("--hero-color", color || "var(--accent)");
+
+  document.getElementById("hero-name").textContent = doc.name || groupName() || "Grupo";
+  const roleEl = document.getElementById("hero-role");
+  roleEl.textContent = role === "owner" ? "👑 Você é o dono" : "🧍 Passageiro";
+  roleEl.classList.toggle("hub-hero__badge--owner", role === "owner");
+
+  const members = Number(doc.memberCount) || 0;
+  document.getElementById("hero-members").textContent =
+    `${members} ${members === 1 ? "membro" : "membros"}`;
+  const value = typeof doc.tripValue === "number" ? doc.tripValue : 0;
+  document.getElementById("hero-value").textContent = `${formatCurrency(value)}/viagem`;
+
+  const fav = document.getElementById("hero-fav");
+  if (fav) { fav.hidden = false; fav.classList.toggle("hub-hero__fav--on", isFav(activeId)); }
+
+  // Situação do usuário: viagens vencidas e não pagas no grupo ativo.
+  const pill = document.getElementById("hero-status-pill");
+  pill.className = "hub-status-pill";
+  pill.textContent = "…";
+  try {
+    const unpaid = await getUserUnpaidTrips(currentProfile.uid, activeId);
+    const due = unpaid.filter(t => t.date <= todayStr());
+    if (due.length === 0) {
+      pill.classList.add("hub-status-pill--ok");
+      pill.textContent = "✓ Você está em dia";
+    } else {
+      const total = due.reduce((s, t) => s + (typeof t.value === "number" ? t.value : value), 0);
+      pill.classList.add("hub-status-pill--debt");
+      pill.textContent = `${due.length} viagem(ns) · ${formatCurrency(total)} em aberto`;
+    }
+  } catch {
+    pill.classList.add("hub-status-pill--muted");
+    pill.textContent = "toque para entrar";
+  }
+}
+
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 function renderMyGroups() {
@@ -172,29 +294,61 @@ function renderMyGroups() {
   const card = document.getElementById("group-list-card");
   if (!box) return;
 
-  const groups  = currentProfile?.groups || [];
+  const groups   = currentProfile?.groups || [];
   const activeId = currentProfile?.groupId || null;
 
-  // Sem grupo nenhum, o cartão inteiro sai da tela em vez de exibir um "você
-  // não participa de nenhum" — o que resta é logo + abas + formulário, igual
-  // ao login.
   card?.classList.toggle("hidden", groups.length === 0);
+  document.getElementById("group-search-wrap")?.classList.toggle("hidden", groups.length < 4);
   if (groups.length === 0) { box.innerHTML = ""; return; }
 
-  box.innerHTML = groups.map(g => `
-    <button class="group-item ${g.id === activeId ? "group-item--active" : ""}"
-            data-select-group="${escapeHtml(g.id)}">
-      <span class="group-item__mark">${g.id === activeId ? icon("check") : ""}</span>
-      <span class="group-item__body">
-        <span class="group-item__name">${escapeHtml(g.name || "Grupo")}</span>
-        <span class="group-item__role">${g.role === "owner" ? "você é o dono" : "passageiro"}</span>
-      </span>
-      ${g.id === activeId ? `<span class="badge badge--active">ativo</span>` : ""}
-    </button>
-  `).join("");
+  // Ordena: favoritos sempre no topo; depois pelo modo escolhido. "recent"
+  // usa a ordem da membership (a mais nova é a última que a pessoa entrou).
+  let list = groups.slice();
+  if (sortMode === "name") list.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+  else list.reverse();
+  list.sort((a, b) => (isFav(b.id) ? 1 : 0) - (isFav(a.id) ? 1 : 0));
+
+  if (searchTerm) list = list.filter(g => (g.name || "").toLowerCase().includes(searchTerm));
+
+  if (list.length === 0) {
+    box.innerHTML = `<p class="hub-empty">Nenhum grupo encontrado.</p>`;
+    return;
+  }
+
+  box.innerHTML = list.map(g => {
+    const doc = groupDocs.get(g.id) || {};
+    const active = g.id === activeId;
+    const members = Number(doc.memberCount) || 0;
+    const value = typeof doc.tripValue === "number" ? doc.tripValue : null;
+    const color = doc.color || "var(--accent)";
+    const owner = g.role === "owner";
+    return `
+      <button class="gcard ${active ? "gcard--active" : ""}" data-select-group="${escapeHtml(g.id)}"
+              style="--gc:${escapeHtml(color)}">
+        <span class="gcard__accent"></span>
+        <span class="gcard__top">
+          <span class="gcard__avatar">${escapeHtml((g.name || "G").charAt(0).toUpperCase())}</span>
+          <span class="gcard__fav ${isFav(g.id) ? "gcard__fav--on" : ""}" data-fav-group="${escapeHtml(g.id)}" role="button" aria-label="Favoritar">★</span>
+        </span>
+        <span class="gcard__name">${escapeHtml(g.name || "Grupo")}</span>
+        <span class="gcard__role">${owner ? "👑 Dono" : "🧍 Passageiro"}</span>
+        <span class="gcard__meta">
+          <span>${members || "—"} pax</span>
+          <span class="hub-dot">•</span>
+          <span>${value != null ? formatCurrency(value) : "—"}</span>
+        </span>
+        ${active ? `<span class="gcard__badge">● ativo</span>` : ""}
+      </button>
+    `;
+  }).join("");
 
   box.querySelectorAll("[data-select-group]").forEach(btn => {
-    btn.addEventListener("click", () => switchGroup(btn.dataset.selectGroup));
+    btn.addEventListener("click", (e) => {
+      // Clique na estrela favorita não troca de grupo.
+      const star = e.target.closest("[data-fav-group]");
+      if (star) { e.stopPropagation(); toggleFav(star.dataset.favGroup); renderGroupScreen(); return; }
+      switchGroup(btn.dataset.selectGroup);
+    });
   });
 }
 
@@ -202,36 +356,56 @@ function renderMyGroups() {
 async function renderMyInvites() {
   const box  = document.getElementById("group-invites");
   const card = document.getElementById("group-invites-card");
+  const countEl = document.getElementById("group-invites-count");
   if (!box) return 0;
 
   let invites = [];
   try {
     invites = await getInvitesForEmail(currentUser?.email || "");
   } catch (e) {
-    // Sem convite nenhum a consulta é negada documento a documento e volta
-    // vazia — não é erro que mereça alarme na tela.
     invites = [];
   }
 
-  const valid = invites.filter(i => toMillis(i.expiresAt) > Date.now());
+  // Além de expirados, escondemos os que o usuário já recusou neste aparelho.
+  const dismissed = getDismissedInvites();
+  const valid = invites.filter(i => toMillis(i.expiresAt) > Date.now() && !dismissed.has(i.code));
   card?.classList.toggle("hidden", valid.length === 0);
+  if (countEl) countEl.textContent = valid.length ? String(valid.length) : "";
   if (valid.length === 0) { box.innerHTML = ""; return 0; }
 
   box.innerHTML = valid.map(i => `
-    <div class="group-invite">
-      <div class="group-invite__info">
-        <div class="group-invite__group">${escapeHtml(i.groupName || "Grupo")}</div>
-        <div class="group-invite__by">convite de ${escapeHtml(i.createdByName || "—")}</div>
+    <div class="hub-invite" data-invite="${escapeHtml(i.code)}">
+      <div class="hub-invite__info">
+        <div class="hub-invite__group">${escapeHtml(i.groupName || "Grupo")}</div>
+        <div class="hub-invite__by">convite de ${escapeHtml(i.createdByName || "—")}</div>
       </div>
-      <button class="btn btn--sm btn--primary" data-accept-invite="${escapeHtml(i.code)}">Aceitar</button>
+      <div class="hub-invite__actions">
+        <button class="btn btn--ghost btn--sm" data-decline-invite="${escapeHtml(i.code)}">Recusar</button>
+        <button class="btn btn--primary btn--sm" data-accept-invite="${escapeHtml(i.code)}">Aceitar</button>
+      </div>
     </div>
   `).join("");
 
   box.querySelectorAll("[data-accept-invite]").forEach(btn => {
     btn.addEventListener("click", () => acceptInvite(btn.dataset.acceptInvite, btn));
   });
+  box.querySelectorAll("[data-decline-invite]").forEach(btn => {
+    btn.addEventListener("click", () => { dismissInvite(btn.dataset.declineInvite); renderMyInvites(); });
+  });
 
   return valid.length;
+}
+
+// Recusar é local por enquanto: some da lista neste aparelho, sem apagar o
+// convite no servidor (isso vira endpoint próprio na fase de backend).
+function dismissKey() { return `caronaInvDismiss:${currentProfile?.uid || "anon"}`; }
+function getDismissedInvites() {
+  try { return new Set(JSON.parse(localStorage.getItem(dismissKey()) || "[]")); }
+  catch { return new Set(); }
+}
+function dismissInvite(code) {
+  const s = getDismissedInvites(); s.add(code);
+  try { localStorage.setItem(dismissKey(), JSON.stringify([...s])); } catch {}
 }
 
 // ── AÇÕES DA TELA ─────────────────────────────────────────────
@@ -242,6 +416,7 @@ async function handleCreateGroup(e) {
   const errorEl = document.getElementById("create-group-error");
   const name    = document.getElementById("create-group-name").value.trim();
   const pixKey  = document.getElementById("create-group-pix").value.trim();
+  const description = document.getElementById("create-group-desc")?.value.trim() || "";
   const raw     = document.getElementById("create-group-value").value;
   const tripValue = parseFloat(String(raw).replace(",", "."));
 
@@ -254,11 +429,12 @@ async function handleCreateGroup(e) {
   btn.disabled = true;
   btn.textContent = "Criando...";
   try {
-    const { group } = await createGroup({ name, pixKey, tripValue });
+    const { group } = await createGroup({ name, pixKey, tripValue, description, color: selectedColor });
     await refreshProfile();
     await loadGroupContext();
     showToast(`Grupo "${group.name}" criado. Você é o dono!`, "success");
     document.getElementById("form-create-group").reset();
+    closeSheet("sheet-create");
     await onGroupChanged();
   } catch (err) {
     console.error(err);
@@ -286,6 +462,7 @@ async function handleJoinGroup(e) {
     await loadGroupContext();
     showToast(`Você entrou em "${group.name}".`, "success");
     document.getElementById("join-code").value = "";
+    closeSheet("sheet-join");
     await onGroupChanged();
   } catch (err) {
     errorEl.textContent = err.message || "Convite inválido.";
