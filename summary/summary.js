@@ -5,7 +5,7 @@
 
 import { getUserTrips, getUserPayments } from "../js/db.js";
 import { formatCurrency, formatDate, formatDateTime, icon, todayISO } from "../js/utils.js";
-import { currentProfile } from "../auth/auth.js";
+import { currentProfile, myGroupId } from "../auth/auth.js";
 
 // Filtro de período ativo: "week" | "semester" | "total"
 let currentPeriod = "total";
@@ -36,10 +36,21 @@ function bindPeriodFilter() {
 
 export async function refreshSummary() {
   try {
-    const [trips, payments] = await Promise.all([
+    const [allTrips, allPayments] = await Promise.all([
       getUserTrips(currentProfile.uid),
       getUserPayments(currentProfile.uid)
     ]);
+
+    // O resumo é do GRUPO ATIVO. Somar as dívidas de todos os grupos daria
+    // um número que não corresponde a nenhuma cobrança real — cada grupo
+    // tem o seu dono e a sua chave PIX.
+    // Documento sem groupId é de antes dos grupos: entra, para não sumir
+    // com histórico de quem já usava o app.
+    const gid   = myGroupId();
+    const mine  = (d) => !gid || !d.groupId || d.groupId === gid;
+    const trips    = allTrips.filter(mine);
+    const payments = allPayments.filter(mine);
+
     cache = { trips, payments };
     renderSummaryCards(trips, payments);
     renderRecentActivity(trips, payments);

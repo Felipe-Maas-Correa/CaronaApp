@@ -6,10 +6,10 @@
 //    contagem por dia (visão de todos os usuários).
 // ============================================================
 
-import { setTrip, deleteTrip, getUserTrips, getAllTrips, getAllUsers, getTripValue, rateTrip } from "../js/db.js";
+import { setTrip, deleteTrip, getUserTrips, getGroupTrips, getGroupUsers, getTripValue, rateTrip } from "../js/db.js";
 import { showToast, formatCurrency, formatDate, icon, todayISO, escapeHtml, safeImageSrc } from "../js/utils.js";
 import { refreshSummary } from "../summary/summary.js";
-import { currentProfile, isAdmin } from "../auth/auth.js";
+import { currentProfile, isAdmin, myGroupId } from "../auth/auth.js";
 
 // Opções de velocidade (avaliação)
 const SPEEDS = [
@@ -52,8 +52,6 @@ const MONTHS   = [
 
 export async function initCalendar() {
   bindNavigation();
-  // O modo "vários dias" é exclusivo do admin.
-  if (isAdmin()) document.getElementById("btn-multi-toggle")?.classList.remove("hidden");
   await loadAndRender();
 }
 
@@ -112,11 +110,22 @@ function toggleDaySelection(dateStr) {
 
 export async function loadAndRender() {
   showCalendarLoading(true);
+
+  // O modo "vários dias" é de quem administra o GRUPO ATIVO — e isso muda
+  // quando o usuário troca de grupo, então a decisão fica aqui, no recarregar,
+  // e não no init (que roda uma vez só).
+  document.getElementById("btn-multi-toggle")?.classList.toggle("hidden", !isAdmin());
+  if (!isAdmin() && multiMode) toggleMultiMode(false);
+
   try {
     const prefix = `${currentYear}-${String(currentMonth).padStart(2, "0")}-`;
 
+    // A visão de quem administra é sempre a DO GRUPO ATIVO — inclusive para
+    // o ADM SUPREMO. Um calendário misturando passageiros de grupos
+    // diferentes não diria nada a ninguém; a visão global fica no painel.
     if (isAdmin()) {
-      const [all, users] = await Promise.all([getAllTrips(), getAllUsers()]);
+      const gid = myGroupId();
+      const [all, users] = await Promise.all([getGroupTrips(gid), getGroupUsers(gid)]);
       allUsers = users;
       dayTrips = {};
       all.forEach(t => {
@@ -124,9 +133,17 @@ export async function loadAndRender() {
         (dayTrips[t.date] = dayTrips[t.date] || []).push(t);
       });
     } else {
+      // Só as viagens do grupo ativo: o passageiro pode estar em mais de um
+      // grupo, e misturar os dias de dois grupos no mesmo calendário faria
+      // uma marcação sumir por cima da outra (o mapa é por data).
+      const gid = myGroupId();
       const all = await getUserTrips(currentProfile.uid);
       tripsMap = {};
-      all.forEach(t => { if (t.date.startsWith(prefix)) tripsMap[t.date] = t; });
+      all.forEach(t => {
+        if (!t.date.startsWith(prefix)) return;
+        if (gid && t.groupId && t.groupId !== gid) return;
+        tripsMap[t.date] = t;
+      });
     }
 
     renderCalendar();
@@ -270,10 +287,13 @@ function openDayModalUser(dateStr, isWeekend) {
     return;
   }
 
-  // Dia com viagem: mostra status + AVALIAÇÃO (estrelas + velocidade)
+  // Dia com viagem: mostra status + AVALIAÇÃO (estrelas + velocidade).
+  // "Em análise" = já há um comprovante enviado aguardando aprovação do admin.
   const statusHtml = trip.paid
     ? `<div class="info-row"><span>Status</span><strong class="text-paid">Pago</strong></div>`
-    : `<div class="info-row"><span>Status</span><strong class="text-debt">Em aberto</strong></div>`;
+    : trip.pendingPaymentId
+      ? `<div class="info-row"><span>Status</span><strong class="text-pending">Em análise</strong></div>`
+      : `<div class="info-row"><span>Status</span><strong class="text-debt">Em aberto</strong></div>`;
 
   content.innerHTML = `
     <div class="modal-trip-info">
@@ -296,7 +316,8 @@ function openDayModalUser(dateStr, isWeekend) {
     <button class="btn btn--primary btn--full mt-sm" id="btn-save-rating" data-date="${dateStr}">
       ${icon("check")} Salvar avaliação
     </button>
-    ${trip.paid ? `<p class="modal-hint">Pagamento já registrado.</p>` : ""}
+    ${trip.paid ? `<p class="modal-hint">Pagamento já registrado.</p>`
+      : trip.pendingPaymentId ? `<p class="modal-hint">${icon("clock")} Comprovante em análise. Aguarde a aprovação.</p>` : ""}
   `;
   modal.classList.add("modal--open");
 
@@ -481,7 +502,7 @@ async function applyMultiPassengers() {
 
   try {
     // Evita sobrescrever viagens já existentes (inclusive pagas).
-    const existing = new Set((await getAllTrips()).map(t => `${t.uid}_${t.date}`));
+    const existing = new Set((await getGroupTrips(myGroupId())).map(t => `${t.uid}_${t.date}`));
 
     const ops = [];
     for (const date of selectedDays) {

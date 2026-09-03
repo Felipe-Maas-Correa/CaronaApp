@@ -3,8 +3,11 @@
 // Tela "Meu Perfil": nome, foto, senha e estatísticas pessoais
 // ============================================================
 
-import { currentProfile, updateMyProfile, changeMyPassword } from "../auth/auth.js";
+import { currentProfile, updateMyProfile, changeMyPassword, isGroupOwner, isSuperAdmin } from "../auth/auth.js";
 import { getUserTrips, getUserPayments, toMillis } from "../js/db.js";
+import {
+  currentGroup, openGroupScreen, openInviteModal, switchGroup
+} from "../groups/groups.js";
 import {
   showToast, formatCurrency, escapeHtml, safeImageSrc, compressImageToDataURL
 } from "../js/utils.js";
@@ -19,6 +22,8 @@ export function initProfile() {
   document.getElementById("btn-save-profile")?.addEventListener("click", handleSaveProfile);
   document.getElementById("btn-change-pass")?.addEventListener("click", handleChangePassword);
   document.getElementById("profile-photo-input")?.addEventListener("change", handlePhotoSelect);
+  document.getElementById("btn-manage-groups")?.addEventListener("click", () => openGroupScreen());
+  document.getElementById("btn-profile-invite")?.addEventListener("click", () => openInviteModal());
 }
 
 /**
@@ -43,6 +48,7 @@ async function openProfile() {
   document.getElementById("profile-name").value = currentProfile?.name || "";
   renderPhoto(currentProfile?.photo || null);
   renderRegistered();
+  renderGroupBox();
 
   // limpa campos de senha
   document.getElementById("profile-new-pass").value  = "";
@@ -61,6 +67,70 @@ function renderRegistered() {
   el.textContent = ms
     ? `Registrado em ${new Date(ms).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}`
     : "";
+}
+
+// ── GRUPO DE CARONA ───────────────────────────────────────────
+
+/**
+ * Bloco "Grupo de carona" do perfil: qual é o grupo ativo, e a seleção
+ * direta dos outros de que o usuário participa. Criar grupo e convidar
+ * ficam nos botões logo abaixo (tela de grupos e modal de convite).
+ */
+function renderGroupBox() {
+  const box = document.getElementById("profile-group-box");
+  if (!box) return;
+
+  const inviteBtn = document.getElementById("btn-profile-invite");
+  // Convidar é do dono do grupo (o ADM SUPREMO também, como suporte).
+  inviteBtn?.classList.toggle("hidden", !(isGroupOwner() || (isSuperAdmin() && currentProfile?.groupId)));
+
+  const manageBtn = document.getElementById("btn-manage-groups");
+  if (manageBtn) {
+    manageBtn.textContent = currentProfile?.groupId ? "Meus grupos" : "Criar ou entrar em um grupo";
+  }
+
+  if (!currentProfile?.groupId) {
+    box.innerHTML = `
+      <p class="empty-msg" style="padding:.5rem 0">
+        Você ainda não está em um grupo de carona.
+      </p>`;
+    return;
+  }
+
+  const role = currentProfile.groupRole === "owner" ? "Você é o dono" : "Passageiro";
+  const meta = [
+    role,
+    currentGroup?.tripValue !== undefined ? `${formatCurrency(currentGroup.tripValue)} por viagem` : null,
+    currentGroup?.memberCount ? `${currentGroup.memberCount} pessoa(s)` : null
+  ].filter(Boolean).join(" • ");
+
+  const others = (currentProfile.groups || []).filter(g => g.id !== currentProfile.groupId);
+
+  box.innerHTML = `
+    <div class="profile-group">
+      <div class="profile-group__name">${escapeHtml(currentGroup?.name || "Grupo")}</div>
+      <div class="profile-group__meta">${escapeHtml(meta)}</div>
+    </div>
+    ${others.length ? `
+      <div class="section-title">Trocar para</div>
+      ${others.map(g => `
+        <button class="group-item" data-switch-group="${escapeHtml(g.id)}">
+          <span class="group-item__mark"></span>
+          <span class="group-item__body">
+            <span class="group-item__name">${escapeHtml(g.name || "Grupo")}</span>
+            <span class="group-item__role">${g.role === "owner" ? "você é o dono" : "passageiro"}</span>
+          </span>
+        </button>
+      `).join("")}
+    ` : ""}
+  `;
+
+  box.querySelectorAll("[data-switch-group]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.getElementById("modal-profile")?.classList.remove("modal--open");
+      switchGroup(btn.dataset.switchGroup);
+    });
+  });
 }
 
 function renderPhoto(dataUrl) {

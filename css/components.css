@@ -253,6 +253,7 @@
 /* ── UTILITIES ───────────────────────────────────────────────── */
 .text-paid  { color: var(--accent); }
 .text-debt  { color: var(--debt); }
+.text-pending { color: var(--accent-soft); }
 .text-muted {
   color: var(--text-muted);
   font-size: .7rem;

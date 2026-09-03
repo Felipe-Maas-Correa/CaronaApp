@@ -87,6 +87,73 @@
   gap: .4rem;
 }
 
+/* ── STATUS DO PAGAMENTO (F-01: fluxo de aprovação) ──────────── */
+.payment-card__status {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  margin-top: .45rem;
+  padding: .15rem .55rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-family: var(--font-mono);
+  font-size: .62rem;
+  letter-spacing: .04em;
+  font-weight: 500;
+}
+.payment-card__status svg { width: .8rem; height: .8rem; }
+
+.payment-card__status--pending {
+  background: var(--accent-dim);
+  border-color: var(--accent-border);
+  color: var(--accent-soft);
+}
+.payment-card__status--approved {
+  background: transparent;
+  border-color: rgba(212, 175, 55, 0.3);
+  color: var(--accent);
+}
+.payment-card__status--rejected {
+  background: var(--debt-dim);
+  border-color: rgba(224, 92, 92, 0.35);
+  color: var(--debt);
+}
+
+/* Destaque sutil no card enquanto aguarda conferência. */
+.payment-card--pending { border-color: var(--accent-border); }
+.payment-card--rejected { opacity: .82; }
+
+.payment-card__review {
+  display: flex;
+  gap: .5rem;
+  margin-top: .8rem;
+  padding-top: .7rem;
+  border-top: 1px solid var(--border);
+}
+.btn-review {
+  flex: 1;
+  padding: .5rem .75rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-light);
+  background: var(--bg-elevated);
+  color: var(--text);
+  font-size: .8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color .15s, background .15s, opacity .15s;
+}
+.btn-review:active { opacity: .8; }
+.btn-review--approve {
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+.btn-review--approve:hover { background: var(--accent-dim); }
+.btn-review--reject {
+  border-color: rgba(224, 92, 92, 0.3);
+  color: var(--debt);
+}
+.btn-review--reject:hover { background: var(--debt-dim); }
+
 .payment-card__dates {
   display: flex;
   flex-wrap: wrap;

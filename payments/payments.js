@@ -3,13 +3,14 @@
 // Registro e listagem de pagamentos com comprovantes
 // ============================================================
 
-import { getUserPayments, getAllPayments, getAllUsers, getUserUnpaidTrips, getTripValue, toMillis } from "../js/db.js";
-import { createPayment, deletePayment } from "../js/worker-api.js";
+import { getUserPayments, getGroupPayments, getGroupUsers, getUserUnpaidTrips, getTripValue, toMillis } from "../js/db.js";
+import { createPayment, deletePayment, approvePayment, rejectPayment } from "../js/worker-api.js";
 import { showToast, formatCurrency, formatDate, formatDateTime, icon, todayISO, escapeHtml, safeImageSrc, safeReceiptSrc, copyToClipboard, readFileAsDataURL } from "../js/utils.js";
 import { readPdfReceipt, valuesMatch } from "../js/receipt-parser.js";
 import { loadAndRender } from "../calendar/calendar.js";
 import { refreshSummary } from "../summary/summary.js";
-import { currentProfile } from "../auth/auth.js";
+import { currentProfile, isAdmin, myGroupId } from "../auth/auth.js";
+import { groupPixKey } from "../groups/groups.js";
 import { PIX_KEY } from "../js/config.js";
 
 let unpaidTrips   = [];
@@ -57,18 +58,21 @@ export async function loadPaymentsList() {
   const container = document.getElementById("payments-list");
   container.innerHTML = `<div class="loading-spinner"></div>`;
 
-  // Admin vê os pagamentos de TODOS os usuários; usuário comum vê só os seus.
-  const isAdmin = currentProfile?.role === "admin";
+  // Quem administra o grupo vê os pagamentos de TODO o grupo (é ele que
+  // confere os comprovantes); o passageiro vê só os dele, no grupo ativo.
+  const admin = isAdmin();
+  const gid   = myGroupId();
 
   try {
     let usersByUid = {};
     let payments;
-    if (isAdmin) {
-      const [pays, users] = await Promise.all([getAllPayments(), getAllUsers()]);
+    if (admin) {
+      const [pays, users] = await Promise.all([getGroupPayments(gid), getGroupUsers(gid)]);
       payments = pays.sort((a, b) => toMillis(b.createdAt) - toMillis(a.createdAt));
       users.forEach(u => { usersByUid[u.uid] = u; });
     } else {
-      payments = await getUserPayments(currentProfile.uid);
+      payments = (await getUserPayments(currentProfile.uid))
+        .filter(p => !gid || !p.groupId || p.groupId === gid);
     }
     loadedPayments = payments; // cache p/ abrir o comprovante sem recarregar
 
@@ -81,7 +85,7 @@ export async function loadPaymentsList() {
       return;
     }
 
-    container.innerHTML = payments.map(p => renderPaymentCard(p, isAdmin, usersByUid[p.uid])).join("");
+    container.innerHTML = payments.map(p => renderPaymentCard(p, admin, usersByUid[p.uid])).join("");
 
     container.querySelectorAll("[data-view-receipt-id]").forEach(btn => {
       btn.addEventListener("click", () => openReceiptModalById(btn.dataset.viewReceiptId));
@@ -89,11 +93,25 @@ export async function loadPaymentsList() {
     container.querySelectorAll("[data-delete-payment]").forEach(btn => {
       btn.addEventListener("click", () => confirmDeletePayment(btn.dataset.deletePayment));
     });
+    container.querySelectorAll("[data-approve-payment]").forEach(btn => {
+      btn.addEventListener("click", () => reviewPayment(btn.dataset.approvePayment, "approve"));
+    });
+    container.querySelectorAll("[data-reject-payment]").forEach(btn => {
+      btn.addEventListener("click", () => reviewPayment(btn.dataset.rejectPayment, "reject"));
+    });
 
   } catch (e) {
     container.innerHTML = `<p class="error-msg">Erro ao carregar pagamentos.</p>`;
   }
 }
+
+// Metadados de cada status. `status` ausente = pagamento antigo (legado),
+// já quitado antes do fluxo de aprovação — tratado como "aprovado".
+const STATUS_META = {
+  pending:  { label: "Em análise", cls: "payment-card__status--pending", ic: "clock" },
+  approved: { label: "Aprovado",   cls: "payment-card__status--approved", ic: "check" },
+  rejected: { label: "Rejeitado",  cls: "payment-card__status--rejected", ic: "alert" },
+};
 
 function renderPaymentCard(payment, showUser = false, profile = null) {
   const datesList = payment.tripDates
@@ -109,8 +127,20 @@ function renderPaymentCard(payment, showUser = false, profile = null) {
   // manter o escape evita que um id manipulado quebre o atributo).
   const pid = escapeHtml(payment.id);
 
+  const status = payment.status || "approved";
+  const meta   = STATUS_META[status] || STATUS_META.approved;
+  // Quem confere o comprovante é quem recebe o PIX: o dono do grupo (o ADM
+  // SUPREMO também, como suporte). E só enquanto está pendente.
+  const canReview = isAdmin();
+
+  const adminActions = (canReview && status === "pending") ? `
+    <div class="payment-card__review">
+      <button class="btn-review btn-review--approve" data-approve-payment="${pid}">Aprovar</button>
+      <button class="btn-review btn-review--reject"  data-reject-payment="${pid}">Rejeitar</button>
+    </div>` : "";
+
   return `
-    <div class="payment-card" data-id="${pid}">
+    <div class="payment-card payment-card--${status}" data-id="${pid}">
       <div class="payment-card__header">
         <div>
           ${showUser ? `
@@ -120,6 +150,7 @@ function renderPaymentCard(payment, showUser = false, profile = null) {
             </div>` : ""}
           <div class="payment-card__amount">${formatCurrency(payment.totalAmount)}</div>
           <div class="payment-card__meta">${payment.tripDates.length} viagem(ns) • ${formatDateTime(payment.createdAt)}</div>
+          <span class="payment-card__status ${meta.cls}">${icon(meta.ic)} ${meta.label}</span>
         </div>
         <div class="payment-card__actions">
           ${(payment.receiptData || payment.receiptUrl)
@@ -133,6 +164,7 @@ function renderPaymentCard(payment, showUser = false, profile = null) {
         ${datesList}
         ${moreCount > 0 ? `<span class="date-chip date-chip--more">+${moreCount}</span>` : ""}
       </div>
+      ${adminActions}
     </div>
   `;
 }
@@ -151,6 +183,15 @@ function avatarColor(name = "") {
   return colors[code % colors.length] + "33";
 }
 
+// ── CHAVE PIX ─────────────────────────────────────────────────
+//
+// A chave é de QUEM RECEBE — ou seja, do dono do grupo, e por isso mora no
+// documento do grupo. A do config.js fica como reserva para instalações que
+// vinham de antes dos grupos e ainda não cadastraram a do grupo.
+function activePixKey() {
+  return groupPixKey() || PIX_KEY || "";
+}
+
 // ── BIND MODAL ────────────────────────────────────────────────
 
 function bindNewPaymentModal() {
@@ -163,14 +204,10 @@ function bindNewPaymentModal() {
   document.getElementById("btn-confirm-payment").addEventListener("click", handleConfirmPayment);
   document.getElementById("receipt-input").addEventListener("change", handleReceiptPreview);
 
-  // Preenche a chave PIX (vem do config, fora do versionamento)
-  const pixKeyEl = document.getElementById("pix-key");
-  if (pixKeyEl) pixKeyEl.textContent = PIX_KEY;
-
   // Copiar chave PIX
   document.getElementById("btn-copy-pix")?.addEventListener("click", async () => {
     const btn = document.getElementById("btn-copy-pix");
-    const ok  = await copyToClipboard(PIX_KEY);
+    const ok  = await copyToClipboard(activePixKey());
     if (ok) {
       const original = btn.textContent;
       btn.textContent = "Copiado!";
@@ -230,6 +267,14 @@ async function openNewPaymentModal() {
   } else {
     payCalYear  = new Date().getFullYear();
     payCalMonth = new Date().getMonth() + 1;
+  }
+
+  // A chave é preenchida na ABERTURA, não no bind: ela muda quando o
+  // usuário troca de grupo, e o bind acontece uma vez só.
+  const pixKeyEl = document.getElementById("pix-key");
+  if (pixKeyEl) {
+    const key = activePixKey();
+    pixKeyEl.textContent = key || "o dono do grupo ainda não cadastrou a chave";
   }
 
   renderPaymentCalendar();
@@ -501,9 +546,11 @@ async function handleConfirmPayment() {
   try {
     // O Worker recalcula o total a partir das viagens reais — `total` daqui
     // é só para a UI. Se o cliente tentasse forjar, o servidor ignoraria.
+    // O pagamento entra como PENDENTE: as viagens só são quitadas quando um
+    // admin conferir o comprovante e aprovar (F-01).
     const r = await createPayment([...selectedDates], receiptState.data);
     document.getElementById("modal-payment").classList.remove("modal--open");
-    showToast(`Pagamento de ${formatCurrency(r.total)} registrado!`, "success");
+    showToast(`Comprovante de ${formatCurrency(r.total)} enviado para aprovação.`, "success");
     await loadPaymentsList();
     await loadAndRender();
     await refreshSummary();
@@ -539,9 +586,13 @@ function openReceiptModalById(paymentId) {
 
   const modal   = document.getElementById("modal-receipt");
   const content = document.getElementById("receipt-modal-content");
+  // F-05: `sandbox` (sem allow-scripts) impede que JavaScript embutido no PDF
+  // rode ao abrir o comprovante. O visualizador nativo do navegador ainda
+  // renderiza o PDF; só o script do documento fica neutralizado. Defesa a mais
+  // além da CSP (object-src 'none', frame-src restrito) e do safeReceiptSrc.
   content.innerHTML = isImage
     ? `<img src="${src}" alt="Comprovante" class="receipt-full-img">`
-    : `<iframe src="${src}" class="receipt-iframe" title="Comprovante"></iframe>`;
+    : `<iframe src="${src}" class="receipt-iframe" title="Comprovante" sandbox></iframe>`;
 
   modal.classList.add("modal--open");
 
@@ -588,6 +639,47 @@ function confirmDeletePayment(paymentId) {
       await refreshSummary();
     } catch (e) {
       showToast("Erro ao excluir pagamento", "error");
+    }
+  };
+  btnNo.onclick = () => modal.classList.remove("modal--open");
+}
+
+// ── APROVAR / REJEITAR (admin) ────────────────────────────────
+// É aqui que o F-01 se fecha: o admin confere o comprovante × valor e só
+// então o pagamento quita a dívida (aprovar marca as viagens como pagas).
+// Rejeitar reabre as viagens em análise.
+
+function reviewPayment(paymentId, action) {
+  const modal  = document.getElementById("modal-confirm");
+  const msg    = document.getElementById("confirm-message");
+  const btnYes = document.getElementById("btn-confirm-yes");
+  const btnNo  = document.getElementById("btn-confirm-no");
+
+  const isApprove = action === "approve";
+  msg.textContent = isApprove
+    ? "Confirme que o comprovante confere com o valor devido. As viagens serão marcadas como pagas."
+    : "Rejeitar este comprovante? As viagens voltam a ficar em aberto.";
+  modal.classList.add("modal--open");
+
+  btnYes.onclick = async () => {
+    modal.classList.remove("modal--open");
+    btnYes.disabled = true;
+    try {
+      if (isApprove) {
+        await approvePayment(paymentId);
+        showToast("Pagamento aprovado.", "success");
+      } else {
+        await rejectPayment(paymentId);
+        showToast("Pagamento rejeitado.", "info");
+      }
+      await loadPaymentsList();
+      await loadAndRender();
+      await refreshSummary();
+    } catch (e) {
+      showToast((isApprove ? "Erro ao aprovar: " : "Erro ao rejeitar: ") + e.message, "error");
+      console.error(e);
+    } finally {
+      btnYes.disabled = false;
     }
   };
   btnNo.onclick = () => modal.classList.remove("modal--open");

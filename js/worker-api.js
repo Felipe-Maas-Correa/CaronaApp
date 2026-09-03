@@ -5,7 +5,9 @@
 // O Worker existe para operações que o SDK web não pode fazer com
 // segurança do lado do cliente:
 //   - apagar a conta de login de outro usuário;
-//   - criar/apagar pagamento recalculando o total no servidor (F-01/F-02).
+//   - criar/aprovar/rejeitar/apagar pagamento no servidor (F-01): o total é
+//     recalculado a partir das viagens reais, e o pagamento só quita a dívida
+//     depois que um admin aprova o comprovante.
 //
 // Toda chamada leva o ID token; o Worker verifica a assinatura antes
 // de agir. O total NUNCA é enviado pelo cliente — o Worker o recalcula
@@ -57,9 +59,75 @@ export function deletePayment(paymentId) {
   return callWorker("/payments/delete", { paymentId });
 }
 
+/**
+ * Aprova um pagamento PENDENTE (admin): confere o comprovante e marca as
+ * viagens como pagas. Fecha o F-01 — a prova de pagamento passa por uma
+ * conferência humana no servidor, não só pela trava do navegador.
+ */
+export function approvePayment(paymentId) {
+  return callWorker("/payments/approve", { paymentId });
+}
+
+/** Rejeita um pagamento pendente (admin): reabre as viagens em análise. */
+export function rejectPayment(paymentId) {
+  return callWorker("/payments/reject", { paymentId });
+}
+
 // ── USUÁRIOS ──────────────────────────────────────────────────
 
-/** Apaga a conta de login + o perfil de um usuário (admin, senha recente). */
+/** Apaga a conta de login + o perfil de um usuário (ADM SUPREMO, senha recente). */
 export function deleteUserAccount(uid) {
   return callWorker("/users/delete", { uid });
+}
+
+// ── GRUPOS DE CARONA ──────────────────────────────────────────
+//
+// Todas passam pelo Worker porque cada uma mexe em vários documentos que
+// precisam mudar juntos (grupo + perfil + convite). As security rules
+// avaliam um documento por vez e não conseguem garantir esse conjunto —
+// por isso elas simplesmente NEGAM escrita do cliente em `groups` e
+// `invites`, e o Worker é a única porta.
+
+/** Cria um grupo e deixa quem criou como DONO. */
+export function createGroup({ name, pixKey, tripValue }) {
+  return callWorker("/groups/create", { name, pixKey, tripValue });
+}
+
+/**
+ * Gera um convite para o meu grupo.
+ * @param {string} [email] endereça o convite (só esse e-mail entra);
+ *                         sem e-mail, vira um código aberto para compartilhar.
+ */
+export function createInvite(email) {
+  return callWorker("/groups/invite", email ? { email } : {});
+}
+
+/** Cancela um convite ainda não usado. */
+export function revokeInvite(code) {
+  return callWorker("/groups/revoke-invite", { code });
+}
+
+/** Entra num grupo usando o código do convite. */
+export function joinGroup(code) {
+  return callWorker("/groups/join", { code });
+}
+
+/** Sai de um grupo (o dono precisa transferir ou apagar antes). */
+export function leaveGroup(groupId) {
+  return callWorker("/groups/leave", { groupId });
+}
+
+/** Tira um membro do grupo — o histórico de viagens dele fica. */
+export function removeMember(uid, groupId) {
+  return callWorker("/groups/remove-member", { uid, groupId });
+}
+
+/** Passa a posse do grupo para outro membro. */
+export function transferGroup(uid, groupId) {
+  return callWorker("/groups/transfer", { uid, groupId });
+}
+
+/** Apaga o grupo e desfaz o quadro de membros. */
+export function deleteGroup(groupId) {
+  return callWorker("/groups/delete", { groupId });
 }

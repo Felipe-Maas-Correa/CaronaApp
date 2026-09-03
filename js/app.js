@@ -1,15 +1,19 @@
 // ============================================================
 // MÓDULO: app.js
-// Ponto de entrada — auth flow + navegação entre abas
+// Ponto de entrada — auth flow + grupo ativo + navegação entre abas
 // ============================================================
 
 
-import { startAuthListener, setAuthCallbacks, loginUser, logoutUser,
-         isAdmin, currentProfile, isLoggedIn } from "../auth/auth.js";
-import { initCalendar }  from "../calendar/calendar.js";
-import { initPayments }  from "../payments/payments.js";
-import { initSummary }   from "../summary/summary.js";
+import { startAuthListener, setAuthCallbacks, loginUser, signUpUser, logoutUser,
+         isAdmin, isSuperAdmin, isGroupOwner, currentProfile, isLoggedIn } from "../auth/auth.js";
+import { initCalendar, loadAndRender }  from "../calendar/calendar.js";
+import { initPayments, loadPaymentsList }  from "../payments/payments.js";
+import { initSummary, refreshSummary }   from "../summary/summary.js";
 import { initProfile, updateHeaderAvatar } from "../profile/profile.js";
+import {
+  initGroupScreen, renderGroupScreen, loadGroupContext, setGroupChangeHandler,
+  initInviteModal, groupName
+} from "../groups/groups.js";
 import { loadTripValue, getTripValue } from "./db.js";
 import { showToast, icon, formatCurrency } from "./utils.js";
 
@@ -36,6 +40,7 @@ function getScreens() {
   return {
     loading: document.getElementById("loading-screen"),
     auth:    document.getElementById("auth-screen"),
+    group:   document.getElementById("group-screen"),
     app:     document.querySelector(".app")
   };
 }
@@ -55,6 +60,35 @@ function initNavigation() {
       if (target === "tab-admin") loadUsersList();
     });
   });
+}
+
+// ── ALTERNAR ENTRAR / CRIAR CONTA
+function initAuthTabs() {
+  const tabLogin  = document.getElementById("tab-login");
+  const tabSignup = document.getElementById("tab-signup");
+  const formLogin  = document.getElementById("form-login");
+  const formSignup = document.getElementById("form-signup");
+  const footer     = document.getElementById("auth-footer-note");
+
+  const show = (signup) => {
+    tabLogin?.classList.toggle("auth-tab--active", !signup);
+    tabSignup?.classList.toggle("auth-tab--active", signup);
+    formLogin?.classList.toggle("hidden", signup);
+    formSignup?.classList.toggle("hidden", !signup);
+    if (footer) {
+      footer.textContent = signup
+        ? "Depois de criar a conta você escolhe: montar o seu grupo ou entrar com um convite."
+        : "Crie sua conta e depois monte o seu grupo de carona — ou entre com o convite que recebeu.";
+    }
+    document.getElementById("login-error").textContent  = "";
+    document.getElementById("signup-error").textContent = "";
+  };
+
+  tabLogin?.addEventListener("click",  () => show(false));
+  tabSignup?.addEventListener("click", () => show(true));
+
+  // Quem chegou por um link de convite quase sempre ainda não tem conta.
+  if (new URLSearchParams(location.search).get("convite")) show(true);
 }
 
 // ── FORMULÁRIO DE LOGIN
@@ -89,6 +123,46 @@ function initLoginForm() {
   });
 }
 
+// ── FORMULÁRIO DE CADASTRO
+//
+// O cadastro é aberto de propósito: a conta nasce sem grupo, e conta sem
+// grupo não lê nem escreve nada (as rules garantem). O acesso de verdade
+// vem de criar um grupo ou aceitar um convite.
+function initSignupForm() {
+  const form    = document.getElementById("form-signup");
+  const errorEl = document.getElementById("signup-error");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    errorEl.textContent = "";
+
+    const btn   = document.getElementById("btn-signup");
+    const name  = document.getElementById("signup-name").value.trim();
+    const email = document.getElementById("signup-email").value.trim();
+    const pass  = document.getElementById("signup-password").value;
+    const pass2 = document.getElementById("signup-password2").value;
+
+    if (name.length < 2)  { errorEl.textContent = "Informe seu nome."; return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+      errorEl.textContent = "E-mail inválido. Confira o @ e o domínio."; return;
+    }
+    if (pass.length < 6)  { errorEl.textContent = "A senha precisa de ao menos 6 caracteres."; return; }
+    if (pass !== pass2)   { errorEl.textContent = "As senhas não conferem."; return; }
+
+    btn.disabled    = true;
+    btn.textContent = "Criando...";
+    try {
+      await signUpUser(name, email, pass);
+      showToast("Conta criada! Agora escolha o seu grupo.", "success");
+      // O listener de auth assume daqui e leva para a tela de grupos.
+    } catch (err) {
+      errorEl.textContent = translateSignupError(err.code);
+      btn.disabled    = false;
+      btn.textContent = "Criar minha conta";
+    }
+  });
+}
+
 function translateLoginError(code) {
   const map = {
     "auth/user-not-found":     "Usuário não encontrado.",
@@ -102,6 +176,17 @@ function translateLoginError(code) {
   return map[code] || "Erro ao entrar. Verifique seus dados.";
 }
 
+function translateSignupError(code) {
+  const map = {
+    "auth/email-already-in-use":  "Este e-mail já tem conta. Tente entrar.",
+    "auth/invalid-email":         "E-mail inválido.",
+    "auth/weak-password":         "Senha muito fraca (mínimo 6 caracteres).",
+    "auth/operation-not-allowed": "O cadastro por e-mail está desligado no Firebase.",
+    "auth/too-many-requests":     "Muitas tentativas. Tente mais tarde.",
+  };
+  return map[code] || "Não foi possível criar a conta. Tente novamente.";
+}
+
 // ── CONTROLA VISIBILIDADE
 function showScreen(name) {
   const screens = getScreens();
@@ -110,34 +195,49 @@ function showScreen(name) {
 }
 
 // ── MONTA INTERFACE CONFORME PAPEL
+//
+// Dois níveis de administração, dois rótulos diferentes:
+//   • ADM SUPREMO  — dono do software, vê todos os grupos;
+//   • DONO DO GRUPO — manda só no grupo dele.
+// Os dois abrem a aba Admin; o que muda é o que ela carrega.
 function buildAppForProfile(profile) {
   const adminTab   = document.getElementById("nav-admin");
   const adminPanel = document.getElementById("tab-admin");
+  const canAdmin   = isAdmin();
 
-  if (profile?.role === "admin") {
-    adminTab?.classList.remove("hidden");
-    adminPanel?.classList.remove("hidden");
-  } else {
-    adminTab?.classList.add("hidden");
-    adminPanel?.classList.add("hidden");
+  adminTab?.classList.toggle("hidden", !canAdmin);
+  adminPanel?.classList.toggle("hidden", !canAdmin);
+
+  // Se o usuário perdeu o acesso admin (trocou para um grupo onde é só
+  // passageiro) e estava na aba Admin, volta para o Resumo.
+  if (!canAdmin && adminPanel?.classList.contains("tab-panel--active")) {
+    document.querySelector('.nav-btn[data-tab="tab-summary"]')?.click();
   }
 
   const headerName = document.getElementById("header-user-name");
   const headerRole = document.getElementById("header-user-role");
   if (headerName) headerName.textContent = profile?.name || "—";
   updateHeaderAvatar(profile);
+
   if (headerRole) {
-    headerRole.innerHTML = profile?.role === "admin"
-      ? `${icon("crown")} Admin`
-      : `${icon("user")} Usuário`;
-    headerRole.className  = `header-role ${profile?.role === "admin" ? "header-role--admin" : ""}`;
+    const label = isSuperAdmin() ? `${icon("crown")} Admin do sistema`
+                : isGroupOwner() ? `${icon("crown")} Dono do grupo`
+                : `${icon("user")} Passageiro`;
+    headerRole.innerHTML = label;
+    headerRole.className = `header-role ${canAdmin ? "header-role--admin" : ""}`;
   }
+
+  updateHeaderPrice();
 }
 
-// ── PREÇO NO CABEÇALHO
+// ── SUBTÍTULO DO CABEÇALHO (grupo + preço)
 export function updateHeaderPrice() {
   const el = document.getElementById("header-price");
-  if (el) el.textContent = `${formatCurrency(getTripValue())} por viagem`;
+  if (!el) return;
+  const name = groupName();
+  el.textContent = name
+    ? `${name} • ${formatCurrency(getTripValue())} por viagem`
+    : `${formatCurrency(getTripValue())} por viagem`;
 }
 
 // ── LOGOUT
@@ -152,12 +252,10 @@ let appInitialized = false;
 
 async function initApp(profile) {
   if (!appInitialized) {
-    // Carrega o valor da viagem antes de montar as telas
-    await loadTripValue();
-    updateHeaderPrice();
     initNavigation();
     bindLogout();
     initProfile();
+    initInviteModal();
     await Promise.all([
       initSummary(),
       initCalendar(),
@@ -169,21 +267,58 @@ async function initApp(profile) {
   buildAppForProfile(profile);
 }
 
+// ── RECARREGA TUDO NO CONTEXTO DO NOVO GRUPO
+//
+// Trocar de grupo troca o conjunto inteiro de dados: viagens, pagamentos,
+// passageiros, valor da viagem e chave PIX. Em vez de tentar remendar cada
+// aba, recarregamos todas — é o mesmo custo de uma abertura normal.
+async function reloadForGroup() {
+  await loadGroupContext();
+
+  if (!currentProfile?.groupId) {
+    await enterGroupScreen();
+    return;
+  }
+
+  await initApp(currentProfile);
+  showScreen("app");
+
+  await Promise.all([
+    refreshSummary(),
+    loadAndRender(),
+    loadPaymentsList(),
+    isAdmin() ? loadUsersList() : Promise.resolve()
+  ]);
+}
+
+async function enterGroupScreen() {
+  initGroupScreen();
+  showScreen("group");
+  await renderGroupScreen();
+}
+
 // ── PORTÃO DE ENTRADA
 //
-// O login é e-mail + senha, como sempre. O segundo fator NÃO fica aqui:
-// ele protege a criação de usuários (confirmação no e-mail do admin), e
-// não o acesso ao app. Colocá-lo aqui tornaria o Worker uma dependência
-// para qualquer login — se ele caísse, ninguém entraria.
+// O login é e-mail + senha, como sempre. Depois dele vem um segundo portão:
+// SEM GRUPO, o app não abre — cai na tela de grupos. Não é enfeite de
+// interface: uma conta sem grupo não consegue ler nem escrever nada pelas
+// security rules, então não haveria o que mostrar.
 async function gateAndEnter(profile) {
-  // A conta ainda não passou pela confirmação por e-mail do admin?
+  // Conta bloqueada pelo ADM SUPREMO — ou cadastrada por ele e ainda não
+  // liberada (esse fluxo cria a conta já inativa, de propósito).
   if (profile.active === false) {
-    const pending = profile.approved !== true;
     await logoutUser();
     showScreen("auth");
-    document.getElementById("login-error").textContent = pending
-      ? "Cadastro aguardando confirmação do administrador."
-      : "Conta desativada. Fale com o administrador.";
+    document.getElementById("login-error").textContent =
+      "Conta desativada ou aguardando liberação do administrador.";
+    return;
+  }
+
+  await loadTripValue();     // padrão do sistema (fallback)
+  await loadGroupContext();  // valor e PIX do grupo ativo
+
+  if (!profile.groupId) {
+    await enterGroupScreen();
     return;
   }
 
@@ -192,6 +327,8 @@ async function gateAndEnter(profile) {
 }
 
 // ── ENTRY POINT
+setGroupChangeHandler(reloadForGroup);
+
 setAuthCallbacks({
   onReady: async () => {
     if (isLoggedIn() && currentProfile) {
@@ -208,10 +345,15 @@ setAuthCallbacks({
       showScreen("auth");
       document.getElementById("btn-login").disabled    = false;
       document.getElementById("btn-login").textContent = "Entrar";
-      document.getElementById("login-error").textContent = "";
+      document.getElementById("btn-signup").disabled    = false;
+      document.getElementById("btn-signup").textContent = "Criar minha conta";
+      document.getElementById("login-error").textContent  = "";
+      document.getElementById("signup-error").textContent = "";
     }
   }
 });
 
+initAuthTabs();
 initLoginForm();
+initSignupForm();
 startAuthListener();

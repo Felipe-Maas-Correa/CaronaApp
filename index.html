@@ -28,6 +28,7 @@
   <link rel="stylesheet" href="payments/payments.css" />
   <link rel="stylesheet" href="admin/admin.css" />
   <link rel="stylesheet" href="profile/profile.css" />
+  <link rel="stylesheet" href="groups/groups.css" />
   <link rel="stylesheet" href="modals/modals.css" />
 
   <style>
@@ -105,6 +106,13 @@
           <div class="auth-logo__sub">Controle de viagens diárias</div>
         </div>
 
+        <!-- Entrar / Criar conta: o cadastro é aberto. Quem se cadastra
+             entra sem grupo nenhum e escolhe criar o seu ou usar um convite. -->
+        <div class="auth-tabs" role="tablist">
+          <button type="button" id="tab-login"  class="auth-tab auth-tab--active" role="tab">Entrar</button>
+          <button type="button" id="tab-signup" class="auth-tab" role="tab">Criar conta</button>
+        </div>
+
         <form id="form-login" class="auth-form" novalidate>
           <div class="form-group">
             <label class="form-label" for="login-email">Nome ou e-mail</label>
@@ -128,7 +136,137 @@
           </button>
         </form>
 
-        <p class="auth-footer">Não tem acesso? Solicite ao administrador.</p>
+        <!-- CRIAR CONTA -->
+        <form id="form-signup" class="auth-form hidden" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="signup-name">Nome</label>
+            <input id="signup-name" type="text" class="form-input" placeholder="Como devem te chamar" autocomplete="name" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="signup-email">E-mail</label>
+            <input id="signup-email" type="email" class="form-input" placeholder="voce@exemplo.com" autocomplete="email" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="signup-password">Senha</label>
+            <input id="signup-password" type="password" class="form-input" placeholder="Mínimo 6 caracteres" autocomplete="new-password" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="signup-password2">Confirmar senha</label>
+            <input id="signup-password2" type="password" class="form-input" placeholder="Repita a senha" autocomplete="new-password" required />
+          </div>
+
+          <p id="signup-error" class="auth-error"></p>
+
+          <button id="btn-signup" type="submit" class="btn btn--primary btn--full auth-btn">
+            Criar minha conta
+          </button>
+        </form>
+
+        <p class="auth-footer" id="auth-footer-note">
+          Crie sua conta e depois monte o seu grupo de carona — ou entre com o convite que recebeu.
+        </p>
+      </div>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════════════════════════
+         TELA DE GRUPOS DE CARONA
+         Aparece sozinha quando a conta ainda não está em nenhum grupo
+         (é o portão de entrada do app) e também pelo botão "Meus grupos"
+         no perfil, para trocar de grupo ou criar mais um.
+    ═══════════════════════════════════════════════════════════════ -->
+    <div id="group-screen" class="screen group-screen">
+      <div class="group-container">
+
+        <!-- Quem está logado. Fica no TOPO porque esta tela aparece quando a
+             sessão foi restaurada automaticamente: sem isso, quem reabre o
+             app cai aqui sem entender por que não viu a tela de login. -->
+        <div class="group-account">
+          <div class="group-account__info">
+            <span class="group-account__label">entrando como</span>
+            <span class="group-account__who" id="group-account-who">—</span>
+          </div>
+          <button id="btn-group-logout" class="group-account__exit">Sair</button>
+        </div>
+
+        <div class="auth-logo">
+          <div class="auth-logo__icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div class="auth-logo__name">Grupos de <span>Carona</span></div>
+          <div class="auth-logo__sub" id="group-screen-sub">Crie um grupo ou use um convite para começar</div>
+        </div>
+
+        <!-- Seleção de grupo — some enquanto a pessoa não participa de nenhum,
+             para a tela de quem está chegando ficar igual à de login: logo,
+             abas e um formulário. -->
+        <div class="group-card hidden" id="group-list-card">
+          <div class="section-title">Meus grupos</div>
+          <div id="group-list"></div>
+        </div>
+
+        <!-- Convites recebidos (some quando não há nenhum) -->
+        <div class="group-card hidden" id="group-invites-card">
+          <div class="section-title">Convites recebidos</div>
+          <div id="group-invites"></div>
+        </div>
+
+        <!-- Entrar / Criar: mesmo componente de abas da tela de login. -->
+        <div class="auth-tabs" role="tablist">
+          <button type="button" id="tab-join-group"   class="auth-tab auth-tab--active" role="tab">Entrar em um grupo</button>
+          <button type="button" id="tab-create-group" class="auth-tab" role="tab">Criar um grupo</button>
+        </div>
+
+        <!-- Entrar com código -->
+        <form id="form-join-group" class="auth-form" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="join-code">Código do convite</label>
+            <input id="join-code" type="text" class="form-input group-code-input"
+                   placeholder="ABCD2345" maxlength="12" autocomplete="off"
+                   autocapitalize="characters" spellcheck="false" />
+          </div>
+
+          <p id="join-error" class="auth-error"></p>
+
+          <button id="btn-join-group" type="submit" class="btn btn--primary btn--full auth-btn">
+            Entrar no grupo
+          </button>
+        </form>
+
+        <!-- Criar grupo -->
+        <form id="form-create-group" class="auth-form hidden" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="create-group-name">Nome do grupo</label>
+            <input id="create-group-name" type="text" class="form-input"
+                   placeholder="Ex.: Carona do trabalho" maxlength="60" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="create-group-value">Valor por viagem (R$)</label>
+            <input id="create-group-value" type="number" class="form-input"
+                   min="0" step="0.5" inputmode="decimal" placeholder="15" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="create-group-pix">Chave PIX para receber</label>
+            <input id="create-group-pix" type="text" class="form-input"
+                   placeholder="opcional — dá para cadastrar depois" maxlength="140" />
+          </div>
+
+          <p id="create-group-error" class="auth-error"></p>
+
+          <button id="btn-create-group" type="submit" class="btn btn--primary btn--full auth-btn">
+            Criar grupo
+          </button>
+        </form>
+
+        <p class="auth-footer" id="group-footer-note">
+          Recebeu um convite? Use o código que te mandaram.
+        </p>
+
+        <button id="btn-group-back" class="btn btn--ghost btn--full hidden">Voltar ao app</button>
+        <button id="btn-leave-group" class="btn btn--ghost btn--full hidden">Sair do grupo atual</button>
       </div>
     </div>
 
@@ -282,14 +420,15 @@
         <!-- ══ TAB: ADMIN (só para admins) ══ -->
         <div id="tab-admin" class="tab-panel hidden">
           <div style="padding:1rem 1rem 0">
-            <div class="payments-header">
-              <h2 style="display:flex;align-items:center;gap:.5rem">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;stroke-width:1.8;fill:none"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
-                Painel
-              </h2>
-              <button id="btn-new-user" class="btn-new-payment">
+            <!-- De qual grupo é este painel -->
+            <div class="adm-group-head">
+              <div style="min-width:0">
+                <div class="adm-group-head__name" id="adm-group-name">—</div>
+                <div class="adm-group-head__sub"  id="adm-group-sub">—</div>
+              </div>
+              <button id="btn-invite" class="btn-new-payment">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                Novo
+                Convidar
               </button>
             </div>
             <div class="adm-price">
@@ -309,6 +448,17 @@
                   </button>
                 </div>
                 <button id="btn-save-price" class="adm-price__btn">Salvar</button>
+              </div>
+            </div>
+            <div class="adm-pix">
+              <div class="adm-price__info">
+                <span class="adm-price__label">Chave PIX do grupo</span>
+                <span class="adm-price__hint">é ela que aparece na hora de pagar</span>
+              </div>
+              <div class="adm-pix__row">
+                <input id="adm-pix-input" type="text" class="form-input"
+                       placeholder="e-mail, CPF, telefone ou chave aleatória" maxlength="140" />
+                <button id="btn-save-pix" class="adm-price__btn">Salvar</button>
               </div>
             </div>
             <div class="adm-seg" id="adm-period">
@@ -359,8 +509,8 @@
               <div class="loading-spinner"></div>
             </div>
             <div class="adm-section-title" style="margin-top:1.4rem">
-              <span>Gerenciar</span>
-              <span class="adm-section-hint">contas &amp; permissões</span>
+              <span>Passageiros</span>
+              <span class="adm-section-hint">deste grupo</span>
             </div>
             <div id="users-list">
               <div class="loading-spinner"></div>
@@ -371,17 +521,43 @@
               </div>
               <p>
                 Toque num usuário do ranking para ver o detalhe.<br>
-                Nos cards de baixo: promover • ativar/desativar • excluir.
+                Nos cards de baixo: passar a posse • remover do grupo.
               </p>
             </div>
-            <button id="btn-export-csv" class="btn btn--secondary btn--full" style="margin-bottom:.7rem">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width:15px;height:15px;stroke:currentColor;stroke-width:2;fill:none;margin-right:6px;vertical-align:-3px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              Exportar relatório (CSV)
-            </button>
             <button id="btn-clear-data" class="btn btn--full" style="margin-bottom:1.2rem;background:transparent;border:1px solid #ff6b6b55;color:#ff6b6b">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width:15px;height:15px;stroke:currentColor;stroke-width:2;fill:none;margin-right:6px;vertical-align:-3px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-              Limpar dados de teste
+              Limpar viagens do grupo
             </button>
+            <button id="btn-delete-group" class="btn btn--full hidden" style="margin-bottom:1.2rem;background:transparent;border:1px solid #ff6b6b55;color:#ff6b6b">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width:15px;height:15px;stroke:currentColor;stroke-width:2;fill:none;margin-right:6px;vertical-align:-3px"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="17" y1="8" x2="23" y2="14"/><line x1="23" y1="8" x2="17" y2="14"/></svg>
+              Apagar este grupo
+            </button>
+
+            <!-- ═══ ADMINISTRAÇÃO DO SISTEMA (só o ADM SUPREMO) ═══
+                 Enquanto o bloco acima é o painel de UM grupo, aqui está a
+                 visão do software inteiro: todos os grupos e todas as contas. -->
+            <div id="adm-system" class="hidden">
+              <div class="adm-section-title" style="margin-top:.6rem">
+                <span>Administração do sistema</span>
+                <span class="adm-section-hint">todos os grupos</span>
+              </div>
+              <div id="sys-groups">
+                <div class="loading-spinner"></div>
+              </div>
+
+              <div class="adm-section-title" style="margin-top:1.4rem">
+                <span>Todas as contas</span>
+                <span class="adm-section-hint">permissões &amp; acesso</span>
+              </div>
+              <div id="sys-users">
+                <div class="loading-spinner"></div>
+              </div>
+
+              <button id="btn-new-user" class="btn btn--secondary btn--full" style="margin:1rem 0 .7rem">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Cadastrar usuário
+              </button>
+            </div>
           </div>
         </div>
 
@@ -572,6 +748,14 @@
         </div>
         <button id="btn-save-profile" class="btn btn--primary btn--full">Salvar perfil</button>
 
+        <!-- Grupo de carona: seleção do grupo ativo + criação -->
+        <div class="section-title" style="margin-top:1.6rem">Grupo de carona</div>
+        <div id="profile-group-box"></div>
+        <div class="profile-group__actions">
+          <button id="btn-manage-groups" class="btn btn--secondary">Meus grupos</button>
+          <button id="btn-profile-invite" class="btn btn--primary hidden">Convidar</button>
+        </div>
+
         <!-- Estatísticas -->
         <div class="section-title" style="margin-top:1.4rem">Estatísticas</div>
         <div class="profile-stats">
@@ -650,6 +834,42 @@
             Criar Usuário
           </button>
         </form>
+      </div>
+    </div>
+
+    <!-- Modal: Convidar para o grupo (dono do grupo) -->
+    <div id="modal-invite" class="modal">
+      <div class="modal-sheet" style="position:relative">
+        <div class="modal-handle"></div>
+        <button class="modal-close-btn" data-close-modal="modal-invite">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <div class="modal-title">Convidar para o grupo</div>
+
+        <form id="form-invite" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="invite-email">E-mail de quem você quer convidar</label>
+            <input id="invite-email" type="email" class="form-input"
+                   placeholder="deixe em branco para um código aberto" autocomplete="off" />
+          </div>
+          <p class="modal-hint" style="text-align:left;margin-top:.4rem">
+            Com e-mail, só aquela pessoa consegue usar o código. Em branco, vira
+            um convite que pode ser repassado a qualquer um.
+          </p>
+          <p id="invite-error" class="auth-error"></p>
+          <button id="btn-generate-invite" type="submit" class="btn btn--primary btn--full">
+            Gerar convite
+          </button>
+        </form>
+
+        <div id="invite-result" class="invite-result hidden">
+          <code id="invite-code" class="invite-result__code">—</code>
+          <div id="invite-target" class="invite-result__target"></div>
+          <button id="btn-copy-invite" class="btn btn--secondary btn--full">Copiar link do convite</button>
+        </div>
+
+        <div class="section-title" style="margin-top:1.6rem">Convites em aberto</div>
+        <div id="invite-list"></div>
       </div>
     </div>
 
