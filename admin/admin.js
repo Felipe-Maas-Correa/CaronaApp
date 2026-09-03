@@ -34,7 +34,7 @@ import {
   deleteUserAccount, deletePayment, removeMember, transferGroup,
   deleteGroup
 } from "../js/worker-api.js";
-import { showToast, formatCurrency, icon, escapeHtml, safeImageSrc, todayISO } from "../js/utils.js";
+import { showToast, formatCurrency, icon, escapeHtml, safeImageSrc, todayISO, copyToClipboard } from "../js/utils.js";
 
 // Valor de cada viagem (respeita preços diferentes ao longo do tempo)
 const amt = t => (typeof t.amount === "number" ? t.amount : 15);
@@ -62,8 +62,30 @@ export async function initAdmin() {
 }
 
 function bindAdminEvents() {
-  // Convites (dono do grupo)
+  // Convites (dono do grupo) — botão principal e o card de configurações.
   document.getElementById("btn-invite")?.addEventListener("click", openInviteModal);
+  document.getElementById("btn-invite-2")?.addEventListener("click", openInviteModal);
+
+  // Engrenagem do header rola até as configurações rápidas.
+  document.getElementById("btn-adm-settings")?.addEventListener("click", () => {
+    document.getElementById("adm-settings-anchor")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+
+  // Copiar a chave PIX do grupo.
+  document.getElementById("btn-copy-pix")?.addEventListener("click", async () => {
+    const key = document.getElementById("adm-pix-input")?.value.trim();
+    if (!key) { showToast("Nenhuma chave PIX cadastrada.", "info"); return; }
+    const ok = await copyToClipboard(key);
+    showToast(ok ? "Chave PIX copiada!" : "Não foi possível copiar.", ok ? "success" : "error");
+  });
+
+  // Fechar o drawer do passageiro (backdrop, X ou Esc).
+  document.querySelectorAll("[data-close-drawer]").forEach(el =>
+    el.addEventListener("click", closeUserDrawer));
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !document.getElementById("drawer-user")?.hidden) closeUserDrawer();
+  });
 
   // Modal: novo usuário (ADM SUPREMO)
   document.getElementById("btn-new-user")?.addEventListener("click", openNewUserModal);
@@ -207,14 +229,29 @@ function renderGroupHeader() {
   const nameEl = document.getElementById("adm-group-name");
   const subEl  = document.getElementById("adm-group-sub");
   if (nameEl) nameEl.textContent = currentGroup?.name || "Sem grupo";
+
+  // Subtítulo do header: cargo, nº de passageiros, valor e o recebido no mês
+  // corrente (independente do filtro de período — é o pulso do grupo agora).
   if (subEl) {
-    const role = isGroupOwner() ? "você é o dono" : isSuperAdmin() ? "admin do sistema" : "passageiro";
-    subEl.textContent = `${cache.users.length} passageiro(s) • ${role}`;
+    const role = isGroupOwner() ? "👑 você é o dono"
+               : isSuperAdmin() ? "👑 admin do sistema"
+               : "🧍 passageiro";
+    const monthRange = getPeriodRange("month");
+    const monthReceived = cache.trips
+      .filter(t => t.paid && inPeriod(t.date, monthRange))
+      .reduce((s, t) => s + amt(t), 0);
+    subEl.textContent =
+      `${role} · ${cache.users.length} pax · ${formatCurrency(getTripValue())}/viagem · ` +
+      `${formatCurrency(monthReceived)} no mês`;
   }
+
+  const pax = document.getElementById("adm-pax-count");
+  if (pax) pax.textContent = `${cache.users.length}`;
 
   // Convidar e apagar o grupo são do dono (ou do ADM SUPREMO, como suporte).
   const canManage = isGroupOwner() || isSuperAdmin();
   document.getElementById("btn-invite")?.classList.toggle("hidden", !canManage);
+  document.getElementById("btn-invite-2")?.closest(".qs-card")?.classList.toggle("hidden", !canManage);
   document.getElementById("btn-delete-group")?.classList.toggle("hidden", !canManage);
 
   const priceInput = document.getElementById("adm-price-input");
@@ -352,16 +389,22 @@ function renderPerUser() {
   `).join("");
 
   container.querySelectorAll("[data-user-detail]").forEach(btn => {
-    btn.addEventListener("click", () => openUserDetail(btn.dataset.userDetail));
+    btn.addEventListener("click", () => openUserDrawer(btn.dataset.userDetail));
   });
 }
 
-// ── DETALHE DE UM USUÁRIO ────────────────────────────────────
+// ── DRAWER DE UM PASSAGEIRO ──────────────────────────────────
+// Desliza da direita e mantém a lista atrás visível — assim dá para fechar
+// um passageiro e abrir o próximo sem perder o contexto (padrão Linear/GitHub).
 
-function openUserDetail(uid) {
+function openUserDrawer(uid) {
   const prof  = cache.users.find(x => x.uid === uid);
   const trips = cache.trips.filter(t => t.uid === uid);
   const name  = prof?.name || trips[0]?.userName || "Usuário";
+  const email = prof?.email || "";
+  const isCurrentUser = uid === currentProfile?.uid;
+  const isOwner       = uid === currentGroup?.ownerUid;
+  const canManage     = isGroupOwner() || isSuperAdmin();
 
   const today = todayISO();
   const stat = (period) => {
@@ -372,31 +415,69 @@ function openUserDetail(uid) {
     return { trips: t.length, paid, open };
   };
 
-  const periods = [
-    ["Semana",   stat("week")],
-    ["Mês",      stat("month")],
-    ["Semestre", stat("semester")],
-    ["Ano",      stat("year")],
-    ["Total",    stat("all")],
-  ];
+  const totalPaid = trips.filter(t => t.paid).reduce((s, t) => s + amt(t), 0);
+  const totalOpen = trips.filter(t => !t.paid && t.date <= today).reduce((s, t) => s + amt(t), 0);
+  const rate = trips.length ? Math.round((trips.filter(t => t.paid).length / trips.length) * 100) : 0;
 
-  const rowsHtml = periods.map(([label, s]) => `
-    <div class="adm-detail__row">
-      <span class="adm-detail__period">${label}</span>
-      <span class="adm-detail__trips">${s.trips} viag.</span>
-      <span class="adm-detail__paid">${formatCurrency(s.paid)}</span>
-      <span class="adm-detail__open ${s.open ? "" : "is-zero"}">${formatCurrency(s.open)}</span>
-    </div>
-  `).join("");
+  const av = document.getElementById("drawer-avatar");
+  av.style.background = avatarColor(name);
+  av.innerHTML = avatarInner(name, prof?.photo);
+  document.getElementById("drawer-name").textContent = name;
+  document.getElementById("drawer-mail").textContent = email || (isOwner ? "dono do grupo" : "");
 
-  document.getElementById("user-detail-title").textContent = name;
-  document.getElementById("user-detail-content").innerHTML = `
-    <div class="adm-detail__head">
-      <span></span><span>Viagens</span><span>Pago</span><span>Aberto</span>
+  const periods = [["Semana", "week"], ["Mês", "month"], ["Semestre", "semester"], ["Ano", "year"], ["Total", "all"]];
+  const rowsHtml = periods.map(([label, p]) => {
+    const s = stat(p);
+    return `
+      <div class="drawer-row">
+        <span class="drawer-row__period">${label}</span>
+        <span class="drawer-row__trips">${s.trips} viag.</span>
+        <span class="drawer-row__paid">${formatCurrency(s.paid)}</span>
+        <span class="drawer-row__open ${s.open ? "" : "is-zero"}">${formatCurrency(s.open)}</span>
+      </div>`;
+  }).join("");
+
+  document.getElementById("drawer-body").innerHTML = `
+    <div class="drawer-kpis">
+      <div class="drawer-kpi"><span>${trips.length}</span><small>viagens</small></div>
+      <div class="drawer-kpi drawer-kpi--paid"><span>${formatCurrency(totalPaid)}</span><small>pago</small></div>
+      <div class="drawer-kpi drawer-kpi--debt"><span>${formatCurrency(totalOpen)}</span><small>em aberto</small></div>
+      <div class="drawer-kpi"><span>${rate}%</span><small>adimplência</small></div>
     </div>
-    ${rowsHtml}
-  `;
-  document.getElementById("modal-user-detail").classList.add("modal--open");
+    <div class="drawer-table">
+      <div class="drawer-row drawer-row--head"><span></span><span>Viagens</span><span>Pago</span><span>Aberto</span></div>
+      ${rowsHtml}
+    </div>`;
+
+  // Ações do dono: passar a posse e remover do grupo. Nunca sobre si mesmo
+  // nem sobre o dono atual.
+  const actions = document.getElementById("drawer-actions");
+  if (canManage && !isCurrentUser && !isOwner) {
+    actions.innerHTML = `
+      <button class="drawer-act" data-drawer-transfer="${uid}">
+        ${icon("crown")} Passar a posse do grupo
+      </button>
+      <button class="drawer-act drawer-act--danger" data-drawer-remove="${uid}">
+        ${icon("trash")} Remover do grupo
+      </button>`;
+    actions.querySelector("[data-drawer-transfer]")
+      ?.addEventListener("click", () => { closeUserDrawer(); confirmTransfer(uid); });
+    actions.querySelector("[data-drawer-remove]")
+      ?.addEventListener("click", () => { closeUserDrawer(); confirmRemoveMember(uid); });
+  } else {
+    actions.innerHTML = "";
+  }
+
+  const d = document.getElementById("drawer-user");
+  d.hidden = false;
+  requestAnimationFrame(() => d.classList.add("drawer--open"));
+}
+
+function closeUserDrawer() {
+  const d = document.getElementById("drawer-user");
+  if (!d) return;
+  d.classList.remove("drawer--open");
+  setTimeout(() => { d.hidden = true; }, 240);
 }
 
 // ── PASSAGEIROS DO GRUPO ─────────────────────────────────────
@@ -414,52 +495,46 @@ function renderManageUsers() {
     return;
   }
 
-  const canManage = isGroupOwner() || isSuperAdmin();
+  const today = todayISO();
+  // Métricas por passageiro (histórico completo) para a linha da tabela.
+  const statOf = (uid) => {
+    const t = cache.trips.filter(x => x.uid === uid);
+    const paid = t.filter(x => x.paid).reduce((s, x) => s + amt(x), 0);
+    const open = t.filter(x => !x.paid && x.date <= today).reduce((s, x) => s + amt(x), 0);
+    const last = t.reduce((mx, x) => (x.date > mx ? x.date : mx), "");
+    return { trips: t.length, paid, open, last };
+  };
 
-  container.innerHTML = cache.users.map(u => renderMemberCard(u, canManage)).join("");
-
-  container.querySelectorAll("[data-transfer-group]").forEach(btn => {
-    btn.addEventListener("click", () => confirmTransfer(btn.dataset.transferGroup));
+  // Dono primeiro, depois quem tem mais em aberto (é quem o dono precisa ver).
+  const rows = cache.users.slice().sort((a, b) => {
+    const ao = a.uid === currentGroup?.ownerUid, bo = b.uid === currentGroup?.ownerUid;
+    if (ao !== bo) return ao ? -1 : 1;
+    return statOf(b.uid).open - statOf(a.uid).open;
   });
-  container.querySelectorAll("[data-remove-member]").forEach(btn => {
-    btn.addEventListener("click", () => confirmRemoveMember(btn.dataset.removeMember));
+
+  container.innerHTML = `<div class="pax-table">${rows.map(u => {
+    const s = statOf(u.uid);
+    const isOwner = u.uid === currentGroup?.ownerUid;
+    const isCurrentUser = u.uid === currentProfile?.uid;
+    const inactive = u.active === false;
+    return `
+      <button class="pax-row ${inactive ? "pax-row--off" : ""}" data-open-pax="${u.uid}">
+        <span class="pax-row__avatar" style="background:${avatarColor(u.name)}">${avatarInner(u.name, u.photo)}</span>
+        <span class="pax-row__id">
+          <span class="pax-row__name">${escapeHtml(u.name || "—")}${isCurrentUser ? ' <span class="pax-tag">você</span>' : ""}</span>
+          <span class="pax-row__role">${isOwner ? "👑 Dono" : "🧍 Passageiro"}${inactive ? " · inativo" : ""}</span>
+        </span>
+        <span class="pax-row__nums">
+          <span class="pax-row__paid">${formatCurrency(s.paid)}</span>
+          <span class="pax-row__open ${s.open ? "" : "is-zero"}">${s.open ? formatCurrency(s.open) + " aberto" : "em dia"}</span>
+        </span>
+        <span class="pax-row__chev">${icon("chevron-right") || "›"}</span>
+      </button>`;
+  }).join("")}</div>`;
+
+  container.querySelectorAll("[data-open-pax]").forEach(btn => {
+    btn.addEventListener("click", () => openUserDrawer(btn.dataset.openPax));
   });
-}
-
-function renderMemberCard(user, canManage) {
-  const isCurrentUser = user.uid === currentProfile?.uid;
-  const isOwner       = user.uid === currentGroup?.ownerUid;
-  const isActive      = user.active !== false;
-
-  return `
-    <div class="user-card ${!isActive ? "user-card--inactive" : ""}">
-      <div class="user-card__avatar" style="background:${avatarColor(user.name)}">
-        ${avatarInner(user.name, user.photo)}
-      </div>
-      <div class="user-card__info">
-        <div class="user-card__name">
-          ${escapeHtml(user.name)}
-          ${isCurrentUser ? '<span class="badge badge--you">você</span>' : ""}
-        </div>
-        <div class="user-card__email">${escapeHtml(user.email)}</div>
-        <div class="user-card__meta">
-          <span class="badge ${isOwner ? "badge--admin" : "badge--user"}">
-            ${isOwner ? icon("crown") + " Dono do grupo" : icon("user") + " Passageiro"}
-          </span>
-          ${user.role === "admin" ? `<span class="badge badge--admin">${icon("crown")} Sistema</span>` : ""}
-          ${!isActive ? `<span class="badge badge--inactive">Inativo</span>` : ""}
-        </div>
-      </div>
-      ${(canManage && !isCurrentUser && !isOwner) ? `
-        <div class="user-card__actions">
-          <button class="btn-icon" title="Passar a posse do grupo"
-            data-transfer-group="${user.uid}">${icon("crown")}</button>
-          <button class="btn-icon btn-icon--delete" title="Remover do grupo"
-            data-remove-member="${user.uid}">${icon("trash")}</button>
-        </div>
-      ` : ""}
-    </div>
-  `;
 }
 
 function avatarColor(name = "") {

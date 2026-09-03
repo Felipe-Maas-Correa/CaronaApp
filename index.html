@@ -494,119 +494,126 @@
 
         <!-- ══ TAB: ADMIN (só para admins) ══ -->
         <div id="tab-admin" class="tab-panel hidden">
-          <div style="padding:1rem 1rem 0">
-            <!-- De qual grupo é este painel -->
-            <div class="adm-group-head">
-              <div style="min-width:0">
-                <div class="adm-group-head__name" id="adm-group-name">—</div>
-                <div class="adm-group-head__sub"  id="adm-group-sub">—</div>
+          <div class="adm2">
+
+            <!-- ═══ HEADER DO GRUPO ═══ identidade + a ação nº 1 (convidar). -->
+            <div class="adm2-head">
+              <div class="adm2-head__id">
+                <div class="adm2-head__name" id="adm-group-name">—</div>
+                <div class="adm2-head__sub"  id="adm-group-sub">—</div>
               </div>
-              <button id="btn-invite" class="btn-new-payment">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                Convidar
+              <button id="btn-adm-settings" class="adm2-gear" title="Configurações rápidas" aria-label="Configurações">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
               </button>
             </div>
-            <div class="adm-price">
-              <div class="adm-price__info">
-                <span class="adm-price__label">Valor da viagem</span>
-                <span class="adm-price__hint">vale para novas marcações</span>
-              </div>
-              <div class="adm-price__control">
-                <span class="adm-price__currency">R$</span>
-                <input type="number" id="adm-price-input" class="adm-price__input" min="0" step="0.5" inputmode="decimal" />
-                <div class="adm-price__stepper">
-                  <button type="button" id="price-up" class="adm-price__step" aria-label="Aumentar">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
-                  </button>
-                  <button type="button" id="price-down" class="adm-price__step" aria-label="Diminuir">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-                  </button>
-                </div>
-                <button id="btn-save-price" class="adm-price__btn">Salvar</button>
-              </div>
-            </div>
-            <div class="adm-pix">
-              <div class="adm-price__info">
-                <span class="adm-price__label">Chave PIX do grupo</span>
-                <span class="adm-price__hint">é ela que aparece na hora de pagar</span>
-              </div>
-              <div class="adm-pix__row">
-                <input id="adm-pix-input" type="text" class="form-input"
-                       placeholder="e-mail, CPF, telefone ou chave aleatória" maxlength="140" />
-                <button id="btn-save-pix" class="adm-price__btn">Salvar</button>
-              </div>
-            </div>
-            <div class="adm-seg" id="adm-period">
+            <button id="btn-invite" class="btn btn--primary btn--full adm2-invite">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Convidar passageiro
+            </button>
+
+            <!-- ═══ PERÍODO + KPIs ═══ -->
+            <div class="adm-seg adm2-period" id="adm-period">
               <button class="adm-seg__btn" data-period="week">Semana</button>
               <button class="adm-seg__btn adm-seg__btn--active" data-period="month">Mês</button>
               <button class="adm-seg__btn" data-period="semester">Semestre</button>
               <button class="adm-seg__btn" data-period="year">Ano</button>
               <button class="adm-seg__btn" data-period="all">Tudo</button>
             </div>
-            <div class="adm-period-label" id="adm-period-label">—</div>
-            <div class="adm-stats">
-              <div class="adm-stat adm-stat--paid">
-                <div class="adm-stat__label">Recebido</div>
-                <div class="adm-stat__value" id="adm-received">R$ 0,00</div>
+            <div class="adm2-period-label" id="adm-period-label">—</div>
+
+            <div class="kpi-grid">
+              <div class="kpi kpi--paid">
+                <div class="kpi__top"><span class="kpi__ico">💰</span><span class="kpi__label">Recebido</span></div>
+                <div class="kpi__val" id="adm-received">R$ 0,00</div>
               </div>
-              <div class="adm-stat adm-stat--debt">
-                <div class="adm-stat__label">Em aberto</div>
-                <div class="adm-stat__value" id="adm-open">R$ 0,00</div>
+              <div class="kpi kpi--debt">
+                <div class="kpi__top"><span class="kpi__ico">🔴</span><span class="kpi__label">Em aberto</span></div>
+                <div class="kpi__val" id="adm-open">R$ 0,00</div>
               </div>
-              <div class="adm-stat">
-                <div class="adm-stat__label">Viagens</div>
-                <div class="adm-stat__value" id="adm-trips">0</div>
+              <div class="kpi">
+                <div class="kpi__top"><span class="kpi__ico">🚗</span><span class="kpi__label">Viagens</span></div>
+                <div class="kpi__val" id="adm-trips">0</div>
               </div>
-              <div class="adm-stat">
-                <div class="adm-stat__label">Adimplência</div>
-                <div class="adm-stat__value" id="adm-rate">0%</div>
-              </div>
-            </div>
-            <div class="adm-avg">
-              <div class="adm-avg__item">
-                <span class="adm-avg__label">Média / usuário</span>
-                <span class="adm-avg__value" id="adm-avg-user">R$ 0,00</span>
-              </div>
-              <div class="adm-avg__item">
-                <span class="adm-avg__label">Média mensal</span>
-                <span class="adm-avg__value" id="adm-avg-month">R$ 0,00</span>
-              </div>
-              <div class="adm-avg__item">
-                <span class="adm-avg__label">Média semanal</span>
-                <span class="adm-avg__value" id="adm-avg-week">R$ 0,00</span>
+              <div class="kpi">
+                <div class="kpi__top"><span class="kpi__ico">📊</span><span class="kpi__label">Adimplência</span></div>
+                <div class="kpi__val" id="adm-rate">0%</div>
               </div>
             </div>
-            <div class="adm-section-title">
-              <span>Por usuário</span>
-              <span class="adm-section-hint">no período</span>
+
+            <!-- ═══ CONFIGURAÇÕES RÁPIDAS ═══ cards compactos (não formulários). -->
+            <div class="adm2-sectitle" id="adm-settings-anchor">
+              <span>Configurações rápidas</span>
             </div>
-            <div id="adm-user-stats">
-              <div class="loading-spinner"></div>
+            <div class="qs-grid">
+              <div class="qs-card">
+                <div class="qs-card__label">Valor da viagem</div>
+                <div class="qs-card__row">
+                  <span class="qs-card__cur">R$</span>
+                  <input type="number" id="adm-price-input" class="qs-card__input" min="0" step="0.5" inputmode="decimal" />
+                  <div class="qs-stepper">
+                    <button type="button" id="price-up" class="qs-step" aria-label="Aumentar">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+                    </button>
+                    <button type="button" id="price-down" class="qs-step" aria-label="Diminuir">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                  </div>
+                  <button id="btn-save-price" class="qs-save">Salvar</button>
+                </div>
+              </div>
+              <div class="qs-card">
+                <div class="qs-card__label">Chave PIX do grupo</div>
+                <div class="qs-card__row">
+                  <input id="adm-pix-input" type="text" class="qs-card__input qs-card__input--text"
+                         placeholder="e-mail, CPF, telefone ou chave" maxlength="140" />
+                  <button id="btn-copy-pix" class="qs-icon" title="Copiar chave" aria-label="Copiar">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  </button>
+                  <button id="btn-save-pix" class="qs-save">Salvar</button>
+                </div>
+              </div>
+              <div class="qs-card qs-card--invite">
+                <div class="qs-card__label">Link de convite</div>
+                <div class="qs-card__row">
+                  <span class="qs-card__hint">Gere um código para alguém entrar no grupo.</span>
+                  <button id="btn-invite-2" class="qs-save qs-save--ghost">Gerar</button>
+                </div>
+              </div>
             </div>
-            <div class="adm-section-title" style="margin-top:1.4rem">
+
+            <!-- ═══ PASSAGEIROS ═══ toque abre o drawer lateral. -->
+            <div class="adm2-sectitle">
               <span>Passageiros</span>
-              <span class="adm-section-hint">deste grupo</span>
+              <span class="adm2-sectitle__hint" id="adm-pax-count"></span>
             </div>
             <div id="users-list">
               <div class="loading-spinner"></div>
             </div>
-            <div class="admin-hint">
-              <div class="admin-hint__icon">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-              </div>
-              <p>
-                Toque num usuário do ranking para ver o detalhe.<br>
-                Nos cards de baixo: passar a posse • remover do grupo.
-              </p>
+
+            <!-- ═══ ESTATÍSTICAS ═══ ranking por usuário no período. -->
+            <div class="adm2-sectitle">
+              <span>Estatísticas</span>
+              <span class="adm2-sectitle__hint">no período</span>
             </div>
-            <button id="btn-clear-data" class="btn btn--full" style="margin-bottom:1.2rem;background:transparent;border:1px solid #ff6b6b55;color:#ff6b6b">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width:15px;height:15px;stroke:currentColor;stroke-width:2;fill:none;margin-right:6px;vertical-align:-3px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-              Limpar viagens do grupo
-            </button>
-            <button id="btn-delete-group" class="btn btn--full hidden" style="margin-bottom:1.2rem;background:transparent;border:1px solid #ff6b6b55;color:#ff6b6b">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width:15px;height:15px;stroke:currentColor;stroke-width:2;fill:none;margin-right:6px;vertical-align:-3px"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="17" y1="8" x2="23" y2="14"/><line x1="23" y1="8" x2="17" y2="14"/></svg>
-              Apagar este grupo
-            </button>
+            <div id="adm-user-stats">
+              <div class="loading-spinner"></div>
+            </div>
+
+            <!-- ═══ ZONA DE PERIGO ═══ ações irreversíveis, isoladas. -->
+            <div class="danger-zone" id="adm-danger">
+              <div class="danger-zone__head">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <span>Zona de perigo</span>
+              </div>
+              <button id="btn-clear-data" class="danger-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                Limpar viagens do grupo
+              </button>
+              <button id="btn-delete-group" class="danger-btn hidden">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="17" y1="8" x2="23" y2="14"/><line x1="23" y1="8" x2="17" y2="14"/></svg>
+                Apagar este grupo
+              </button>
+            </div>
 
             <!-- ═══ ADMINISTRAÇÃO DO SISTEMA (só o ADM SUPREMO) ═══
                  Enquanto o bloco acima é o painel de UM grupo, aqui está a
@@ -667,6 +674,28 @@
       </nav>
 
     </div><!-- /app -->
+
+    <!-- ═══ DRAWER DO PASSAGEIRO ═══ desliza da direita; mantém a lista
+         visível atrás (por isso não é modal). Preenchido por admin.js. -->
+    <div class="drawer" id="drawer-user" hidden>
+      <div class="drawer__backdrop" data-close-drawer></div>
+      <aside class="drawer__panel" role="dialog" aria-modal="true" aria-label="Detalhe do passageiro">
+        <div class="drawer__head">
+          <div class="drawer__id">
+            <div class="drawer__avatar" id="drawer-avatar">?</div>
+            <div>
+              <div class="drawer__name" id="drawer-name">—</div>
+              <div class="drawer__mail" id="drawer-mail">—</div>
+            </div>
+          </div>
+          <button class="hub-iconbtn" data-close-drawer aria-label="Fechar">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="drawer__body" id="drawer-body"></div>
+        <div class="drawer__actions" id="drawer-actions"></div>
+      </aside>
+    </div>
 
     <!-- ═══════════════════════════════════════════════════════════
          MODAIS (também embutidos, pelo mesmo motivo do shell:
