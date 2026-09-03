@@ -7,7 +7,21 @@ rules_version = '2';
 //  1. Nada é validado só no cliente. Toda trava que importa está aqui.
 //  2. ELEVAR privilégio exige senha recente (auth_time). REDUZIR não.
 //  3. O usuário nunca altera o que ele deve (amount/date/uid da viagem).
-//  4. Tudo que não estiver descrito aqui é NEGADO.
+//  4. Tudo é escopado por GRUPO: quem não está no grupo não lê nada dele.
+//  5. Tudo que não estiver descrito aqui é NEGADO.
+//
+// DOIS NÍVEIS DE ADMINISTRAÇÃO
+//  • ADM SUPREMO (users.role == 'admin'): dono do software. Vê e gerencia
+//    todos os grupos e todos os usuários.
+//  • DONO DE GRUPO (groups/{gid}.ownerUid == uid): manda no próprio grupo —
+//    passageiros, valor da viagem, chave PIX, convites e aprovação de
+//    comprovantes. NÃO enxerga nada de outros grupos.
+//
+// AUTO-CADASTRO
+//  Qualquer pessoa cria a própria conta (role 'user', active true), mas
+//  nasce SEM GRUPO — e uma conta sem grupo não lê nem escreve viagem,
+//  pagamento ou perfil de terceiro. O acesso de fato só vem quando um dono
+//  de grupo a convida (ou quando ela cria o próprio grupo).
 //
 // Como aplicar:
 //   Firebase Console > Firestore > Regras > cole este conteúdo > Publicar
@@ -32,10 +46,52 @@ service cloud.firestore {
       return hasProfile() && myProfile().active != false;
     }
 
-    function isAdmin() {
+    // ADM SUPREMO do software.
+    function isSuperAdmin() {
       return hasProfile()
         && myProfile().role == 'admin'
         && myProfile().active != false;
+    }
+
+    // Grupo ativo do usuário (null se ele ainda não entrou em nenhum).
+    function myGroupId() {
+      return hasProfile() ? myProfile().get('groupId', null) : null;
+    }
+
+    function validGroupId(gid) {
+      return gid is string && gid.size() > 0 && gid.size() <= 64;
+    }
+
+    function groupData(gid) {
+      return get(/databases/$(database)/documents/groups/$(gid)).data;
+    }
+
+    // Sou o DONO deste grupo? Lido do documento do grupo, que o cliente não
+    // escreve (ownerUid só muda pelo Worker) — logo é autoritativo.
+    function ownsGroup(gid) {
+      return isSignedIn()
+        && validGroupId(gid)
+        && exists(/databases/$(database)/documents/groups/$(gid))
+        && groupData(gid).ownerUid == request.auth.uid;
+    }
+
+    // Sou membro deste grupo? `groupIds` só é escrito pelo Worker.
+    function inGroup(gid) {
+      return hasProfile()
+        && validGroupId(gid)
+        && gid in myProfile().get('groupIds', []);
+    }
+
+    // Papel que EU tenho num grupo — derivado do dono, nunca do que o
+    // cliente mandar. É o que impede alguém de virar "owner" só trocando
+    // o próprio campo groupRole.
+    function roleInGroup(gid) {
+      return groupData(gid).ownerUid == request.auth.uid ? 'owner' : 'member';
+    }
+
+    // Preço oficial da viagem NO GRUPO. Cada grupo tem o seu.
+    function groupTripValue(gid) {
+      return groupData(gid).tripValue;
     }
 
     // ── Reautenticação recente ────────────────────────────────
@@ -45,10 +101,7 @@ service cloud.firestore {
     //
     // É isto que faz o "digite sua senha" valer alguma coisa. Sem esta
     // checagem no servidor, um script injetado na página pularia a tela de
-    // senha e escreveria active:true direto.
-    //
-    // Janela curta de propósito: o admin digita a senha imediatamente antes
-    // da ação, então 3 minutos sobram.
+    // senha e escreveria role:'admin' direto.
     //
     // ⚠️ TESTE NO RULES PLAYGROUND antes de publicar. Dependendo da versão,
     // `auth_time` chega como número (segundos) ou timestamp. A linha ativa
@@ -62,10 +115,7 @@ service cloud.firestore {
 
     // ── Elevação de privilégio ────────────────────────────────
     // Verdadeiro quando a alteração CONCEDE acesso: liberar uma conta
-    // inativa, ou tornar alguém administrador. Só essas exigem senha.
-    //
-    // Cobre os DOIS caminhos de escalada. Proteger só `active` deixava uma
-    // sessão sequestrada fazer updateDoc(users/atacante, {role:'admin'}).
+    // inativa, ou tornar alguém ADM SUPREMO. Só essas exigem senha.
     function elevating() {
       return (request.resource.data.active == true && resource.data.active != true)
           || (request.resource.data.role == 'admin' && resource.data.role != 'admin');
@@ -86,71 +136,120 @@ service cloud.firestore {
       return n is string && n.size() > 0 && n.size() <= 60;
     }
 
-    // Preço oficial da viagem. ⚠️ O documento settings/app PRECISA existir
-    // com o campo tripValue — senão a criação de viagens é negada para
-    // usuários comuns. Salve o valor uma vez no painel admin.
-    function officialTripValue() {
-      return get(/databases/$(database)/documents/settings/app).data.tripValue;
+    // ── Grupos de carona ──────────────────────────────────────
+    // Criar, apagar e mexer no quadro de membros passa pelo WORKER: são
+    // operações que tocam vários documentos de uma vez (grupo + perfis +
+    // convite) e o cliente não consegue fazer isso de forma atômica nem
+    // confiável. Aqui sobra a LEITURA e a edição das configurações do grupo
+    // pelo próprio dono.
+    match /groups/{gid} {
+      allow get:  if isSignedIn() && (isSuperAdmin() || inGroup(gid) || ownsGroup(gid));
+      allow list: if isSuperAdmin();
+
+      // O dono ajusta nome, PIX e valor da viagem. Nada mais — trocar
+      // ownerUid ou memberCount por aqui reescreveria o quadro de membros
+      // sem passar pelo Worker.
+      allow update: if (isSuperAdmin() || resource.data.ownerUid == request.auth.uid)
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['name', 'pixKey', 'tripValue'])
+        && validName(request.resource.data.name)
+        && request.resource.data.tripValue is number
+        && request.resource.data.tripValue >= 0
+        && request.resource.data.tripValue <= 100000
+        && request.resource.data.pixKey is string
+        && request.resource.data.pixKey.size() <= 140;
+
+      allow create, delete: if false;
+    }
+
+    // ── Convites ──────────────────────────────────────────────
+    // Escrita só pelo Worker (gera o código, confere o e-mail do token e
+    // marca como usado numa tacada só). Leitura: quem criou, o dono do
+    // grupo, o convidado (pelo e-mail do próprio token) e o ADM SUPREMO.
+    //
+    // Ninguém varre a coleção: uma consulta que devolva convite de outra
+    // pessoa é negada documento a documento.
+    match /invites/{code} {
+      allow read: if isSignedIn() && (
+             isSuperAdmin()
+          || resource.data.createdBy == request.auth.uid
+          || ownsGroup(resource.data.groupId)
+          || (resource.data.get('invitedEmail', null) != null
+              && resource.data.invitedEmail == request.auth.token.email)
+        );
+      allow write: if false;
     }
 
     // ── Usuários ──────────────────────────────────────────────
     match /users/{uid} {
-      allow get:  if isSignedIn() && (request.auth.uid == uid || isAdmin());
-      allow list: if isAdmin();
-
-      // Criar: TODO perfil nasce INATIVO, venha do admin ou de auto-cadastro.
-      // Ativar é um passo separado que exige a senha do admin.
+      // Leitura: você mesmo, o ADM SUPREMO, ou o DONO do grupo em que a
+      // pessoa está — ele precisa da lista de passageiros para marcar quem
+      // viajou e para cobrar.
       //
-      // O caminho de auto-cadastro continua permitido (para o app não quebrar
-      // se alguém autenticar sem perfil), mas produz uma conta sem NENHUM
-      // acesso. Para fechar de vez, desative o cadastro em
-      // Authentication > Settings > User actions > Enable create (sign-up).
-      allow create: if (isAdmin()
+      // Passageiro NÃO lê o perfil de outro passageiro. O documento carrega
+      // e-mail, e nenhuma tela do app pede essa lista para quem não
+      // administra — então liberar seria expor PII sem ninguém precisar.
+      allow read: if isSignedIn() && (
+             request.auth.uid == uid
+          || isSuperAdmin()
+          || ownsGroup(resource.data.get('groupId', null))
+        );
+
+      // Criar:
+      //  a) AUTO-CADASTRO — qualquer pessoa cria a PRÓPRIA conta, já ativa,
+      //     mas SEM GRUPO e sempre como 'user'. Sem grupo ela não alcança
+      //     viagem, pagamento nem perfil de terceiro: a conta existe e não
+      //     enxerga nada até ser convidada.
+      //  b) ADM SUPREMO cadastrando alguém — nasce INATIVA, e ativar é um
+      //     passo à parte que exige a senha do admin.
+      allow create: if (isSuperAdmin()
             && request.resource.data.active == false
             && request.resource.data.role in ['user', 'admin']
-            // F-06: criar já como admin é elevação — exige senha recente,
-            // igual a promover. Sem isto, uma sessão de admin sequestrada
-            // plantava uma conta admin nova sem passar pela tela de senha.
             && (request.resource.data.role != 'admin' || recentlyAuthed()))
         || (request.auth.uid == uid
             && request.resource.data.role == 'user'
-            && request.resource.data.active == false
+            && request.resource.data.active == true
+            && request.resource.data.get('groupId', null) == null
+            && request.resource.data.get('groupRole', null) == null
+            && request.resource.data.get('groupIds', []).size() == 0
             && validName(request.resource.data.name)
             && validPhoto(request.resource.data.get('photo', null)));
 
       // Atualizar.
-      //   - admin: qualquer campo, mas ELEVAR exige senha recente.
-      //     Desativar, rebaixar e renomear seguem livres — reduzem acesso, e
-      //     travá-los atrapalharia cortar uma conta comprometida às pressas.
-      //   - o próprio usuário: só nome e foto, com formato validado.
-      allow update: if (isAdmin() && (!elevating() || recentlyAuthed()))
+      //   - ADM SUPREMO: qualquer campo, mas ELEVAR exige senha recente.
+      //   - o próprio usuário: nome e foto; ou TROCAR DE GRUPO ATIVO, e só
+      //     para um grupo que já conste em `groupIds` (escrito pelo Worker
+      //     quando o convite foi aceito). O papel no grupo é recalculado a
+      //     partir do dono — não é o cliente quem diz que é dono.
+      allow update: if (isSuperAdmin() && (!elevating() || recentlyAuthed()))
         || (request.auth.uid == uid
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'photo'])
             && validName(request.resource.data.name)
-            && validPhoto(request.resource.data.get('photo', null)));
+            && validPhoto(request.resource.data.get('photo', null)))
+        || (request.auth.uid == uid
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['groupId', 'groupRole'])
+            && (
+                 (request.resource.data.get('groupId', null) == null
+                  && request.resource.data.get('groupRole', null) == null)
+              || (request.resource.data.groupId in resource.data.get('groupIds', [])
+                  && request.resource.data.groupRole == roleInGroup(request.resource.data.groupId))
+            ));
 
       // Excluir: NINGUÉM, pelo cliente.
       //
       // Passa pelo Worker administrativo, que apaga a conta de login junto
       // (o SDK web não consegue) e revalida no servidor: token assinado,
-      // quem pediu é admin, e senha digitada há pouco.
-      //
-      // Fechar aqui não é redundante: se o cliente pudesse apagar o perfil
-      // direto, uma sessão sequestrada faria isso pulando a senha — e ainda
-      // deixaria a conta de login viva, capaz de recriar o perfil sozinha.
+      // quem pediu é ADM SUPREMO, e senha digitada há pouco.
       allow delete: if false;
     }
 
     // ── Tabela de nomes (login por nome) ──────────────────────
-    // A1/A4: agora PRIVADA para clientes. O e-mail não é mais legível por
-    // qualquer um (fim do vazamento de PII), e a escrita é exclusiva do
-    // Worker (service account), que só grava o slug do próprio chamador com
-    // o e-mail do token — acabando com o squatting de nome.
-    //
-    // A resolução nome→e-mail no login passou para o Worker
-    // (POST /auth/resolve-name), e o registro para POST /auth/register-name.
+    // PRIVADA para clientes. O e-mail não é legível por qualquer um (fim do
+    // vazamento de PII), e a escrita é exclusiva do Worker (service
+    // account), que só grava o slug do próprio chamador com o e-mail do
+    // token — acabando com o squatting de nome.
     match /usernames/{slug} {
-      allow read:  if isAdmin();
+      allow read:  if isSuperAdmin();
       allow write: if false;
     }
 
@@ -167,52 +266,81 @@ service cloud.firestore {
               || request.resource.data.speed in ['slow', 'mid', 'fast']);
       }
 
-      allow read: if isSignedIn() && (isAdmin() || resource.data.uid == request.auth.uid);
+      // A viagem entra no grupo de quem a criou, e o id continua casando
+      // com o dono (um documento por pessoa por dia).
+      function wellFormed() {
+        return tripId == request.resource.data.uid + '_' + request.resource.data.date
+          && validGroupId(request.resource.data.get('groupId', null))
+          && request.resource.data.paid == false
+          && request.resource.data.paymentId == null
+          && request.resource.data.amount == groupTripValue(request.resource.data.groupId);
+      }
 
-      // Criar: o usuário comum só cria a própria, com o ID casando com o dono
-      // e o VALOR fixado no preço oficial — sem isso ele criava a viagem já
-      // com amount:0.
-      allow create: if isAdmin()
-        || (isActive()
-            && request.resource.data.uid == request.auth.uid
-            && tripId == request.auth.uid + '_' + request.resource.data.date
-            && request.resource.data.paid == false
-            && request.resource.data.paymentId == null
-            && request.resource.data.amount == officialTripValue());
+      allow read: if isSignedIn() && (
+             isSuperAdmin()
+          || resource.data.uid == request.auth.uid
+          || ownsGroup(resource.data.get('groupId', null))
+        );
+
+      // Criar:
+      //  - usuário comum: só a PRÓPRIA viagem, no SEU grupo ativo, com o
+      //    valor fixado no preço oficial do grupo (senão ele criava a
+      //    viagem já com amount:0);
+      //  - dono do grupo: a viagem de qualquer membro DO SEU grupo — é o
+      //    fluxo "marcar passageiros" do calendário.
+      allow create: if isSuperAdmin()
+        || (isActive() && wellFormed() && (
+              (request.resource.data.uid == request.auth.uid
+               && request.resource.data.groupId == myGroupId())
+           || (ownsGroup(request.resource.data.groupId)
+               && get(/databases/$(database)/documents/users/$(request.resource.data.uid))
+                    .data.get('groupId', null) == request.resource.data.groupId)
+           ));
 
       // Atualizar: o usuário comum SÓ avalia (stars/speed). Marcar como paga
-      // saiu daqui — antes o dono escrevia paid:true direto e zerava a dívida
-      // sem pagar (F-01). Agora só o Worker marca, junto de um pagamento real
-      // cujo total ele recalcula. O admin segue livre (painel).
-      allow update: if isAdmin()
+      // não é dele — antes o dono escrevia paid:true direto e zerava a
+      // dívida sem pagar. Agora só o Worker marca, junto de um pagamento
+      // real cujo total ele recalcula. Dono do grupo e ADM SUPREMO seguem
+      // livres (painel).
+      allow update: if isSuperAdmin()
+        || ownsGroup(resource.data.get('groupId', null))
         || (isActive()
             && resource.data.uid == request.auth.uid
             && onlyRating());
 
-      allow delete: if isAdmin();
+      allow delete: if isSuperAdmin() || ownsGroup(resource.data.get('groupId', null));
     }
 
     // ── Pagamentos ────────────────────────────────────────────
-    // Leitura: dono ou admin. ESCRITA: ninguém pelo cliente.
+    // Leitura: dono do pagamento, dono do grupo ou ADM SUPREMO.
+    // ESCRITA: ninguém pelo cliente.
     //
-    // Criar e apagar pagamento passam pelo Worker (service account, que
-    // ignora estas regras). Foi a correção de F-01/F-02: as regras não
-    // conseguem somar o valor real das viagens nem garantir que "pago" só é
-    // marcado junto de um pagamento verdadeiro. O Worker recalcula o total a
-    // partir das viagens reais e IGNORA qualquer valor que o cliente mande —
-    // antes o usuário forjava um pagamento de R$0,01 cobrindo tudo.
+    // Criar/aprovar/rejeitar/apagar pagamento passam pelo Worker (service
+    // account, que ignora estas regras). As regras não conseguem somar o
+    // valor real das viagens nem garantir que "pago" só é marcado junto de
+    // um pagamento verdadeiro — então o Worker recalcula o total a partir
+    // das viagens reais e IGNORA qualquer valor do cliente.
+    //
+    // E como o Worker também não consegue PROVAR que o PDF cobre a dívida, o
+    // pagamento nasce status:'pending' e a viagem só vira paid:true quando o
+    // dono do grupo confere o comprovante e aprova. Sem aprovação, a dívida
+    // continua de pé.
     match /payments/{paymentId} {
-      allow read: if isSignedIn() && (isAdmin() || resource.data.uid == request.auth.uid);
+      allow read: if isSignedIn() && (
+             isSuperAdmin()
+          || resource.data.uid == request.auth.uid
+          || ownsGroup(resource.data.get('groupId', null))
+        );
       allow create, update, delete: if false;
     }
 
-    // ── Configurações (valor da viagem etc.) ──────────────────
-    // A3: valida o tipo e a faixa do tripValue no servidor. Antes, um admin
-    // (ou uma sessão de admin sequestrada) podia gravar tripValue com string,
-    // negativo ou absurdo, quebrando toda a contabilidade.
+    // ── Configurações globais ─────────────────────────────────
+    // Continua existindo como PADRÃO do sistema (valor sugerido para grupos
+    // novos); o valor que vale de fato é o do grupo (groups/{gid}.tripValue).
+    // Só o ADM SUPREMO escreve.
     match /settings/{docId} {
       allow read:  if isSignedIn();
-      allow write: if isAdmin()
+      allow write: if isSuperAdmin()
         && (docId != 'app'
             || (request.resource.data.tripValue is number
                 && request.resource.data.tripValue >= 0

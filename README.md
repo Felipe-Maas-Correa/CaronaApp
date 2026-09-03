@@ -20,42 +20,84 @@ com painel administrativo completo, avaliação de viagens e pagamento via PIX.
 
 O **CaronaApp** nasceu de uma necessidade real: organizar a cobrança de caronas diárias
 (um valor fixo por viagem) entre várias pessoas. Cada passageiro registra as caronas que
-fez, acompanha o quanto deve e paga via PIX. O administrador (motorista) tem uma visão
-completa de todos, com relatórios por período.
+fez, acompanha o quanto deve e paga via PIX. O motorista tem uma visão completa de
+todos, com relatórios por período.
+
+Hoje o app é **multi-grupo**: qualquer pessoa cria a própria conta, monta o seu
+**grupo de carona** e convida quem quiser. Cada grupo tem o seu valor por viagem,
+a sua chave PIX e o seu administrador.
 
 Foi construído com **JavaScript puro (ES Modules), sem frameworks nem build step** — o foco
 foi arquitetura limpa, componentização por módulos e uma identidade visual **premium dark gold**
 consistente. Todo o backend roda no plano **gratuito** do Firebase.
 
+## Grupos de carona
+
+O app gira em torno do **grupo**. Um grupo é uma turma que anda junto: tem um
+**dono** (quem o criou, normalmente o motorista), um valor por viagem, uma chave
+PIX e os seus passageiros.
+
+- Qualquer pessoa **cria a própria conta** direto na tela de login.
+- A conta nasce **sem grupo** — e sem grupo ela não lê nem escreve nada. O acesso
+  vem de **criar um grupo** ou **aceitar um convite**.
+- Convites são um **código de 8 caracteres** válido por 7 dias, que pode ser preso
+  a um e-mail (só aquela pessoa entra) ou aberto (link compartilhável).
+- Dá para participar de **vários grupos**, mas só um fica **ativo** por vez: é ele
+  que define as viagens, os pagamentos e os passageiros que o app mostra. A troca
+  fica no perfil e na tela **Meus grupos**.
+
+### Dois níveis de administração
+
+| | **ADM supremo** | **Dono do grupo** |
+|---|---|---|
+| Quem é | dono do software (`role: admin`) | quem criou o grupo (ou recebeu a posse) |
+| Alcance | todos os grupos e todas as contas | **só o grupo dele** |
+| Pode | promover outro admin supremo, ativar/desativar e excluir contas, ver todos os grupos | convidar e remover passageiros, marcar quem viajou, definir valor e PIX, aprovar comprovantes, passar a posse ou apagar o grupo |
+
 ## Funcionalidades
 
-### Para o usuário
-- **Login** com e-mail e senha (Firebase Auth)
+### Para o passageiro
+- **Cadastro aberto** e **login** com e-mail (ou nome) e senha — Firebase Auth
+- **Grupos** — criar, entrar por convite e alternar entre os seus
 - **Calendário** para marcar as próprias caronas
-- **Pagamentos via PIX** — chave copiável com um toque
-- **Comprovante** anexável (imagem/PDF) — comprimido e salvo em Base64
+- **Pagamentos via PIX** — chave do grupo, copiável com um toque
+- **Comprovante** anexável (PDF) — comprimido e salvo em Base64
 - **Avaliação da viagem** — nota de 0 a 5 estrelas + nível de velocidade
-- **Perfil personalizável** — nome, foto, troca de senha e estatísticas pessoais
-  (dias na plataforma, maior pagamento, recorde de dias sem pagar)
+- **Perfil personalizável** — nome, foto, troca de senha, seleção de grupo e
+  estatísticas pessoais (dias na plataforma, maior pagamento, recorde de dias sem pagar)
 
-### Para o administrador
-- **Dashboard** com totais por semana, mês, semestre, ano ou todo o histórico
+### Para o dono do grupo
+- **Dashboard** do grupo por semana, mês, semestre, ano ou todo o histórico
 - **Médias** por usuário, mensal e semanal + taxa de adimplência
-- **Ranking por usuário** e detalhe individual por período
-- **Marcação de passageiros** — o motorista escolhe quem estava em cada viagem
-- **Valor da viagem configurável** — vale para as próximas marcações
+- **Ranking por passageiro** e detalhe individual por período
+- **Marcação de passageiros** — escolhe quem estava em cada viagem
+- **Valor da viagem e chave PIX** configuráveis por grupo
+- **Convites** — gerar, compartilhar e revogar
+- **Aprovação de comprovantes** — a dívida só é quitada depois da conferência
 - **Exportação de relatório** em CSV
-- **Gestão de usuários** — promover/rebaixar, ativar/desativar, excluir
+- **Passar a posse** do grupo ou **apagá-lo**
+
+### Para o ADM supremo
+- Visão de **todos os grupos** com valores pagos e em aberto
+- **Todas as contas**: promover/rebaixar admin do sistema, ativar/desativar, excluir
+- **Adoção de dados antigos** — traz para um grupo o que existia antes dos grupos
 
 ## Segurança
 
 O controle de acesso **não depende do cliente**: está nas
-[**Security Rules do Firestore**](firestore.rules), validadas no servidor. Entre outras regras:
+[**Security Rules do Firestore**](firestore.rules) e no
+[**Worker**](worker/README.md), validados no servidor. Entre outras regras:
 
-- Um usuário comum **não** pode se auto-promover a admin nem se reativar
-- Cada um lê/escreve apenas as **próprias** viagens e pagamentos; o admin vê tudo
+- Uma conta **sem grupo** não alcança viagem, pagamento nem perfil de terceiro —
+  é isso que torna o cadastro aberto seguro
+- Ninguém se auto-promove a admin do sistema, nem se reativa
+- Trocar de grupo ativo só vale para grupo que já conste em `groupIds`, escrito
+  apenas pelo Worker ao aceitar o convite; e o papel (dono/passageiro) é
+  recalculado a partir de `groups/{id}.ownerUid` — dizer "sou dono" não adianta
+- O dono de um grupo **não enxerga** os dados de outro grupo
 - Contas desativadas são bloqueadas de fato (não só na interface)
-- Só o admin exclui viagens e gerencia usuários
+- Criar grupo, convidar, entrar, remover membro e transferir posse passam pelo
+  Worker: são operações que tocam vários documentos ao mesmo tempo
 
 ## Tecnologias
 
@@ -77,17 +119,25 @@ caronaapp/
 ├── storage.rules         # Regras do Storage (bloqueado; não usamos)
 ├── css/                  # base, layout, components (variáveis do tema)
 ├── js/
-│   ├── app.js            # Entry point: auth flow + navegação
+│   ├── app.js            # Entry point: auth flow + grupo ativo + navegação
 │   ├── firebase-config.js
 │   ├── config.example.js # Modelo de credenciais (copie para config.js)
-│   ├── db.js             # Operações no Firestore
+│   ├── db.js             # Operações no Firestore (escopadas por grupo)
+│   ├── worker-api.js     # Chamadas ao Worker (pagamentos, grupos, contas)
 │   └── utils.js          # Formatação, ícones, imagem, clipboard
-├── auth/                 # Autenticação e tela de login
+├── auth/                 # Autenticação, login e cadastro
+├── groups/               # Tela de grupos, convites e troca de grupo ativo
 ├── summary/              # Aba Resumo (dashboard do usuário)
 ├── calendar/             # Aba Calendário + avaliação
 ├── payments/             # Aba Pagamentos + PIX + comprovante
-├── admin/                # Painel administrativo
-└── profile/              # Tela "Meu Perfil"
+├── admin/                # Painel do grupo + administração do sistema
+├── profile/              # Tela "Meu Perfil"
+└── worker/               # Cloudflare Worker (service account)
+    └── src/
+        ├── index.js      # Rotas de conta e pagamento
+        ├── groups.js     # Rotas de grupo e convite
+        ├── http.js       # CORS, JSON, rate limit, verificação do token
+        └── firebase.js   # Firestore/Auth REST com service account
 ```
 
 ## Como rodar
@@ -112,9 +162,20 @@ caronaapp/
 3. **Publique as regras de segurança** no Console do Firebase:
    - Firestore → Regras → cole o conteúdo de [`firestore.rules`](firestore.rules)
    - Storage → Regras → cole o conteúdo de [`storage.rules`](storage.rules)
-4. **Rode** com o Live Server (botão *Go Live*) e acesse `index.html`.
-5. Crie o **primeiro admin**: no Firestore → Dados → coleção `users`, defina o campo
-   `role` do seu usuário como `admin`.
+4. **Publique o Worker** — ele é obrigatório para pagamentos e grupos.
+   Passo a passo em [`worker/README.md`](worker/README.md).
+5. **Rode** com o Live Server (botão *Go Live*) e acesse `index.html`.
+6. **Crie sua conta** na própria tela de login (aba *Criar conta*) e, em seguida,
+   **crie o seu grupo de carona** — você já entra nele como dono.
+7. Crie o **ADM supremo** (opcional, só se você quiser a visão de todos os grupos):
+   no Firestore → Dados → coleção `users`, defina o campo `role` do seu usuário
+   como `admin`.
+
+> **Atualizando de uma versão sem grupos?** Depois de publicar as regras e o
+> Worker, entre como ADM supremo, crie um grupo e use
+> **Painel → Administração do sistema → "Adotar dados antigos neste grupo"**.
+> Sem isso, as viagens e os pagamentos antigos (que não têm `groupId`) somem da
+> visão de todo mundo menos a sua.
 
 ## Notas de arquitetura
 

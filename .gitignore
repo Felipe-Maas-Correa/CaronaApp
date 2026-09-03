@@ -38,3 +38,6 @@ sa.json
 
 # Relatorio de auditoria de seguranca (NAO versionar — contem exploits)
 docs/
+
+# ── Config local do Claude Code (launch.json do preview) ─────
+.claude/
