@@ -12,6 +12,28 @@ const SCOPES    = "https://www.googleapis.com/auth/datastore https://www.googlea
 const enc = new TextEncoder();
 const dec = new TextDecoder();
 
+// ── VALIDAÇÃO DE STARTUP (F-04) ──────────────────────────────
+// Sem isto, a falta de um segredo (deploy sem `wrangler secret put`) só
+// estourava LÁ NA FRENTE, no meio de uma requisição, com erro opaco de
+// OAuth/crypto. Chamado no início do fetch para falhar CEDO e CLARO: uma
+// requisição a um Worker mal configurado recebe 503 imediato em vez de um
+// 500 confuso depois de já ter feito trabalho. Sem impacto de segredo —
+// só robustez operacional.
+export function assertSecrets(env) {
+  const missing = [];
+  if (!String(env.FIREBASE_CLIENT_EMAIL || "").trim()) missing.push("FIREBASE_CLIENT_EMAIL");
+  if (!String(env.FIREBASE_PRIVATE_KEY  || "").trim()) missing.push("FIREBASE_PRIVATE_KEY");
+  if (!String(env.FIREBASE_PROJECT_ID   || "").trim()) missing.push("FIREBASE_PROJECT_ID");
+  if (missing.length) {
+    const e = new Error(
+      "Worker mal configurado: faltam " + missing.join(", ") +
+      ". Rode `npx wrangler secret put <NOME>` (ver README)."
+    );
+    e.status = 503;
+    throw e;
+  }
+}
+
 // ── CODIFICAÇÃO ──────────────────────────────────────────────
 
 function b64url(bytes) {
@@ -275,4 +297,78 @@ export async function deleteAuthUser(env, uid) {
   if (res.status === 400 && /USER_NOT_FOUND/i.test(text)) return false;
 
   throw new Error("Auth delete " + uid + ": " + res.status + " " + text);
+}
+
+// ── CONSULTAS (Firestore REST) ───────────────────────────────
+//
+// O quadro de membros de um grupo mora no perfil de cada usuario
+// (users.groupIds), entao operacoes de grupo precisam PERGUNTAR
+// "quem esta neste grupo?" — o que exige uma consulta, nao um get.
+
+function queryUrl(env) {
+  return "https://firestore.googleapis.com/v1/projects/" + env.FIREBASE_PROJECT_ID +
+         "/databases/(default)/documents:runQuery";
+}
+
+/**
+ * Roda uma consulta simples de igualdade (ou array-contains) numa colecao.
+ *
+ * @param {string} collection  nome da colecao (ex.: "users")
+ * @param {string} field       campo a filtrar
+ * @param {any}    value       valor esperado
+ * @param {"EQUAL"|"ARRAY_CONTAINS"} op
+ * @param {number} limit       teto de documentos devolvidos
+ * @returns {Promise<Array<{id:string, data:object}>>}
+ */
+export async function queryDocs(env, collection, field, value, op = "EQUAL", limit = 500) {
+  const token = await getAccessToken(env);
+
+  const res = await fetch(queryUrl(env), {
+    method:  "POST",
+    headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      structuredQuery: {
+        from:  [{ collectionId: collection }],
+        where: { fieldFilter: { field: { fieldPath: field }, op, value: toFsValue(value) } },
+        limit
+      }
+    })
+  });
+
+  if (!res.ok) throw new Error("Firestore query " + collection + ": " + res.status);
+
+  const rows = await res.json();
+  return (rows || [])
+    .filter(r => r.document)
+    .map(r => ({
+      id:   r.document.name.split("/").pop(),
+      data: fromFsFields(r.document.fields)
+    }));
+}
+
+/**
+ * Lista uma colecao inteira, paginando ate o fim.
+ * Usada so pela adocao de dados legados (viagens/pagamentos sem grupo),
+ * que precisa varrer tudo procurando documentos SEM um campo — coisa que
+ * uma consulta com filtro nao consegue expressar.
+ */
+export async function listDocs(env, collection, maxDocs = 5000) {
+  const token = await getAccessToken(env);
+  const out   = [];
+  let pageToken = null;
+
+  do {
+    const url = docUrl(env, collection) + "?pageSize=300" +
+                (pageToken ? "&pageToken=" + encodeURIComponent(pageToken) : "");
+    const res = await fetch(url, { headers: { Authorization: "Bearer " + token } });
+    if (!res.ok) throw new Error("Firestore LIST " + collection + ": " + res.status);
+
+    const json = await res.json();
+    for (const d of (json.documents || [])) {
+      out.push({ id: d.name.split("/").pop(), data: fromFsFields(d.fields) });
+    }
+    pageToken = json.nextPageToken || null;
+  } while (pageToken && out.length < maxDocs);
+
+  return out;
 }
