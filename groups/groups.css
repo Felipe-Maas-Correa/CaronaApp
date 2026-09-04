@@ -696,3 +696,22 @@
   }
   .hub-sheet--open .hub-sheet__panel { transform: translate(-50%, -50%); }
 }
+
+/* ── ÍCONES INLINE (cargos) + PILHA DE MEMBROS nos cards ─────── */
+.gcard__role svg, .hub-hero__badge svg {
+  width: 12px; height: 12px; stroke: currentColor; stroke-width: 2; fill: none;
+  vertical-align: -2px; margin-right: 3px;
+}
+.hub-hero__badge svg { width: 13px; height: 13px; }
+
+.gcard__pax-stack { display: inline-flex; align-items: center; }
+.gcard__pax {
+  width: 18px; height: 18px; border-radius: 50%;
+  display: inline-grid; place-items: center;
+  font-size: .58rem; font-weight: 700; color: var(--text);
+  border: 1.5px solid var(--bg-card); margin-left: -6px; overflow: hidden;
+}
+.gcard__pax:first-child { margin-left: 0; }
+.gcard__pax img { width: 100%; height: 100%; object-fit: cover; }
+.gcard__pax--more { background: var(--bg-elevated) !important; color: var(--text-muted); font-size: .54rem; }
+.gcard__paxcount { color: var(--text-muted); }

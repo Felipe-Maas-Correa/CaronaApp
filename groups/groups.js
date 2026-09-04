@@ -21,10 +21,10 @@ import {
   createGroup, createInvite, revokeInvite, joinGroup, leaveGroup
 } from "../js/worker-api.js";
 import {
-  getUserUnpaidTrips
+  getUserUnpaidTrips, getGroupUsers
 } from "../js/db.js";
 import {
-  showToast, escapeHtml, formatDateTime, formatCurrency, icon, copyToClipboard
+  showToast, escapeHtml, formatDateTime, formatCurrency, icon, copyToClipboard, safeImageSrc
 } from "../js/utils.js";
 
 // Paleta de cores do grupo. A primeira é o dourado da marca (default).
@@ -75,6 +75,7 @@ export function groupName() {
 let screenBound = false;
 let selectedColor = GROUP_COLORS[0];  // cor escolhida no sheet de criação
 let groupDocs = new Map();            // id -> doc do grupo (enriquece os cards)
+let groupMembers = new Map();         // id -> [membros] (fotos nos cards)
 let searchTerm = "";
 let sortMode = "recent";              // "recent" | "name"
 
@@ -232,6 +233,13 @@ export async function renderGroupScreen() {
   groupDocs = new Map();
   groups.forEach((g, i) => { if (docs[i]) groupDocs.set(g.id, docs[i]); });
 
+  // Fotos dos membros para o cantinho dos cards. Só o dono consegue listar
+  // os outros (as rules); em grupo onde a pessoa é passageira, volta vazio e
+  // o card cai no contador de membros — sem erro na tela.
+  const memberLists = await Promise.all(groups.map(g => getGroupUsers(g.id).catch(() => [])));
+  groupMembers = new Map();
+  groups.forEach((g, i) => groupMembers.set(g.id, memberLists[i] || []));
+
   await renderHero(activeId);
   renderMyGroups();
   await renderMyInvites();
@@ -251,7 +259,9 @@ async function renderHero(activeId) {
 
   document.getElementById("hero-name").textContent = doc.name || groupName() || "Grupo";
   const roleEl = document.getElementById("hero-role");
-  roleEl.textContent = role === "owner" ? "👑 Você é o dono" : "🧍 Passageiro";
+  roleEl.innerHTML = role === "owner"
+    ? `${icon("crown")} Você é o dono`
+    : `${icon("user")} Passageiro`;
   roleEl.classList.toggle("hub-hero__badge--owner", role === "owner");
 
   const members = Number(doc.memberCount) || 0;
@@ -287,6 +297,28 @@ async function renderHero(activeId) {
 function todayStr() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+/**
+ * Pilha de avatares dos membros no cantinho do card. Mostra até 3 fotos (ou
+ * iniciais) sobrepostas e um "+N". Se não deu para listar (a pessoa é só
+ * passageira do grupo e as rules não deixam ver os outros), cai no contador.
+ */
+function memberStack(gid, memberCount) {
+  const members = groupMembers.get(gid) || [];
+  if (members.length === 0) {
+    return `<span class="gcard__paxcount">${memberCount || "—"} pax</span>`;
+  }
+  const shown = members.slice(0, 3);
+  const rest  = Math.max(0, (memberCount || members.length) - shown.length);
+  const dots = shown.map(m => {
+    const src = safeImageSrc(m.photo);
+    const inner = src
+      ? `<img src="${src}" alt="">`
+      : escapeHtml((m.name || "?").charAt(0).toUpperCase());
+    return `<span class="gcard__pax" style="background:${src ? "transparent" : "var(--bg-hover)"}">${inner}</span>`;
+  }).join("");
+  return `<span class="gcard__pax-stack">${dots}${rest > 0 ? `<span class="gcard__pax gcard__pax--more">+${rest}</span>` : ""}</span>`;
 }
 
 function renderMyGroups() {
@@ -331,9 +363,9 @@ function renderMyGroups() {
           <span class="gcard__fav ${isFav(g.id) ? "gcard__fav--on" : ""}" data-fav-group="${escapeHtml(g.id)}" role="button" aria-label="Favoritar">★</span>
         </span>
         <span class="gcard__name">${escapeHtml(g.name || "Grupo")}</span>
-        <span class="gcard__role">${owner ? "👑 Dono" : "🧍 Passageiro"}</span>
+        <span class="gcard__role">${owner ? icon("crown") + " Dono" : icon("user") + " Passageiro"}</span>
         <span class="gcard__meta">
-          <span>${members || "—"} pax</span>
+          ${memberStack(g.id, members)}
           <span class="hub-dot">•</span>
           <span>${value != null ? formatCurrency(value) : "—"}</span>
         </span>

@@ -617,3 +617,12 @@
 
 /* O drawer fica fora de .adm2 — reset de appearance nos seus botões. */
 .drawer button { -webkit-appearance: none; appearance: none; cursor: pointer; }
+
+/* ── ÍCONES LIMPOS (sem emoji): KPIs e cargos ────────────────── */
+.kpi__ico { display: inline-flex; }
+.kpi__ico svg { width: 15px; height: 15px; stroke: var(--text-muted); stroke-width: 2; fill: none; }
+.kpi--paid .kpi__ico svg { stroke: var(--paid); }
+.kpi--debt .kpi__ico svg { stroke: var(--debt); }
+.adm2-role { display: inline-flex; align-items: center; }
+.adm2-role svg { width: 12px; height: 12px; stroke: currentColor; stroke-width: 2; fill: none; margin-right: 3px; color: var(--accent); }
+.pax-row__role svg { width: 12px; height: 12px; stroke: currentColor; stroke-width: 2; fill: none; vertical-align: -2px; margin-right: 2px; }

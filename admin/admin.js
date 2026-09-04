@@ -66,10 +66,13 @@ function bindAdminEvents() {
   document.getElementById("btn-invite")?.addEventListener("click", openInviteModal);
   document.getElementById("btn-invite-2")?.addEventListener("click", openInviteModal);
 
-  // Engrenagem do header rola até as configurações rápidas.
-  document.getElementById("btn-adm-settings")?.addEventListener("click", () => {
-    document.getElementById("adm-settings-anchor")
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  // Engrenagem do header abre o sheet de configurações do grupo (valor, PIX,
+  // convite) — assim eles não ocupam a tela toda do painel.
+  document.getElementById("btn-adm-settings")?.addEventListener("click", openAdmSettings);
+  document.querySelectorAll("[data-close-adm-sheet]").forEach(el =>
+    el.addEventListener("click", closeAdmSettings));
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !document.getElementById("sheet-adm-settings")?.hidden) closeAdmSettings();
   });
 
   // Copiar a chave PIX do grupo.
@@ -125,7 +128,30 @@ function bindAdminEvents() {
   document.getElementById("btn-save-pix")?.addEventListener("click", handleSavePix);
 }
 
-// ── CONFIGURAÇÕES DO GRUPO ───────────────────────────────────
+// ── CONFIGURAÇÕES DO GRUPO (sheet da engrenagem) ─────────────
+
+function openAdmSettings() {
+  if (!(isGroupOwner() || isSuperAdmin())) {
+    showToast("Só o dono do grupo edita as configurações.", "info");
+    return;
+  }
+  const s = document.getElementById("sheet-adm-settings");
+  if (!s) return;
+  // Reflete os valores atuais toda vez que abre.
+  const price = document.getElementById("adm-price-input");
+  if (price) price.value = getTripValue();
+  const pix = document.getElementById("adm-pix-input");
+  if (pix) pix.value = currentGroup?.pixKey || "";
+  s.hidden = false;
+  requestAnimationFrame(() => s.classList.add("hub-sheet--open"));
+}
+
+function closeAdmSettings() {
+  const s = document.getElementById("sheet-adm-settings");
+  if (!s) return;
+  s.classList.remove("hub-sheet--open");
+  setTimeout(() => { s.hidden = true; }, 220);
+}
 
 async function handleSavePrice() {
   const input = document.getElementById("adm-price-input");
@@ -230,28 +256,29 @@ function renderGroupHeader() {
   const subEl  = document.getElementById("adm-group-sub");
   if (nameEl) nameEl.textContent = currentGroup?.name || "Sem grupo";
 
-  // Subtítulo do header: cargo, nº de passageiros, valor e o recebido no mês
-  // corrente (independente do filtro de período — é o pulso do grupo agora).
+  // Subtítulo do header: cargo (com ícone da ferramenta, não emoji), nº de
+  // passageiros, valor e o recebido no mês corrente (independe do filtro).
   if (subEl) {
-    const role = isGroupOwner() ? "👑 você é o dono"
-               : isSuperAdmin() ? "👑 admin do sistema"
-               : "🧍 passageiro";
+    const roleIco  = isGroupOwner() || isSuperAdmin() ? icon("crown") : icon("user");
+    const roleText = isGroupOwner() ? "você é o dono"
+                   : isSuperAdmin() ? "admin do sistema"
+                   : "passageiro";
     const monthRange = getPeriodRange("month");
     const monthReceived = cache.trips
       .filter(t => t.paid && inPeriod(t.date, monthRange))
       .reduce((s, t) => s + amt(t), 0);
-    subEl.textContent =
-      `${role} · ${cache.users.length} pax · ${formatCurrency(getTripValue())}/viagem · ` +
-      `${formatCurrency(monthReceived)} no mês`;
+    subEl.innerHTML =
+      `<span class="adm2-role">${roleIco}${roleText}</span> · ${cache.users.length} pax · ` +
+      `${formatCurrency(getTripValue())}/viagem · ${formatCurrency(monthReceived)} no mês`;
   }
 
   const pax = document.getElementById("adm-pax-count");
   if (pax) pax.textContent = `${cache.users.length}`;
 
-  // Convidar e apagar o grupo são do dono (ou do ADM SUPREMO, como suporte).
+  // Convidar, configurar e apagar o grupo são do dono (ou do ADM SUPREMO).
   const canManage = isGroupOwner() || isSuperAdmin();
   document.getElementById("btn-invite")?.classList.toggle("hidden", !canManage);
-  document.getElementById("btn-invite-2")?.closest(".qs-card")?.classList.toggle("hidden", !canManage);
+  document.getElementById("btn-adm-settings")?.classList.toggle("hidden", !canManage);
   document.getElementById("btn-delete-group")?.classList.toggle("hidden", !canManage);
 
   const priceInput = document.getElementById("adm-price-input");
@@ -522,7 +549,7 @@ function renderManageUsers() {
         <span class="pax-row__avatar" style="background:${avatarColor(u.name)}">${avatarInner(u.name, u.photo)}</span>
         <span class="pax-row__id">
           <span class="pax-row__name">${escapeHtml(u.name || "—")}${isCurrentUser ? ' <span class="pax-tag">você</span>' : ""}</span>
-          <span class="pax-row__role">${isOwner ? "👑 Dono" : "🧍 Passageiro"}${inactive ? " · inativo" : ""}</span>
+          <span class="pax-row__role">${isOwner ? icon("crown") + " Dono" : icon("user") + " Passageiro"}${inactive ? " · inativo" : ""}</span>
         </span>
         <span class="pax-row__nums">
           <span class="pax-row__paid">${formatCurrency(s.paid)}</span>
