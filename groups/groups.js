@@ -213,7 +213,18 @@ export async function renderGroupScreen() {
   const avEl   = document.getElementById("group-account-avatar");
   if (nameEl) nameEl.textContent = name || mail || "—";
   if (mailEl) mailEl.textContent = mail || "—";
-  if (avEl)   avEl.textContent = (name || mail || "?").charAt(0).toUpperCase();
+  if (avEl) {
+    // A foto de perfil é o padrão sempre que existir; a inicial é só o
+    // fallback de quem ainda não colocou uma.
+    const photo = safeImageSrc(currentProfile?.photo);
+    if (photo) {
+      avEl.classList.add("hub-identity__avatar--photo");
+      avEl.innerHTML = `<img src="${photo}" alt="">`;
+    } else {
+      avEl.classList.remove("hub-identity__avatar--photo");
+      avEl.textContent = (name || mail || "?").charAt(0).toUpperCase();
+    }
+  }
 
   const sub = document.getElementById("group-screen-sub");
   if (sub) sub.textContent = hasGroups

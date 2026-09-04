@@ -708,3 +708,7 @@
 .gcard__pax img { width: 100%; height: 100%; object-fit: cover; }
 .gcard__pax--more { background: var(--bg-elevated) !important; color: var(--text-muted); font-size: .54rem; }
 .gcard__paxcount { color: var(--text-muted); }
+
+/* Avatar da barra de identidade com foto de perfil (padrão quando existe). */
+.hub-identity__avatar--photo { background: none !important; padding: 0; }
+.hub-identity__avatar--photo img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
