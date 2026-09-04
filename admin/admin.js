@@ -66,13 +66,41 @@ function bindAdminEvents() {
   document.getElementById("btn-invite")?.addEventListener("click", openInviteModal);
   document.getElementById("btn-invite-2")?.addEventListener("click", openInviteModal);
 
-  // Engrenagem do header abre o sheet de configurações do grupo (valor, PIX,
-  // convite) — assim eles não ocupam a tela toda do painel.
+  // Engrenagem do header abre a lista de configurações do grupo. Cada item
+  // abre seu próprio editor (bottom-sheet), em vez de mostrar tudo de uma vez.
   document.getElementById("btn-adm-settings")?.addEventListener("click", openAdmSettings);
   document.querySelectorAll("[data-close-adm-sheet]").forEach(el =>
     el.addEventListener("click", closeAdmSettings));
+
+  document.getElementById("set-value")?.addEventListener("click", () =>
+    openEditSheet("sheet-edit-value", () => {
+      document.getElementById("adm-price-input").value = getTripValue();
+    }));
+  document.getElementById("set-pix")?.addEventListener("click", () =>
+    openEditSheet("sheet-edit-pix", () => {
+      document.getElementById("adm-pix-input").value = currentGroup?.pixKey || "";
+    }));
+  document.getElementById("set-name")?.addEventListener("click", () =>
+    openEditSheet("sheet-edit-name", () => {
+      const el = document.getElementById("adm-name-input");
+      el.value = currentGroup?.name || "";
+      document.getElementById("adm-name-error").textContent = "";
+    }));
+  document.getElementById("set-members")?.addEventListener("click", () => {
+    // "Membros" leva à lista de passageiros do painel (onde se gerencia).
+    closeAdmSettings();
+    document.querySelector('.adm2-sectitle .adm2-add')?.closest(".adm2-sectitle")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  document.getElementById("btn-save-name")?.addEventListener("click", handleSaveName);
+  document.querySelectorAll("[data-close-edit]").forEach(el =>
+    el.addEventListener("click", () => closeEditSheet(el.dataset.closeEdit)));
+
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !document.getElementById("sheet-adm-settings")?.hidden) closeAdmSettings();
+    if (e.key !== "Escape") return;
+    const openEdit = document.querySelector('[id^="sheet-edit-"]:not([hidden])');
+    if (openEdit) closeEditSheet(openEdit.id);
+    else if (!document.getElementById("sheet-adm-settings")?.hidden) closeAdmSettings();
   });
 
   // Copiar a chave PIX do grupo.
@@ -145,13 +173,9 @@ function openAdmSettings() {
     showToast("Só o dono do grupo edita as configurações.", "info");
     return;
   }
+  renderSettingsList();
   const s = document.getElementById("sheet-adm-settings");
   if (!s) return;
-  // Reflete os valores atuais toda vez que abre.
-  const price = document.getElementById("adm-price-input");
-  if (price) price.value = getTripValue();
-  const pix = document.getElementById("adm-pix-input");
-  if (pix) pix.value = currentGroup?.pixKey || "";
   s.hidden = false;
   requestAnimationFrame(() => s.classList.add("hub-sheet--open"));
 }
@@ -161,6 +185,62 @@ function closeAdmSettings() {
   if (!s) return;
   s.classList.remove("hub-sheet--open");
   setTimeout(() => { s.hidden = true; }, 220);
+}
+
+// Preenche a lista de configurações com os valores atuais do grupo.
+function renderSettingsList() {
+  setText("settings-group-name", currentGroup?.name || "Configurações");
+  setText("set-value-cur", formatCurrency(getTripValue()));
+  setText("set-pix-cur", currentGroup?.pixKey ? currentGroup.pixKey : "Não cadastrada");
+  setText("set-name-cur", currentGroup?.name || "—");
+  const n = cache.users.length;
+  setText("set-members-cur", `${n} ${n === 1 ? "passageiro" : "passageiros"}`);
+}
+
+// ── EDITORES (bottom-sheets sobre a lista) ───────────────────
+function openEditSheet(id, fill) {
+  const s = document.getElementById(id);
+  if (!s) return;
+  if (typeof fill === "function") fill();
+  s.hidden = false;
+  requestAnimationFrame(() => s.classList.add("hub-sheet--open"));
+  s.querySelector("input")?.focus();
+}
+function closeEditSheet(id) {
+  const s = document.getElementById(id);
+  if (!s) return;
+  s.classList.remove("hub-sheet--open");
+  setTimeout(() => { s.hidden = true; }, 220);
+}
+
+async function handleSaveName() {
+  const input = document.getElementById("adm-name-input");
+  const err   = document.getElementById("adm-name-error");
+  const name  = String(input.value || "").trim();
+  if (err) err.textContent = "";
+  if (name.length < 2) { if (err) err.textContent = "Dê um nome ao grupo (mín. 2 caracteres)."; return; }
+
+  const gid = myGroupId();
+  if (!gid || !currentGroup) { showToast("Entre em um grupo primeiro.", "error"); return; }
+
+  const btn = document.getElementById("btn-save-name");
+  btn.disabled = true; btn.textContent = "...";
+  try {
+    // Reaproveita updateGroupSettings (mesma rota do valor/PIX): muda só o
+    // nome, mantendo valor e chave PIX.
+    await updateGroupSettings(gid, { name, pixKey: currentGroup.pixKey || "", tripValue: currentGroup.tripValue });
+    await loadGroupContext();
+    renderGroupHeader();
+    renderSettingsList();
+    updateHeaderSubtitle();
+    closeEditSheet("sheet-edit-name");
+    showToast("Nome do grupo atualizado.", "success");
+  } catch (e) {
+    console.error(e);
+    if (err) err.textContent = "Não foi possível salvar o nome.";
+  } finally {
+    btn.disabled = false; btn.textContent = "Salvar";
+  }
 }
 
 async function handleSavePrice() {
@@ -182,6 +262,9 @@ async function handleSavePrice() {
     if (isSuperAdmin()) await setTripValueSetting(value).catch(() => {});
     await loadGroupContext();
     updateHeaderSubtitle();
+    renderGroupHeader();
+    renderSettingsList();
+    closeEditSheet("sheet-edit-value");
     showToast(`Valor da viagem agora é ${formatCurrency(value)}.`, "success");
   } catch (e) {
     console.error(e);
@@ -208,6 +291,8 @@ async function handleSavePix() {
       tripValue: currentGroup.tripValue
     });
     await loadGroupContext();
+    renderSettingsList();
+    closeEditSheet("sheet-edit-pix");
     showToast(pixKey ? "Chave PIX salva." : "Chave PIX removida.", "success");
   } catch (e) {
     console.error(e);

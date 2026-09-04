@@ -675,46 +675,120 @@
       <div class="hub-sheet__panel" role="dialog" aria-modal="true" aria-label="Configurações do grupo">
         <div class="hub-sheet__handle"></div>
         <div class="hub-sheet__head">
-          <h3>Configurações do grupo</h3>
+          <div>
+            <h3 id="settings-group-name">Configurações</h3>
+            <p class="set-subtitle">Configurações do grupo</p>
+          </div>
           <button class="hub-iconbtn" data-close-adm-sheet aria-label="Fechar">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
-        <div class="qs-grid">
-          <div class="qs-card">
-            <div class="qs-card__label">Valor da viagem</div>
-            <div class="qs-card__row">
-              <span class="qs-card__cur">R$</span>
-              <input type="number" id="adm-price-input" class="qs-card__input" min="0" step="0.5" inputmode="decimal" />
-              <div class="qs-stepper">
-                <button type="button" id="price-up" class="qs-step" aria-label="Aumentar">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
-                </button>
-                <button type="button" id="price-down" class="qs-step" aria-label="Diminuir">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
-              </div>
-              <button id="btn-save-price" class="qs-save">Salvar</button>
-            </div>
+
+        <div class="set-group-label">Cobrança</div>
+        <div class="set-list">
+          <button class="set-item" id="set-value">
+            <span class="set-item__txt">
+              <span class="set-item__label">Valor por viagem</span>
+              <span class="set-item__value" id="set-value-cur">—</span>
+            </span>
+            <svg class="set-item__chev" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          <button class="set-item" id="set-pix">
+            <span class="set-item__txt">
+              <span class="set-item__label">Chave PIX</span>
+              <span class="set-item__value" id="set-pix-cur">Não cadastrada</span>
+            </span>
+            <svg class="set-item__chev" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+
+        <div class="set-group-label">Convites</div>
+        <div class="set-list">
+          <button class="set-item" id="btn-invite-2">
+            <span class="set-item__txt">
+              <span class="set-item__label">Link de convite</span>
+              <span class="set-item__value">Gerencie quem pode entrar</span>
+            </span>
+            <svg class="set-item__chev" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+
+        <div class="set-group-label">Grupo</div>
+        <div class="set-list">
+          <button class="set-item" id="set-name">
+            <span class="set-item__txt">
+              <span class="set-item__label">Nome do grupo</span>
+              <span class="set-item__value" id="set-name-cur">—</span>
+            </span>
+            <svg class="set-item__chev" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          <button class="set-item" id="set-members">
+            <span class="set-item__txt">
+              <span class="set-item__label">Membros</span>
+              <span class="set-item__value" id="set-members-cur">—</span>
+            </span>
+            <svg class="set-item__chev" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ EDITORES DE CONFIGURAÇÃO (abrem sobre a lista) ═══ -->
+    <!-- Valor por viagem -->
+    <div class="hub-sheet" id="sheet-edit-value" hidden>
+      <div class="hub-sheet__backdrop" data-close-edit="sheet-edit-value"></div>
+      <div class="hub-sheet__panel" role="dialog" aria-modal="true" aria-label="Editar valor">
+        <div class="hub-sheet__handle"></div>
+        <div class="hub-sheet__head"><h3>Valor por viagem</h3></div>
+        <div class="set-field">
+          <span class="set-field__cur">R$</span>
+          <input type="number" id="adm-price-input" class="set-field__input" min="0" step="0.5" inputmode="decimal" />
+          <div class="qs-stepper">
+            <button type="button" id="price-up" class="qs-step" aria-label="Aumentar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg></button>
+            <button type="button" id="price-down" class="qs-step" aria-label="Diminuir"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></button>
           </div>
-          <div class="qs-card">
-            <div class="qs-card__label">Chave PIX do grupo</div>
-            <div class="qs-card__row">
-              <input id="adm-pix-input" type="text" class="qs-card__input qs-card__input--text"
-                     placeholder="e-mail, CPF, telefone ou chave" maxlength="140" />
-              <button id="btn-copy-pix" class="qs-icon" title="Copiar chave" aria-label="Copiar">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-              </button>
-              <button id="btn-save-pix" class="qs-save">Salvar</button>
-            </div>
-          </div>
-          <div class="qs-card qs-card--invite">
-            <div class="qs-card__label">Link de convite</div>
-            <div class="qs-card__row">
-              <span class="qs-card__hint">Gere um código para alguém entrar no grupo.</span>
-              <button id="btn-invite-2" class="qs-save qs-save--ghost">Gerar</button>
-            </div>
-          </div>
+        </div>
+        <div class="set-actions">
+          <button class="set-btn set-btn--ghost" data-close-edit="sheet-edit-value">Cancelar</button>
+          <button id="btn-save-price" class="set-btn set-btn--primary">Salvar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chave PIX -->
+    <div class="hub-sheet" id="sheet-edit-pix" hidden>
+      <div class="hub-sheet__backdrop" data-close-edit="sheet-edit-pix"></div>
+      <div class="hub-sheet__panel" role="dialog" aria-modal="true" aria-label="Editar chave PIX">
+        <div class="hub-sheet__handle"></div>
+        <div class="hub-sheet__head"><h3>Chave PIX</h3></div>
+        <div class="set-field">
+          <input id="adm-pix-input" type="text" class="set-field__input set-field__input--text"
+                 placeholder="e-mail, CPF, telefone ou chave" maxlength="140" />
+          <button id="btn-copy-pix" class="qs-icon" title="Copiar chave" aria-label="Copiar">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          </button>
+        </div>
+        <div class="set-actions">
+          <button class="set-btn set-btn--ghost" data-close-edit="sheet-edit-pix">Cancelar</button>
+          <button id="btn-save-pix" class="set-btn set-btn--primary">Salvar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nome do grupo -->
+    <div class="hub-sheet" id="sheet-edit-name" hidden>
+      <div class="hub-sheet__backdrop" data-close-edit="sheet-edit-name"></div>
+      <div class="hub-sheet__panel" role="dialog" aria-modal="true" aria-label="Editar nome do grupo">
+        <div class="hub-sheet__handle"></div>
+        <div class="hub-sheet__head"><h3>Nome do grupo</h3></div>
+        <div class="set-field">
+          <input id="adm-name-input" type="text" class="set-field__input set-field__input--text"
+                 placeholder="Ex.: Carona do trabalho" maxlength="60" />
+        </div>
+        <p id="adm-name-error" class="auth-error"></p>
+        <div class="set-actions">
+          <button class="set-btn set-btn--ghost" data-close-edit="sheet-edit-name">Cancelar</button>
+          <button id="btn-save-name" class="set-btn set-btn--primary">Salvar</button>
         </div>
       </div>
     </div>
