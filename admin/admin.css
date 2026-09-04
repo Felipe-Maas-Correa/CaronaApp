@@ -375,7 +375,9 @@
    Mantém tokens do tema. Botões novos resetam appearance.
    ═══════════════════════════════════════════════════════════════ */
 
-.adm2 { padding: 1rem 1rem 2rem; display: flex; flex-direction: column; gap: 1rem; }
+/* Foco em celular: coluna única, largura de telefone mesmo em janela larga
+   (centralizada). Nunca espalha na horizontal — sem rolagem lateral. */
+.adm2 { padding: 1rem 1rem 2rem; display: flex; flex-direction: column; gap: 1rem; max-width: 520px; margin: 0 auto; }
 .adm2 button { -webkit-appearance: none; appearance: none; cursor: pointer; }
 
 /* ── HEADER ──────────────────────────────────────────────────── */
@@ -607,13 +609,6 @@
 .danger-btn svg { width: 15px; height: 15px; stroke: currentColor; stroke-width: 2; fill: none; }
 .danger-btn:hover { background: var(--debt); color: #fff; border-color: var(--debt); }
 
-/* ── DESKTOP ─────────────────────────────────────────────────── */
-@media (min-width: 720px) {
-  .adm2 { max-width: 760px; margin: 0 auto; }
-  .kpi-grid { grid-template-columns: repeat(4, 1fr); }
-  .qs-grid { flex-direction: row; }
-  .qs-grid .qs-card { flex: 1; }
-}
 
 /* O drawer fica fora de .adm2 — reset de appearance nos seus botões. */
 .drawer button { -webkit-appearance: none; appearance: none; cursor: pointer; }

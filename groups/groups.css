@@ -686,16 +686,9 @@
 }
 .hub-swatch--on { box-shadow: 0 0 0 2px var(--bg-card), 0 0 0 4px var(--sw); transform: scale(1.08); }
 
-/* ── DESKTOP: alarga em duas colunas ─────────────────────────── */
-@media (min-width: 720px) {
-  .group-container { max-width: 720px; }
-  .hub-grid { grid-template-columns: repeat(3, 1fr); }
-  .hub-sheet__panel {
-    top: 50%; bottom: auto; left: 50%; right: auto; transform: translate(-50%, -46%);
-    border-radius: var(--radius-xl); max-width: 440px; width: 92%;
-  }
-  .hub-sheet--open .hub-sheet__panel { transform: translate(-50%, -50%); }
-}
+/* Foco em celular: mesmo em janela larga, o hub fica em coluna de telefone
+   (centralizada), com o grid em 2 colunas e os sheets vindo de baixo. Sem
+   rolagem lateral. */
 
 /* ── ÍCONES INLINE (cargos) + PILHA DE MEMBROS nos cards ─────── */
 .gcard__role svg, .hub-hero__badge svg {
