@@ -230,12 +230,8 @@ export async function loadUsersList() {
     ]);
     cache = { trips, payments, users };
     renderAll();
-
-    // O bloco do sistema só existe para o ADM SUPREMO — e as consultas
-    // globais abaixo seriam negadas pelas rules para qualquer outro.
-    const sysBox = document.getElementById("adm-system");
-    sysBox?.classList.toggle("hidden", !isSuperAdmin());
-    if (isSuperAdmin()) await loadSystemPanel();
+    // A visão do sistema (todos os grupos/contas) mudou para a aba "Sistema",
+    // carregada por loadSystemPanel quando o admin master abre aquela aba.
   } catch (e) {
     console.error("Erro ao carregar painel admin:", e);
     const c = document.getElementById("users-list");
@@ -630,7 +626,10 @@ function confirmDeleteGroup() {
 
 // ── PAINEL DO SISTEMA (ADM SUPREMO) ──────────────────────────
 
-async function loadSystemPanel() {
+// Exportada: a aba "Sistema" (ADM MASTER) a chama ao abrir. Só o admin do
+// sistema chega aqui — as consultas globais seriam negadas para os demais.
+export async function loadSystemPanel() {
+  if (!isSuperAdmin()) return;
   try {
     const [groups, users, trips, payments] = await Promise.all([
       getAllGroups(), getAllUsers(), getAllTrips(), getAllPayments()

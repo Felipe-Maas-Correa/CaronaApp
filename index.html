@@ -588,32 +588,48 @@
                 Apagar este grupo
               </button>
             </div>
+          </div>
+        </div>
 
-            <!-- ═══ ADMINISTRAÇÃO DO SISTEMA (só o ADM SUPREMO) ═══
-                 Enquanto o bloco acima é o painel de UM grupo, aqui está a
-                 visão do software inteiro: todos os grupos e todas as contas. -->
-            <div id="adm-system" class="hidden">
-              <div class="adm-section-title" style="margin-top:.6rem">
-                <span>Administração do sistema</span>
-                <span class="adm-section-hint">todos os grupos</span>
+        <!-- ═══════════════════════════════════════════════════════════
+             TELA DO ADMIN DO SISTEMA (ADM MASTER)
+             Separada da gestão do grupo: aqui é a visão do software inteiro
+             — todos os grupos e todas as contas. Só o admin do sistema tem
+             a aba "Sistema" no rodapé.
+        ═══════════════════════════════════════════════════════════════ -->
+        <div id="tab-system" class="tab-panel hidden">
+          <div class="sys2">
+            <div class="sys2-head">
+              <div class="sys2-head__id">
+                <div class="sys2-head__name">Admin do sistema</div>
+                <div class="sys2-head__sub">Visão de toda a plataforma</div>
               </div>
-              <div id="sys-groups">
-                <div class="loading-spinner"></div>
-              </div>
-
-              <div class="adm-section-title" style="margin-top:1.4rem">
-                <span>Todas as contas</span>
-                <span class="adm-section-hint">permissões &amp; acesso</span>
-              </div>
-              <div id="sys-users">
-                <div class="loading-spinner"></div>
-              </div>
-
-              <button id="btn-new-user" class="btn btn--secondary btn--full" style="margin:1rem 0 .7rem">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                Cadastrar usuário
-              </button>
+              <span class="sys2-head__badge">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7z"/><path d="M5 20h14"/></svg>
+                master
+              </span>
             </div>
+
+            <div class="adm2-sectitle">
+              <span>Grupos</span>
+              <span class="adm2-sectitle__hint">todos da plataforma</span>
+            </div>
+            <div id="sys-groups">
+              <div class="loading-spinner"></div>
+            </div>
+
+            <div class="adm2-sectitle">
+              <span>Contas</span>
+              <span class="adm2-sectitle__hint">permissões &amp; acesso</span>
+            </div>
+            <div id="sys-users">
+              <div class="loading-spinner"></div>
+            </div>
+
+            <button id="btn-new-user" class="btn btn--secondary btn--full" style="margin:1rem 0 .7rem">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Cadastrar usuário
+            </button>
           </div>
         </div>
 
@@ -644,6 +660,12 @@
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           </span>
           Admin
+        </button>
+        <button id="nav-system" class="nav-btn hidden" data-tab="tab-system">
+          <span class="nav-btn__icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7z"/><path d="M5 20h14"/></svg>
+          </span>
+          Sistema
         </button>
       </nav>
 

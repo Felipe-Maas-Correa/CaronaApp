@@ -21,11 +21,13 @@ import { showToast, icon, formatCurrency } from "./utils.js";
 // quebra silenciosa do Promise.all caso admin.js não exista ou tenha erros.
 let initAdmin    = async () => {};
 let loadUsersList = () => {};
+let loadSystemTab = () => {};
 
 try {
   const adminModule = await import("../admin/admin.js");
   initAdmin     = adminModule.initAdmin     ?? initAdmin;
   loadUsersList = adminModule.loadUsersList ?? loadUsersList;
+  loadSystemTab = adminModule.loadSystemPanel ?? loadSystemTab;
 } catch (e) {
   console.warn("admin.js não encontrado ou com erro — painel admin desabilitado.", e);
 }
@@ -57,7 +59,8 @@ function initNavigation() {
       panels.forEach(p  => p.classList.remove("tab-panel--active"));
       btn.classList.add("nav-btn--active");
       document.getElementById(target)?.classList.add("tab-panel--active");
-      if (target === "tab-admin") loadUsersList();
+      if (target === "tab-admin")  loadUsersList();
+      if (target === "tab-system") loadSystemTab();
     });
   });
 }
@@ -208,9 +211,20 @@ function buildAppForProfile(profile) {
   adminTab?.classList.toggle("hidden", !canAdmin);
   adminPanel?.classList.toggle("hidden", !canAdmin);
 
-  // Se o usuário perdeu o acesso admin (trocou para um grupo onde é só
-  // passageiro) e estava na aba Admin, volta para o Resumo.
-  if (!canAdmin && adminPanel?.classList.contains("tab-panel--active")) {
+  // A aba "Sistema" (ADM MASTER) é exclusiva do admin do sistema — o dono de
+  // grupo comum não a vê. É a separação entre gerir UM grupo e gerir a
+  // plataforma inteira.
+  const isMaster    = isSuperAdmin();
+  const systemTab   = document.getElementById("nav-system");
+  const systemPanel = document.getElementById("tab-system");
+  systemTab?.classList.toggle("hidden", !isMaster);
+  systemPanel?.classList.toggle("hidden", !isMaster);
+
+  // Se perdeu o acesso e estava numa aba que sumiu, volta para o Resumo.
+  const onDeadTab =
+    (!canAdmin && adminPanel?.classList.contains("tab-panel--active")) ||
+    (!isMaster && systemPanel?.classList.contains("tab-panel--active"));
+  if (onDeadTab) {
     document.querySelector('.nav-btn[data-tab="tab-summary"]')?.click();
   }
 
