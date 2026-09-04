@@ -634,3 +634,158 @@
   padding: .32rem .6rem; border-radius: 999px;
 }
 .sys2-head__badge svg { width: 13px; height: 13px; stroke: currentColor; stroke-width: 2; fill: none; }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   ADM DO GRUPO — Fase 2 (atenção, KPIs, passageiros, atividade,
+   estatísticas, zona de perigo discreta)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── KPIs: valor grande (Playfair) primeiro, label discreto embaixo ── */
+.kpi { display: flex; flex-direction: column; gap: .15rem; }
+.kpi__val { font-family: var(--font-serif); font-size: 1.5rem; font-weight: 700; color: var(--text); line-height: 1.05; }
+.kpi__label { font-family: var(--font-mono); font-size: .6rem; letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); margin: 0; }
+.kpi--paid .kpi__val { color: var(--paid); }
+.kpi--debt .kpi__val { color: var(--debt); }
+
+/* ── PRECISA DA SUA ATENÇÃO ──────────────────────────────────── */
+#adm-attention { display: flex; flex-direction: column; gap: .6rem; }
+.attn {
+  width: 100%; display: flex; align-items: center; gap: .75rem; text-align: left;
+  padding: .85rem .9rem; border-radius: var(--radius-lg);
+  background: var(--bg-card); border: 1px solid var(--border-light);
+  -webkit-appearance: none; appearance: none; cursor: default;
+}
+button.attn { cursor: pointer; transition: border-color .2s, background .2s; }
+button.attn:hover { background: var(--bg-hover); }
+.attn__ico { flex-shrink: 0; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; }
+.attn__ico svg { width: 17px; height: 17px; stroke: currentColor; stroke-width: 2; fill: none; }
+.attn__txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.attn__title { font-weight: 600; font-size: .9rem; color: var(--text); }
+.attn__desc { font-size: .76rem; color: var(--text-muted); }
+.attn__chev { width: 16px; height: 16px; stroke: var(--text-dim); stroke-width: 2; fill: none; flex-shrink: 0; }
+/* Tom dourado = atenção normal; vermelho = dívida; verde-dourado = ok */
+.attn--warn { border-color: var(--accent-border); }
+.attn--warn .attn__ico { background: var(--accent-dim); color: var(--accent); }
+.attn--debt { border-color: rgba(224,92,92,.3); }
+.attn--debt .attn__ico { background: var(--debt-dim); color: var(--debt); }
+.attn--ok .attn__ico { background: var(--accent-dim); color: var(--accent); }
+
+/* ── PASSAGEIROS (linha enxuta) ──────────────────────────────── */
+.adm2-sectitle__num { color: var(--text-dim); font-family: var(--font-mono); }
+.adm2-add {
+  width: 32px; height: 32px; flex-shrink: 0; display: grid; place-items: center;
+  background: var(--accent-dim); border: 1px solid var(--accent-border);
+  border-radius: 10px; color: var(--accent);
+  -webkit-appearance: none; appearance: none; cursor: pointer; transition: background .2s;
+}
+.adm2-add:hover { background: rgba(212,175,55,.18); }
+.adm2-add svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2.4; fill: none; }
+
+.pax2-list {
+  background: var(--bg-card); border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg); overflow: hidden;
+}
+.pax2 {
+  width: 100%; display: flex; align-items: center; gap: .75rem;
+  padding: .7rem .85rem; text-align: left; background: none; border: none;
+  border-bottom: 1px solid var(--border);
+  -webkit-appearance: none; appearance: none; cursor: pointer; transition: background .18s;
+}
+.pax2:last-child { border-bottom: none; }
+.pax2:hover { background: var(--bg-hover); }
+.pax2--off { opacity: .5; }
+.pax2__avatar {
+  width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%;
+  display: grid; place-items: center; color: var(--text); font-weight: 700; font-size: .9rem; overflow: hidden;
+}
+.pax2__avatar .avatar-img { width: 100%; height: 100%; object-fit: cover; }
+.pax2__id { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.pax2__name {
+  font-weight: 600; color: var(--text); font-size: .92rem;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pax2__you { font-size: .58rem; font-weight: 700; color: var(--accent); background: var(--accent-dim); border-radius: 999px; padding: .05rem .35rem; }
+.pax2__status { display: inline-flex; align-items: center; gap: .3rem; font-size: .74rem; }
+.pax2__status svg { width: 12px; height: 12px; stroke: currentColor; stroke-width: 2; fill: none; }
+.pax2__status--ok { color: var(--text-muted); }
+.pax2__dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); display: inline-block; }
+.pax2__status--debt { color: var(--debt); }
+.pax2__value { font-family: var(--font-serif); font-size: 1.05rem; font-weight: 700; color: var(--text); flex-shrink: 0; }
+
+.adm2-seeall {
+  width: 100%; margin-top: .1rem; padding: .6rem; text-align: center;
+  background: none; border: 1px solid var(--border-light); border-radius: 12px;
+  color: var(--text-muted); font-weight: 600; font-size: .8rem;
+  -webkit-appearance: none; appearance: none; cursor: pointer; transition: color .2s, border-color .2s;
+}
+.adm2-seeall:hover { color: var(--accent); border-color: var(--accent-border); }
+
+/* ── ATIVIDADE ───────────────────────────────────────────────── */
+.act {
+  background: var(--bg-card); border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg); padding: .3rem .3rem;
+}
+.act__month {
+  font-family: var(--font-mono); font-size: .62rem; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--text-muted); padding: .6rem .85rem .35rem;
+}
+.act__row {
+  display: flex; align-items: center; gap: .85rem;
+  padding: .55rem .85rem; border-top: 1px solid var(--border);
+}
+.act__month + .act__row { border-top: none; }
+.act__day {
+  width: 30px; flex-shrink: 0; text-align: center;
+  font-family: var(--font-serif); font-size: 1.05rem; font-weight: 700; color: var(--accent);
+}
+.act__pax { flex: 1; font-size: .82rem; color: var(--text); }
+.act__val { font-family: var(--font-mono); font-size: .82rem; color: var(--text-muted); }
+
+/* ── ESTATÍSTICAS (barras em CSS puro) ───────────────────────── */
+#adm-stats { display: flex; flex-direction: column; gap: .7rem; }
+.stat-card {
+  background: var(--bg-card); border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg); padding: .95rem 1rem 1.1rem;
+}
+.stat-card__head {
+  font-family: var(--font-mono); font-size: .62rem; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--text-muted); margin-bottom: .9rem;
+}
+.barchart { display: flex; align-items: flex-end; justify-content: space-between; gap: .5rem; height: 110px; }
+.bar { flex: 1; display: flex; flex-direction: column; align-items: center; gap: .35rem; height: 100%; justify-content: flex-end; }
+.bar__val { font-family: var(--font-mono); font-size: .66rem; color: var(--text-muted); }
+.bar__track { width: 100%; max-width: 26px; height: 72px; display: flex; align-items: flex-end; }
+.bar__fill {
+  width: 100%; border-radius: 6px 6px 3px 3px;
+  background: linear-gradient(180deg, var(--accent), rgba(212,175,55,.35));
+  min-height: 4px; transition: height .4s ease;
+}
+.bar__lbl { font-family: var(--font-mono); font-size: .6rem; color: var(--text-dim); text-transform: uppercase; }
+
+.stat-rate { display: flex; align-items: center; gap: .8rem; }
+.stat-rate__num { font-family: var(--font-serif); font-size: 1.6rem; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+.stat-rate__track { flex: 1; height: 8px; background: var(--bg-elevated); border-radius: 999px; overflow: hidden; }
+.stat-rate__fill { height: 100%; background: var(--accent); border-radius: 999px; transition: width .4s ease; }
+
+/* ── ZONA DE PERIGO (discreta) ───────────────────────────────── */
+.danger2 {
+  margin-top: 1rem; display: flex; flex-direction: column;
+  border-top: 1px solid var(--border-light); padding-top: 1rem;
+}
+.danger2__title {
+  font-family: var(--font-mono); font-size: .62rem; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--text-muted); margin-bottom: .5rem;
+}
+.danger2__item {
+  width: 100%; display: flex; align-items: center; gap: .75rem;
+  padding: .8rem .2rem; text-align: left; background: none; border: none;
+  border-bottom: 1px solid var(--border);
+  -webkit-appearance: none; appearance: none; cursor: pointer;
+}
+.danger2__item:last-child { border-bottom: none; }
+.danger2__txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.danger2__name { font-weight: 600; font-size: .88rem; color: var(--debt); }
+.danger2__desc { font-size: .74rem; color: var(--text-muted); }
+.danger2__chev { width: 16px; height: 16px; stroke: var(--text-dim); stroke-width: 2; fill: none; flex-shrink: 0; }
+.danger2__item:hover .danger2__chev { stroke: var(--debt); }

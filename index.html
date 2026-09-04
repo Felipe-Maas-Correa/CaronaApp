@@ -496,22 +496,23 @@
         <div id="tab-admin" class="tab-panel hidden">
           <div class="adm2">
 
-            <!-- ═══ HEADER DO GRUPO ═══ identidade + a ação nº 1 (convidar). -->
+            <!-- ═══ HEADER DO GRUPO ═══ identidade enxuta + engrenagem. -->
             <div class="adm2-head">
               <div class="adm2-head__id">
                 <div class="adm2-head__name" id="adm-group-name">—</div>
                 <div class="adm2-head__sub"  id="adm-group-sub">—</div>
               </div>
-              <button id="btn-adm-settings" class="adm2-gear" title="Configurações rápidas" aria-label="Configurações">
+              <button id="btn-adm-settings" class="adm2-gear" title="Configurações do grupo" aria-label="Configurações">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
               </button>
             </div>
-            <button id="btn-invite" class="btn btn--primary btn--full adm2-invite">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              Convidar passageiro
-            </button>
 
-            <!-- ═══ PERÍODO + KPIs ═══ -->
+            <!-- ═══ PRECISA DA SUA ATENÇÃO ═══ pendências dinâmicas. -->
+            <div class="adm2-sectitle"><span>Precisa da sua atenção</span></div>
+            <div id="adm-attention"></div>
+
+            <!-- ═══ RESUMO ═══ 4 KPIs + seletor de período. -->
+            <div class="adm2-sectitle"><span>Resumo</span></div>
             <div class="adm-seg adm2-period" id="adm-period">
               <button class="adm-seg__btn" data-period="week">Semana</button>
               <button class="adm-seg__btn adm-seg__btn--active" data-period="month">Mês</button>
@@ -523,69 +524,65 @@
 
             <div class="kpi-grid">
               <div class="kpi kpi--paid">
-                <div class="kpi__top">
-                  <span class="kpi__ico"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg></span>
-                  <span class="kpi__label">Recebido</span>
-                </div>
                 <div class="kpi__val" id="adm-received">R$ 0,00</div>
+                <div class="kpi__label">Recebido</div>
               </div>
               <div class="kpi kpi--debt">
-                <div class="kpi__top">
-                  <span class="kpi__ico"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>
-                  <span class="kpi__label">Em aberto</span>
-                </div>
                 <div class="kpi__val" id="adm-open">R$ 0,00</div>
+                <div class="kpi__label">Em aberto</div>
               </div>
               <div class="kpi">
-                <div class="kpi__top">
-                  <span class="kpi__ico"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg></span>
-                  <span class="kpi__label">Viagens</span>
-                </div>
                 <div class="kpi__val" id="adm-trips">0</div>
+                <div class="kpi__label">Viagens</div>
               </div>
               <div class="kpi">
-                <div class="kpi__top">
-                  <span class="kpi__ico"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg></span>
-                  <span class="kpi__label">Adimplência</span>
-                </div>
-                <div class="kpi__val" id="adm-rate">0%</div>
+                <div class="kpi__val" id="adm-pax">0</div>
+                <div class="kpi__label">Passageiros</div>
               </div>
             </div>
 
-            <!-- Configurações do grupo ficam fora da tela, atrás da engrenagem
-                 (abre o sheet #sheet-adm-settings), para o painel respirar. -->
-
-            <!-- ═══ PASSAGEIROS ═══ toque abre o drawer lateral. -->
+            <!-- ═══ PASSAGEIROS ═══ linha enxuta; toque abre o drawer. O "+"
+                 é a única entrada de convite (sem botão gigante no topo). -->
             <div class="adm2-sectitle">
-              <span>Passageiros</span>
-              <span class="adm2-sectitle__hint" id="adm-pax-count"></span>
+              <span>Passageiros <span class="adm2-sectitle__num" id="adm-pax-count"></span></span>
+              <button id="btn-invite" class="adm2-add" title="Convidar passageiro" aria-label="Convidar passageiro">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </button>
             </div>
             <div id="users-list">
               <div class="loading-spinner"></div>
             </div>
+            <button id="btn-pax-all" class="adm2-seeall hidden">Ver todos</button>
 
-            <!-- ═══ ESTATÍSTICAS ═══ ranking por usuário no período. -->
-            <div class="adm2-sectitle">
-              <span>Estatísticas</span>
-              <span class="adm2-sectitle__hint">no período</span>
-            </div>
-            <div id="adm-user-stats">
+            <!-- ═══ ATIVIDADE ═══ viagens por dia (derivado das viagens). -->
+            <div class="adm2-sectitle"><span>Atividade</span></div>
+            <div id="adm-activity">
               <div class="loading-spinner"></div>
             </div>
 
-            <!-- ═══ ZONA DE PERIGO ═══ ações irreversíveis, isoladas. -->
-            <div class="danger-zone" id="adm-danger">
-              <div class="danger-zone__head">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                <span>Zona de perigo</span>
-              </div>
-              <button id="btn-clear-data" class="danger-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                Limpar viagens do grupo
+            <!-- ═══ ESTATÍSTICAS ═══ gráfico SVG simples. -->
+            <div class="adm2-sectitle"><span>Estatísticas</span></div>
+            <div id="adm-stats">
+              <div class="loading-spinner"></div>
+            </div>
+
+            <!-- ═══ ZONA DE PERIGO ═══ discreta: lista sóbria, vermelho só
+                 no texto das ações. -->
+            <div class="danger2">
+              <div class="danger2__title">Zona de perigo</div>
+              <button id="btn-clear-data" class="danger2__item">
+                <span class="danger2__txt">
+                  <span class="danger2__name">Limpar histórico de viagens</span>
+                  <span class="danger2__desc">Remove os registros de viagens deste grupo.</span>
+                </span>
+                <svg class="danger2__chev" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
               </button>
-              <button id="btn-delete-group" class="danger-btn hidden">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="17" y1="8" x2="23" y2="14"/><line x1="23" y1="8" x2="17" y2="14"/></svg>
-                Apagar este grupo
+              <button id="btn-delete-group" class="danger2__item hidden">
+                <span class="danger2__txt">
+                  <span class="danger2__name">Excluir grupo</span>
+                  <span class="danger2__desc">Esta ação não pode ser desfeita.</span>
+                </span>
+                <svg class="danger2__chev" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
               </button>
             </div>
           </div>

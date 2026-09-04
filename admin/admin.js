@@ -83,6 +83,17 @@ function bindAdminEvents() {
     showToast(ok ? "Chave PIX copiada!" : "Não foi possível copiar.", ok ? "success" : "error");
   });
 
+  // "Ver todos" os passageiros: alterna os que passam do preview.
+  document.getElementById("btn-pax-all")?.addEventListener("click", () => {
+    const btn = document.getElementById("btn-pax-all");
+    const expand = btn.dataset.expanded !== "1";
+    document.querySelectorAll("#users-list .pax2--extra")
+      .forEach(el => el.classList.toggle("hidden", !expand));
+    btn.dataset.expanded = expand ? "1" : "0";
+    const total = document.querySelectorAll("#users-list .pax2").length;
+    btn.textContent = expand ? "Ver menos" : `Ver todos (${total})`;
+  });
+
   // Fechar o drawer do passageiro (backdrop, X ou Esc).
   document.querySelectorAll("[data-close-drawer]").forEach(el =>
     el.addEventListener("click", closeUserDrawer));
@@ -103,7 +114,6 @@ function bindAdminEvents() {
       document.querySelectorAll("#adm-period .adm-seg__btn")
         .forEach(b => b.classList.toggle("adm-seg__btn--active", b === btn));
       renderPeriodStats();
-      renderPerUser();
     });
   });
 
@@ -241,10 +251,11 @@ export async function loadUsersList() {
 
 function renderAll() {
   renderGroupHeader();
+  renderAttention();
   renderPeriodStats();
-  renderAverages();
-  renderPerUser();
   renderManageUsers();
+  renderActivity();
+  renderStats();
 }
 
 function renderGroupHeader() {
@@ -252,24 +263,16 @@ function renderGroupHeader() {
   const subEl  = document.getElementById("adm-group-sub");
   if (nameEl) nameEl.textContent = currentGroup?.name || "Sem grupo";
 
-  // Subtítulo do header: cargo (com ícone da ferramenta, não emoji), nº de
-  // passageiros, valor e o recebido no mês corrente (independe do filtro).
+  // Subtítulo enxuto: valor por viagem e nº de passageiros. O cargo já
+  // aparece no cabeçalho geral do app — aqui não repetimos.
   if (subEl) {
-    const roleIco  = isGroupOwner() || isSuperAdmin() ? icon("crown") : icon("user");
-    const roleText = isGroupOwner() ? "você é o dono"
-                   : isSuperAdmin() ? "admin do sistema"
-                   : "passageiro";
-    const monthRange = getPeriodRange("month");
-    const monthReceived = cache.trips
-      .filter(t => t.paid && inPeriod(t.date, monthRange))
-      .reduce((s, t) => s + amt(t), 0);
-    subEl.innerHTML =
-      `<span class="adm2-role">${roleIco}${roleText}</span> · ${cache.users.length} pax · ` +
-      `${formatCurrency(getTripValue())}/viagem · ${formatCurrency(monthReceived)} no mês`;
+    const n = cache.users.length;
+    subEl.textContent =
+      `${formatCurrency(getTripValue())} por viagem · ${n} ${n === 1 ? "passageiro" : "passageiros"}`;
   }
 
   const pax = document.getElementById("adm-pax-count");
-  if (pax) pax.textContent = `${cache.users.length}`;
+  if (pax) pax.textContent = cache.users.length ? `· ${cache.users.length}` : "";
 
   // Convidar, configurar e apagar o grupo são do dono (ou do ADM SUPREMO).
   const canManage = isGroupOwner() || isSuperAdmin();
@@ -336,84 +339,10 @@ function renderPeriodStats() {
   setText("adm-received", formatCurrency(received));
   setText("adm-open",     formatCurrency(open));
   setText("adm-trips",    total);
-  setText("adm-rate",     `${rate}%`);
-}
-
-// ── MÉDIAS (histórico completo do grupo) ─────────────────────
-
-function renderAverages() {
-  const trips = cache.trips;
-  const totalValue = trips.reduce((s, t) => s + amt(t), 0); // valor total consumido
-
-  const usersWithTrips = new Set(trips.map(t => t.uid)).size;
-  const months = new Set(trips.map(t => t.date.slice(0, 7))).size;
-  const weeks  = new Set(trips.map(t => weekKey(t.date))).size;
-
-  setText("adm-avg-user",  formatCurrency(usersWithTrips ? totalValue / usersWithTrips : 0));
-  setText("adm-avg-month", formatCurrency(months ? totalValue / months : 0));
-  setText("adm-avg-week",  formatCurrency(weeks  ? totalValue / weeks  : 0));
-}
-
-// Chave de semana (ano + número da semana ISO aproximado)
-function weekKey(dateStr) {
-  const [y, m, d] = dateStr.split("-").map(Number);
-  const dt = new Date(y, m - 1, d);
-  const onejan = new Date(y, 0, 1);
-  const week = Math.ceil((((dt - onejan) / 86400000) + onejan.getDay() + 1) / 7);
-  return `${y}-W${week}`;
-}
-
-// ── RANKING POR USUÁRIO (no período) ─────────────────────────
-
-function renderPerUser() {
-  const container = document.getElementById("adm-user-stats");
-  if (!container) return;
-
-  const range = getPeriodRange(currentPeriod);
-  const trips = cache.trips.filter(t => inPeriod(t.date, range));
-
-  // Agrupa por uid (paid/open em VALOR). "open" só conta dias já chegados.
-  const today = todayISO();
-  const byUser = new Map();
-  for (const t of trips) {
-    if (!byUser.has(t.uid)) byUser.set(t.uid, { uid: t.uid, name: t.userName, count: 0, paid: 0, open: 0 });
-    const u = byUser.get(t.uid);
-    u.count++;
-    if (t.paid) u.paid += amt(t);
-    else if (t.date <= today) u.open += amt(t);
-  }
-
-  // Nome/foto mais atuais vindos do cadastro
-  for (const u of byUser.values()) {
-    const prof = cache.users.find(x => x.uid === u.uid);
-    if (prof?.name)  u.name  = prof.name;
-    if (prof?.photo) u.photo = prof.photo;
-  }
-
-  const rows = [...byUser.values()].sort((a, b) => (b.open - a.open) || (b.count - a.count));
-
-  if (rows.length === 0) {
-    container.innerHTML = `<div class="empty-state"><div class="empty-state__icon">${icon("clock")}</div><p>Nenhuma viagem neste período.</p></div>`;
-    return;
-  }
-
-  container.innerHTML = rows.map(u => `
-    <button class="adm-user" data-user-detail="${u.uid}">
-      <div class="adm-user__avatar" style="background:${avatarColor(u.name)}">${avatarInner(u.name, u.photo)}</div>
-      <div class="adm-user__info">
-        <div class="adm-user__name">${escapeHtml(u.name || "—")}</div>
-        <div class="adm-user__sub">${u.count} viagem(ns)</div>
-      </div>
-      <div class="adm-user__values">
-        <span class="adm-user__paid">${formatCurrency(u.paid)}</span>
-        <span class="adm-user__open ${u.open ? "" : "is-zero"}">${formatCurrency(u.open)} aberto</span>
-      </div>
-    </button>
-  `).join("");
-
-  container.querySelectorAll("[data-user-detail]").forEach(btn => {
-    btn.addEventListener("click", () => openUserDrawer(btn.dataset.userDetail));
-  });
+  // Passageiros no lugar da adimplência (que migrou para Estatísticas). É a
+  // contagem do grupo, não depende do período.
+  setText("adm-pax",      cache.users.length);
+  void rate; // ainda calculado acima; usado na seção de Estatísticas
 }
 
 // ── DRAWER DE UM PASSAGEIRO ──────────────────────────────────
@@ -519,45 +448,216 @@ function renderManageUsers() {
   }
 
   const today = todayISO();
-  // Métricas por passageiro (histórico completo) para a linha da tabela.
   const statOf = (uid) => {
     const t = cache.trips.filter(x => x.uid === uid);
     const paid = t.filter(x => x.paid).reduce((s, x) => s + amt(x), 0);
     const open = t.filter(x => !x.paid && x.date <= today).reduce((s, x) => s + amt(x), 0);
-    const last = t.reduce((mx, x) => (x.date > mx ? x.date : mx), "");
-    return { trips: t.length, paid, open, last };
+    return { trips: t.length, paid, open, total: paid + open };
   };
 
-  // Dono primeiro, depois quem tem mais em aberto (é quem o dono precisa ver).
+  // Dono primeiro; depois quem tem mais em aberto (é quem o dono precisa ver).
   const rows = cache.users.slice().sort((a, b) => {
     const ao = a.uid === currentGroup?.ownerUid, bo = b.uid === currentGroup?.ownerUid;
     if (ao !== bo) return ao ? -1 : 1;
     return statOf(b.uid).open - statOf(a.uid).open;
   });
 
-  container.innerHTML = `<div class="pax-table">${rows.map(u => {
+  // Card enxuto: avatar, nome, status financeiro e o valor. Tudo mais (cargo,
+  // e-mail, quebra por período) mora no drawer, ao tocar.
+  const rowHtml = (u, i) => {
     const s = statOf(u.uid);
-    const isOwner = u.uid === currentGroup?.ownerUid;
     const isCurrentUser = u.uid === currentProfile?.uid;
     const inactive = u.active === false;
+    const status = s.open > 0
+      ? `<span class="pax2__status pax2__status--debt">${icon("alert")} ${formatCurrency(s.open)} em aberto</span>`
+      : `<span class="pax2__status pax2__status--ok"><span class="pax2__dot"></span> Em dia</span>`;
     return `
-      <button class="pax-row ${inactive ? "pax-row--off" : ""}" data-open-pax="${u.uid}">
-        <span class="pax-row__avatar" style="background:${avatarColor(u.name)}">${avatarInner(u.name, u.photo)}</span>
-        <span class="pax-row__id">
-          <span class="pax-row__name">${escapeHtml(u.name || "—")}${isCurrentUser ? ' <span class="pax-tag">você</span>' : ""}</span>
-          <span class="pax-row__role">${isOwner ? icon("crown") + " Dono" : icon("user") + " Passageiro"}${inactive ? " · inativo" : ""}</span>
+      <button class="pax2 ${inactive ? "pax2--off" : ""} ${i >= PAX_PREVIEW ? "pax2--extra hidden" : ""}" data-open-pax="${u.uid}">
+        <span class="pax2__avatar" style="background:${avatarColor(u.name)}">${avatarInner(u.name, u.photo)}</span>
+        <span class="pax2__id">
+          <span class="pax2__name">${escapeHtml(u.name || "—")}${isCurrentUser ? ' <span class="pax2__you">você</span>' : ""}</span>
+          ${status}
         </span>
-        <span class="pax-row__nums">
-          <span class="pax-row__paid">${formatCurrency(s.paid)}</span>
-          <span class="pax-row__open ${s.open ? "" : "is-zero"}">${s.open ? formatCurrency(s.open) + " aberto" : "em dia"}</span>
-        </span>
-        <span class="pax-row__chev">${icon("chevron-right") || "›"}</span>
+        <span class="pax2__value">${formatCurrency(s.total)}</span>
       </button>`;
-  }).join("")}</div>`;
+  };
+
+  container.innerHTML = `<div class="pax2-list">${rows.map(rowHtml).join("")}</div>`;
+
+  // "Ver todos": só aparece quando há mais passageiros que o preview.
+  const seeAll = document.getElementById("btn-pax-all");
+  if (seeAll) {
+    const hasExtra = rows.length > PAX_PREVIEW;
+    seeAll.classList.toggle("hidden", !hasExtra);
+    seeAll.textContent = `Ver todos (${rows.length})`;
+    seeAll.dataset.expanded = "0";
+  }
 
   container.querySelectorAll("[data-open-pax]").forEach(btn => {
     btn.addEventListener("click", () => openUserDrawer(btn.dataset.openPax));
   });
+}
+
+// Quantos passageiros aparecem antes do "Ver todos".
+const PAX_PREVIEW = 5;
+
+// ── PRECISA DA SUA ATENÇÃO ───────────────────────────────────
+// Pendências dinâmicas: comprovantes a aprovar e o maior devedor. Dourado
+// para atenção normal; vermelho só para dívida real. Sem pendência, "tudo
+// em ordem". Tudo derivado dos dados já carregados — nada inventado.
+function renderAttention() {
+  const box = document.getElementById("adm-attention");
+  if (!box) return;
+
+  const today = todayISO();
+  const items = [];
+
+  const pending = cache.payments.filter(p => p.status === "pending").length;
+  if (pending > 0) {
+    items.push({
+      tone: "warn", ico: icon("clock"), action: "payments",
+      title: "Pagamentos pendentes",
+      desc: `${pending} comprovante${pending > 1 ? "s" : ""} aguardando aprovação`
+    });
+  }
+
+  let top = null, topOpen = 0;
+  for (const u of cache.users) {
+    const open = cache.trips
+      .filter(t => t.uid === u.uid && !t.paid && t.date <= today)
+      .reduce((s, t) => s + amt(t), 0);
+    if (open > topOpen) { topOpen = open; top = u; }
+  }
+  if (top) {
+    items.push({
+      tone: "debt", ico: icon("alert"), action: "pax:" + top.uid,
+      title: "Pendência financeira",
+      desc: `${top.name || "Passageiro"} tem ${formatCurrency(topOpen)} em aberto`
+    });
+  }
+
+  if (items.length === 0) {
+    box.innerHTML = `
+      <div class="attn attn--ok">
+        <span class="attn__ico">${icon("check")}</span>
+        <span class="attn__txt">
+          <span class="attn__title">Tudo em ordem</span>
+          <span class="attn__desc">Nenhuma ação pendente no momento.</span>
+        </span>
+      </div>`;
+    return;
+  }
+
+  const chev = `<svg class="attn__chev" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>`;
+  box.innerHTML = items.map(it => `
+    <button class="attn attn--${it.tone}" data-attn="${escapeHtml(it.action)}">
+      <span class="attn__ico">${it.ico}</span>
+      <span class="attn__txt">
+        <span class="attn__title">${escapeHtml(it.title)}</span>
+        <span class="attn__desc">${escapeHtml(it.desc)}</span>
+      </span>
+      ${chev}
+    </button>`).join("");
+
+  box.querySelectorAll("[data-attn]").forEach(b => b.addEventListener("click", () => {
+    const a = b.dataset.attn;
+    if (a === "payments") document.querySelector('.nav-btn[data-tab="tab-payments"]')?.click();
+    else if (a.startsWith("pax:")) openUserDrawer(a.slice(4));
+  }));
+}
+
+// ── ATIVIDADE ────────────────────────────────────────────────
+// Viagens agrupadas por dia (derivado das viagens do grupo). Lista vertical
+// compacta, sem tabela larga.
+function renderActivity() {
+  const box = document.getElementById("adm-activity");
+  if (!box) return;
+
+  const byDate = new Map();
+  for (const t of cache.trips) {
+    if (!byDate.has(t.date)) byDate.set(t.date, { pax: 0, value: 0 });
+    const d = byDate.get(t.date);
+    d.pax++; d.value += amt(t);
+  }
+  const dates = [...byDate.keys()].sort().reverse().slice(0, 8);
+  if (dates.length === 0) {
+    box.innerHTML = emptyState("clock", "Nenhuma viagem registrada ainda.");
+    return;
+  }
+
+  let html = `<div class="act">`;
+  let lastMonth = "";
+  for (const date of dates) {
+    const [y, m, dd] = date.split("-");
+    const label = new Date(+y, +m - 1, 1)
+      .toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+    if (label !== lastMonth) { html += `<div class="act__month">${label}</div>`; lastMonth = label; }
+    const d = byDate.get(date);
+    html += `
+      <div class="act__row">
+        <span class="act__day">${dd}</span>
+        <span class="act__pax">${d.pax} passageiro${d.pax > 1 ? "s" : ""}</span>
+        <span class="act__val">${formatCurrency(d.value)}</span>
+      </div>`;
+  }
+  html += `</div>`;
+  box.innerHTML = html;
+}
+
+// ── ESTATÍSTICAS ─────────────────────────────────────────────
+// Gráfico de barras (viagens por mês) + adimplência. Barras em CSS puro
+// (sem SVG/lib), legíveis a 360px.
+function renderStats() {
+  const box = document.getElementById("adm-stats");
+  if (!box) return;
+
+  const months = lastMonths(6);
+  const counts = months.map(mo => cache.trips.filter(t => (t.date || "").slice(0, 7) === mo.key).length);
+  const max = Math.max(1, ...counts);
+  const bars = months.map((mo, i) => {
+    const h = Math.max(4, Math.round((counts[i] / max) * 100));
+    return `
+      <div class="bar">
+        <span class="bar__val">${counts[i]}</span>
+        <span class="bar__track"><span class="bar__fill" style="height:${h}%"></span></span>
+        <span class="bar__lbl">${mo.label}</span>
+      </div>`;
+  }).join("");
+
+  const total = cache.trips.length;
+  const paid  = cache.trips.filter(t => t.paid).length;
+  const rate  = total ? Math.round((paid / total) * 100) : 0;
+
+  box.innerHTML = `
+    <div class="stat-card">
+      <div class="stat-card__head">Viagens por mês</div>
+      <div class="barchart">${bars}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__head">Adimplência</div>
+      <div class="stat-rate">
+        <span class="stat-rate__num">${rate}%</span>
+        <span class="stat-rate__track"><span class="stat-rate__fill" style="width:${rate}%"></span></span>
+      </div>
+    </div>`;
+}
+
+// Últimos N meses como {key:'2026-09', label:'set'}, do mais antigo ao atual.
+function lastMonths(n) {
+  const out = [];
+  const now = new Date();
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    out.push({
+      key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`,
+      label: d.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")
+    });
+  }
+  return out;
+}
+
+function emptyState(ic, text) {
+  return `<div class="empty-state"><div class="empty-state__icon">${icon(ic)}</div><p>${escapeHtml(text)}</p></div>`;
 }
 
 function avatarColor(name = "") {
