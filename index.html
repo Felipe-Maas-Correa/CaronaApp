@@ -31,44 +31,9 @@
   <link rel="stylesheet" href="groups/groups.css" />
   <link rel="stylesheet" href="modals/modals.css" />
 
-  <style>
-    /* Padrão de segurança: qualquer ícone sem regra específica de contexto
-       herda tamanho e traço, evitando SVGs gigantes/preenchidos. */
-    .lucide { display: inline-block; vertical-align: middle; flex-shrink: 0; width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; }
-    .modal-hint .lucide          { width: 13px; height: 13px; vertical-align: -2px; margin-right: 2px; }
-    /* Foto de perfil dentro de qualquer avatar circular */
-    .avatar-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
-    .nav-btn__icon .lucide       { width: 22px; height: 22px; stroke: currentColor; stroke-width: 1.6; fill: none; }
-    .btn-icon .lucide,
-    .btn-logout .lucide,
-    .modal-close-btn .lucide     { width: 15px; height: 15px; stroke: currentColor; stroke-width: 2; fill: none; }
-    .app-header__title .lucide   { width: 18px; height: 18px; stroke: var(--accent); stroke-width: 1.8; fill: none; margin-right: 4px; }
-    .loading-screen__logo .lucide,
-    .auth-logo__icon .lucide     { width: 52px; height: 52px; stroke: var(--accent); stroke-width: 1.4; fill: none; }
-    .input-eye .lucide           { width: 17px; height: 17px; stroke: currentColor; stroke-width: 1.8; fill: none; }
-    .receipt-upload-icon .lucide { width: 28px; height: 28px; stroke: var(--text-muted); stroke-width: 1.5; fill: none; }
-    .admin-hint__icon .lucide    { width: 16px; height: 16px; stroke: var(--accent); stroke-width: 1.8; fill: none; }
-    .btn-new-payment .lucide     { width: 15px; height: 15px; stroke: currentColor; stroke-width: 2.2; fill: none; }
-    .btn-icon--delete .lucide    { stroke: var(--debt); }
-    .btn-icon--receipt .lucide   { stroke: var(--text-muted); }
-    .activity-item__info { display: flex; flex-direction: column; gap: 2px; }
-    .activity-item__sub  { font-size: .65rem; color: var(--text-muted); font-family: var(--font-mono); letter-spacing: .02em; }
-
-    /* Ícones de linha (Lucide) nos contextos dinâmicos — substituem os emojis */
-    .activity-item__icon .lucide { width: 17px; height: 17px; stroke-width: 1.8; fill: none; stroke: currentColor; }
-    .activity-item--payment     .activity-item__icon { color: var(--accent); }
-    .activity-item--trip-paid   .activity-item__icon { color: var(--paid); }
-    .activity-item--trip-unpaid .activity-item__icon { color: var(--text-muted); }
-
-    .empty-state__icon .lucide   { width: 38px; height: 38px; stroke-width: 1.3; fill: none; stroke: var(--text-muted); }
-
-    .badge .lucide               { width: 11px; height: 11px; stroke-width: 2.2; fill: none; stroke: currentColor; margin-right: 3px; }
-    .header-role .lucide         { width: 11px; height: 11px; stroke-width: 2.2; fill: none; stroke: currentColor; margin-right: 3px; vertical-align: -1px; }
-
-    .btn .lucide                 { width: 16px; height: 16px; stroke-width: 2; fill: none; stroke: currentColor; vertical-align: -3px; margin-right: 2px; }
-    .receipt-file-icon .lucide   { width: 15px; height: 15px; stroke-width: 1.8; fill: none; stroke: currentColor; vertical-align: -3px; margin-right: 3px; }
-    .no-receipt .lucide          { width: 15px; height: 15px; stroke-width: 1.8; fill: none; stroke: var(--text-muted); }
-  </style>
+  <!-- Tokens de tipografia, ícones e camadas — por último, de propósito
+       (ver o cabeçalho de css/design-system.css). -->
+  <link rel="stylesheet" href="css/design-system.css" />
 </head>
 <body>
 
@@ -100,7 +65,7 @@
       <div class="auth-container">
         <div class="auth-logo">
           <div class="auth-logo__icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><path d="M5 17H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1"/><path d="M19 17h2a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-1"/><path d="M5 7l1.5-4h11L19 7"/><path d="M5 7h14"/><path d="M5 17h14"/></svg>
+            <i data-icon="logo"></i>
           </div>
           <div class="auth-logo__name">Carona<span>App</span></div>
           <div class="auth-logo__sub">Controle de viagens diárias</div>
@@ -124,14 +89,14 @@
             <div class="input-wrap">
               <input id="login-password" type="password" class="form-input" placeholder="••••••••" autocomplete="current-password" required />
               <button type="button" id="btn-toggle-password" class="input-eye">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                <i data-icon="eye"></i>
               </button>
             </div>
           </div>
 
           <p id="login-error" class="auth-error"></p>
 
-          <button id="btn-login" type="submit" style="display:block;width:100%;padding:.9rem;background:linear-gradient(135deg,#d4af37,#e8cc6e);color:#0f0f0f;border:none;border-radius:16px;font-size:.95rem;font-weight:700;letter-spacing:.04em;cursor:pointer;margin-top:.35rem;">
+          <button id="btn-login" type="submit" class="btn btn--primary btn--full auth-btn">
             Entrar
           </button>
         </form>
@@ -193,10 +158,10 @@
           </div>
           <div class="hub-identity__actions">
             <button id="btn-group-profile" class="hub-iconbtn" title="Meu perfil" aria-label="Meu perfil">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <i data-icon="user"></i>
             </button>
             <button id="btn-group-logout" class="hub-iconbtn" title="Sair da conta" aria-label="Sair da conta">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              <i data-icon="log-out"></i>
             </button>
           </div>
         </div>
@@ -233,12 +198,12 @@
           <div class="hub-section__head">
             <span class="hub-section__title">Meus grupos</span>
             <button class="hub-sort" id="group-sort" data-sort="recent">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><path d="M11 5h10"/><path d="M11 9h7"/><path d="M11 13h4"/><path d="m3 17 3 3 3-3"/><path d="M6 18V4"/></svg>
+              <i data-icon="sort"></i>
               <span id="group-sort-label">Recentes</span>
             </button>
           </div>
           <div class="hub-search hidden" id="group-search-wrap">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <i data-icon="search"></i>
             <input type="text" id="group-search" class="hub-search__input" placeholder="Buscar grupo…" autocomplete="off" />
           </div>
           <div class="hub-grid" id="group-list"></div>
@@ -247,11 +212,11 @@
         <!-- Ações: dois tiles que abrem bottom-sheets. -->
         <div class="hub-actions">
           <button class="hub-tile hub-tile--accent" id="tile-create">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <i data-icon="plus"></i>
             <span>Criar grupo</span>
           </button>
           <button class="hub-tile" id="tile-join">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            <i data-icon="log-in"></i>
             <span>Tenho um código</span>
           </button>
         </div>
@@ -277,7 +242,7 @@
           <div class="hub-sheet__head">
             <h3>Novo grupo</h3>
             <button class="hub-iconbtn" data-close-sheet="sheet-create" aria-label="Fechar">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              <i data-icon="x"></i>
             </button>
           </div>
           <form id="form-create-group" novalidate>
@@ -325,7 +290,7 @@
           <div class="hub-sheet__head">
             <h3>Entrar em um grupo</h3>
             <button class="hub-iconbtn" data-close-sheet="sheet-join" aria-label="Fechar">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              <i data-icon="x"></i>
             </button>
           </div>
           <form id="form-join-group" novalidate>
@@ -354,7 +319,7 @@
         <div class="app-header__inner">
           <div class="app-header__brand">
             <div class="app-header__title">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><path d="M5 17H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1"/><path d="M19 17h2a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-1"/><path d="M5 7l1.5-4h11L19 7"/><path d="M5 7h14"/><path d="M5 17h14"/></svg>
+              <i data-icon="logo"></i>
               CaronaApp
             </div>
             <div class="app-header__subtitle" id="header-price">R$ 15 por viagem</div>
@@ -368,7 +333,7 @@
               <span id="header-avatar-content">?</span>
             </button>
             <button id="btn-logout" class="btn-logout" title="Sair">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              <i data-icon="log-out"></i>
             </button>
           </div>
         </div>
@@ -472,8 +437,8 @@
               <div id="month-debt" class="month-stat__value">R$ 0,00</div>
             </div>
           </div>
-          <p style="display:flex;align-items:center;justify-content:center;gap:.4rem;font-size:.7rem;color:var(--text-muted);padding:0 1rem 1rem">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width:13px;height:13px;stroke:var(--text-muted);stroke-width:2;fill:none;flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <p class="cal-hint">
+            <i data-icon="info" class="ic-sm"></i>
             Toque em qualquer dia para registrar ou remover uma viagem
           </p>
         </div>
@@ -483,7 +448,7 @@
           <div class="payments-header">
             <h2>Pagamentos</h2>
             <button id="btn-new-payment" class="btn-new-payment">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <i data-icon="plus"></i>
               Registrar
             </button>
           </div>
@@ -503,7 +468,7 @@
                 <div class="adm2-head__sub"  id="adm-group-sub">—</div>
               </div>
               <button id="btn-adm-settings" class="adm2-gear" title="Configurações do grupo" aria-label="Configurações">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                <i data-icon="settings"></i>
               </button>
             </div>
 
@@ -546,7 +511,7 @@
             <div class="adm2-sectitle">
               <span>Passageiros <span class="adm2-sectitle__num" id="adm-pax-count"></span></span>
               <button id="btn-invite" class="adm2-add" title="Convidar passageiro" aria-label="Convidar passageiro">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <i data-icon="plus"></i>
               </button>
             </div>
             <div id="users-list">
@@ -575,14 +540,14 @@
                   <span class="danger2__name">Limpar histórico de viagens</span>
                   <span class="danger2__desc">Remove os registros de viagens deste grupo.</span>
                 </span>
-                <svg class="danger2__chev" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                <i data-icon="chevron-right" class="danger2__chev"></i>
               </button>
               <button id="btn-delete-group" class="danger2__item hidden">
                 <span class="danger2__txt">
                   <span class="danger2__name">Excluir grupo</span>
                   <span class="danger2__desc">Esta ação não pode ser desfeita.</span>
                 </span>
-                <svg class="danger2__chev" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                <i data-icon="chevron-right" class="danger2__chev"></i>
               </button>
             </div>
           </div>
@@ -602,7 +567,7 @@
                 <div class="sys2-head__sub">Visão de toda a plataforma</div>
               </div>
               <span class="sys2-head__badge">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7z"/><path d="M5 20h14"/></svg>
+                <i data-icon="crown"></i>
                 master
               </span>
             </div>
@@ -624,7 +589,7 @@
             </div>
 
             <button id="btn-new-user" class="btn btn--secondary btn--full" style="margin:1rem 0 .7rem">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <i data-icon="plus"></i>
               Cadastrar usuário
             </button>
           </div>
@@ -636,31 +601,31 @@
       <nav class="bottom-nav">
         <button class="nav-btn nav-btn--active" data-tab="tab-summary">
           <span class="nav-btn__icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            <i data-icon="bar-chart"></i>
           </span>
           Resumo
         </button>
         <button class="nav-btn" data-tab="tab-calendar">
           <span class="nav-btn__icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <i data-icon="calendar"></i>
           </span>
           Calendário
         </button>
         <button class="nav-btn" data-tab="tab-payments">
           <span class="nav-btn__icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            <i data-icon="credit-card"></i>
           </span>
           Pagamentos
         </button>
         <button id="nav-admin" class="nav-btn hidden" data-tab="tab-admin">
           <span class="nav-btn__icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <i data-icon="settings"></i>
           </span>
           Admin
         </button>
         <button id="nav-system" class="nav-btn hidden" data-tab="tab-system">
           <span class="nav-btn__icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7z"/><path d="M5 20h14"/></svg>
+            <i data-icon="crown"></i>
           </span>
           Sistema
         </button>
@@ -680,7 +645,7 @@
             <p class="set-subtitle">Configurações do grupo</p>
           </div>
           <button class="hub-iconbtn" data-close-adm-sheet aria-label="Fechar">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <i data-icon="x"></i>
           </button>
         </div>
 
@@ -691,14 +656,14 @@
               <span class="set-item__label">Valor por viagem</span>
               <span class="set-item__value" id="set-value-cur">—</span>
             </span>
-            <svg class="set-item__chev" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+            <i data-icon="chevron-right" class="set-item__chev"></i>
           </button>
           <button class="set-item" id="set-pix">
             <span class="set-item__txt">
               <span class="set-item__label">Chave PIX</span>
               <span class="set-item__value" id="set-pix-cur">Não cadastrada</span>
             </span>
-            <svg class="set-item__chev" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+            <i data-icon="chevron-right" class="set-item__chev"></i>
           </button>
         </div>
 
@@ -709,7 +674,7 @@
               <span class="set-item__label">Link de convite</span>
               <span class="set-item__value">Gerencie quem pode entrar</span>
             </span>
-            <svg class="set-item__chev" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+            <i data-icon="chevron-right" class="set-item__chev"></i>
           </button>
         </div>
 
@@ -720,14 +685,14 @@
               <span class="set-item__label">Nome do grupo</span>
               <span class="set-item__value" id="set-name-cur">—</span>
             </span>
-            <svg class="set-item__chev" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+            <i data-icon="chevron-right" class="set-item__chev"></i>
           </button>
           <button class="set-item" id="set-members">
             <span class="set-item__txt">
               <span class="set-item__label">Membros</span>
               <span class="set-item__value" id="set-members-cur">—</span>
             </span>
-            <svg class="set-item__chev" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+            <i data-icon="chevron-right" class="set-item__chev"></i>
           </button>
         </div>
       </div>
@@ -744,8 +709,8 @@
           <span class="set-field__cur">R$</span>
           <input type="number" id="adm-price-input" class="set-field__input" min="0" step="0.5" inputmode="decimal" />
           <div class="qs-stepper">
-            <button type="button" id="price-up" class="qs-step" aria-label="Aumentar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg></button>
-            <button type="button" id="price-down" class="qs-step" aria-label="Diminuir"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></button>
+            <button type="button" id="price-up" class="qs-step" aria-label="Aumentar"><i data-icon="chevron-up"></i></button>
+            <button type="button" id="price-down" class="qs-step" aria-label="Diminuir"><i data-icon="chevron-down"></i></button>
           </div>
         </div>
         <div class="set-actions">
@@ -765,7 +730,7 @@
           <input id="adm-pix-input" type="text" class="set-field__input set-field__input--text"
                  placeholder="e-mail, CPF, telefone ou chave" maxlength="140" />
           <button id="btn-copy-pix-adm" class="qs-icon" title="Copiar chave" aria-label="Copiar">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <i data-icon="copy"></i>
           </button>
         </div>
         <div class="set-actions">
@@ -807,7 +772,7 @@
             </div>
           </div>
           <button class="hub-iconbtn" data-close-drawer aria-label="Fechar">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <i data-icon="x"></i>
           </button>
         </div>
         <div class="drawer__body" id="drawer-body"></div>
@@ -826,7 +791,7 @@
       <div class="modal-sheet" style="position:relative">
         <div class="modal-handle"></div>
         <button class="modal-close-btn" data-close-modal="modal-day">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <i data-icon="x"></i>
         </button>
         <div id="modal-day-title" class="modal-title">Dia</div>
         <div id="modal-day-content"></div>
@@ -838,7 +803,7 @@
       <div class="modal-sheet" style="position:relative">
         <div class="modal-handle"></div>
         <button id="btn-close-payment-modal" class="modal-close-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <i data-icon="x"></i>
         </button>
         <div class="modal-title">Registrar Pagamento</div>
 
@@ -879,7 +844,7 @@
         <input type="file" id="receipt-input" accept="application/pdf,.pdf" style="display:none" />
         <label for="receipt-input" class="receipt-upload-area" style="cursor:pointer;display:flex;flex-direction:column;align-items:center">
           <div class="receipt-upload-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+            <i data-icon="paperclip"></i>
           </div>
           <div class="receipt-upload-label">Toque para enviar o comprovante (PDF)</div>
         </label>
@@ -897,13 +862,13 @@
       <div class="modal-sheet" style="position:relative">
         <div class="modal-handle"></div>
         <button id="btn-close-receipt-modal" class="modal-close-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <i data-icon="x"></i>
         </button>
         <div class="modal-title">Comprovante</div>
         <div id="receipt-modal-content"></div>
         <a id="btn-open-receipt" href="#" target="_blank" rel="noopener noreferrer" class="btn btn--secondary btn--full">
           Abrir em nova aba
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;margin-left:4px"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          <i data-icon="external-link"></i>
         </a>
       </div>
     </div>
@@ -913,7 +878,7 @@
       <div class="modal-sheet" style="position:relative">
         <div class="modal-handle"></div>
         <div class="modal-title">Confirmação</div>
-        <p id="confirm-message" style="font-size:.875rem;color:var(--text-muted);margin-bottom:1rem"></p>
+        <p id="confirm-message" style="font-size:var(--fs-md);color:var(--text-muted);margin-bottom:1rem"></p>
         <div class="confirm-actions">
           <button id="btn-confirm-no"  class="btn btn--secondary" style="flex:1">Cancelar</button>
           <button id="btn-confirm-yes" class="btn btn--danger"    style="flex:1">Confirmar</button>
@@ -929,7 +894,7 @@
         <div class="modal-handle"></div>
         <div id="password-confirm-title" class="modal-title">Confirmar com senha</div>
         <p id="password-confirm-message"
-           style="font-size:.875rem;color:var(--text-muted);margin-bottom:1rem"></p>
+           style="font-size:var(--fs-md);color:var(--text-muted);margin-bottom:1rem"></p>
 
         <div class="form-group">
           <label class="form-label" for="password-confirm-input">Sua senha de administrador</label>
@@ -951,7 +916,7 @@
       <div class="modal-sheet" style="position:relative">
         <div class="modal-handle"></div>
         <button class="modal-close-btn" data-close-modal="modal-profile">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <i data-icon="x"></i>
         </button>
         <div class="modal-title">Meu Perfil</div>
 
@@ -1013,7 +978,7 @@
       <div class="modal-sheet" style="position:relative">
         <div class="modal-handle"></div>
         <button id="btn-close-user-modal" class="modal-close-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <i data-icon="x"></i>
         </button>
         <div class="modal-title">Cadastrar Usuário</div>
 
@@ -1052,7 +1017,7 @@
       <div class="modal-sheet" style="position:relative">
         <div class="modal-handle"></div>
         <button class="modal-close-btn" data-close-modal="modal-invite">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <i data-icon="x"></i>
         </button>
         <div class="modal-title">Convidar para o grupo</div>
 

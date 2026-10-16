@@ -154,7 +154,7 @@ function renderPaymentCard(payment, showUser = false, profile = null) {
         </div>
         <div class="payment-card__actions">
           ${(payment.receiptData || payment.receiptUrl)
-            ? `<button class="btn-icon btn-icon--receipt" data-view-receipt-id="${pid}" title="Ver comprovante">${icon("fileText")}</button>`
+            ? `<button class="btn-icon btn-icon--receipt" data-view-receipt-id="${pid}" title="Ver comprovante">${icon("file-text")}</button>`
             : `<span class="no-receipt" title="Sem comprovante">${icon("file")}</span>`
           }
           <button class="btn-icon btn-icon--delete" data-delete-payment="${pid}" title="Excluir pagamento">${icon("trash")}</button>
@@ -456,7 +456,7 @@ async function handleReceiptPreview(e) {
 
   // Mostra o arquivo e o estado "lendo..."
   document.getElementById("receipt-preview").innerHTML =
-    `<div class="receipt-file-icon">${icon("fileText")} ${escapeHtml(file.name)}</div>`;
+    `<div class="receipt-file-icon">${icon("file-text")} ${escapeHtml(file.name)}</div>`;
   receiptState = { file, data: null, value: null, status: "reading" };
   showReceiptCheck("reading", "Lendo o comprovante…");
   updateConfirmState();

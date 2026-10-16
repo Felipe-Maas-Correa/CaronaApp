@@ -11,7 +11,7 @@
   background: var(--bg-elevated);
   color: var(--accent);
   font-weight: 700;
-  font-size: .9rem;
+  font-size: var(--fs-base);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -41,7 +41,7 @@
   background: var(--bg-elevated);
   border: 2px solid var(--border-gold);
   color: var(--accent);
-  font-size: 2.4rem;
+  font-size: var(--fs-4xl);
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -54,7 +54,7 @@
   object-fit: cover;
 }
 .profile-photo-edit {
-  font-size: .72rem;
+  font-size: var(--fs-sm);
   color: var(--accent);
   font-family: var(--font-mono);
   letter-spacing: .03em;
@@ -66,7 +66,7 @@
 }
 .profile-photo-edit:active { background: var(--accent-dim); }
 .profile-registered {
-  font-size: .68rem;
+  font-size: var(--fs-xs);
   font-family: var(--font-mono);
   color: var(--text-muted);
   letter-spacing: .03em;
@@ -87,7 +87,7 @@
 }
 .profile-stat__value {
   display: block;
-  font-size: 1.15rem;
+  font-size: var(--fs-xl);
   font-weight: 700;
   color: var(--accent);
   font-family: var(--font-mono);
@@ -95,7 +95,7 @@
 }
 .profile-stat__label {
   display: block;
-  font-size: .56rem;
+  font-size: var(--fs-2xs);
   color: var(--text-muted);
   margin-top: .35rem;
   line-height: 1.3;

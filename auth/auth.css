@@ -12,7 +12,7 @@
   align-items: center;
   justify-content: center;
   padding: 1.75rem;
-  z-index: 200;
+  z-index: var(--z-auth);
   overflow-y: auto;
   background-image:
     radial-gradient(ellipse at 20% 20%, rgba(212,175,55,0.04) 0%, transparent 50%),
@@ -33,7 +33,7 @@
 }
 
 .auth-logo__icon {
-  font-size: 3rem;
+  font-size: var(--fs-5xl);
   display: block;
   margin-bottom: .65rem;
   filter: drop-shadow(0 0 20px rgba(212,175,55,0.3));
@@ -42,7 +42,7 @@
 
 .auth-logo__name {
   font-family: var(--font-serif);
-  font-size: 2.1rem;
+  font-size: var(--fs-4xl);
   font-weight: 700;
   letter-spacing: 0.01em;
   color: var(--text);
@@ -53,7 +53,7 @@
 }
 
 .auth-logo__sub {
-  font-size: .72rem;
+  font-size: var(--fs-sm);
   color: var(--text-muted);
   font-family: var(--font-mono);
   margin-top: .35rem;
@@ -91,7 +91,7 @@
 }
 
 .form-label {
-  font-size: .62rem;
+  font-size: var(--fs-2xs);
   font-family: var(--font-mono);
   color: var(--text-muted);
   text-transform: uppercase;
@@ -105,7 +105,7 @@
   padding: .8rem 1.1rem;
   color: var(--text);
   font-family: var(--font-display);
-  font-size: .9rem;
+  font-size: var(--fs-base);
   transition: border-color .25s, box-shadow .25s, background .25s;
   -webkit-appearance: none;
 }
@@ -147,7 +147,7 @@
   transform: translateY(-50%);
   background: none;
   border: none;
-  font-size: .9rem;
+  font-size: var(--fs-base);
   cursor: pointer;
   padding: .25rem;
   color: var(--text-muted);
@@ -159,7 +159,7 @@
 
 /* ── FEEDBACK ────────────────────────────────────────────────── */
 .auth-error {
-  font-size: .75rem;
+  font-size: var(--fs-sm);
   color: var(--debt);
   font-family: var(--font-mono);
   min-height: 1.2em;
@@ -170,13 +170,13 @@
 .auth-btn {
   margin-top: .35rem;
   padding: .9rem;
-  font-size: .95rem;
+  font-size: var(--fs-base);
   letter-spacing: .04em;
 }
 
 .auth-footer {
   text-align: center;
-  font-size: .72rem;
+  font-size: var(--fs-sm);
   color: var(--text-muted);
   line-height: 1.6;
 }
@@ -213,7 +213,7 @@
   border-radius: 999px;
   color: var(--text-muted);
   font-family: var(--font-display);
-  font-size: .78rem;
+  font-size: var(--fs-sm);
   font-weight: 600;
   letter-spacing: .02em;
   transition: background .2s, color .2s;

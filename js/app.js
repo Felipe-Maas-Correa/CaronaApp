@@ -15,7 +15,12 @@ import {
   initInviteModal, groupName
 } from "../groups/groups.js";
 import { loadTripValue, getTripValue } from "./db.js";
-import { showToast, icon, formatCurrency } from "./utils.js";
+import { showToast, icon, formatCurrency, hydrateIcons } from "./utils.js";
+
+// Ícones do HTML estático (<i data-icon="…">) viram <svg> antes de qualquer
+// tela aparecer. Só o logo da tela de carregamento é SVG direto no HTML,
+// porque ele precisa estar visível antes deste módulo rodar.
+hydrateIcons();
 
 // FIX: initAdmin e loadUsersList são importados condicionalmente para evitar
 // quebra silenciosa do Promise.all caso admin.js não exista ou tenha erros.
@@ -103,7 +108,7 @@ function initLoginForm() {
     const input = document.getElementById("login-password");
     input.type  = input.type === "password" ? "text" : "password";
     document.getElementById("btn-toggle-password").innerHTML =
-      input.type === "password" ? icon("eye") : icon("eyeOff");
+      input.type === "password" ? icon("eye") : icon("eye-off");
   });
 
   form.addEventListener("submit", async (e) => {

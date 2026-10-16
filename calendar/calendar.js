@@ -13,8 +13,8 @@ import { currentProfile, isAdmin, myGroupId } from "../auth/auth.js";
 
 // Opções de velocidade (avaliação)
 const SPEEDS = [
-  { key: "slow", emoji: "🐢", label: "Devagar" },
-  { key: "mid",  emoji: "🚗", label: "Mais ou menos" },
+  { key: "slow", emoji: "🐢", label: "Devagar" },        // ui-audit: allow — glifo monocromático via Noto Emoji
+  { key: "mid",  emoji: "🚗", label: "Mais ou menos" },  // ui-audit: allow — idem
   // U+1F3CE sem o seletor FE0F: o mesmo carro de corrida, mas em
   // apresentação de texto — assim a fonte Noto Emoji o renderiza
   // monocromático (com FE0F o sistema forçava a versão colorida).
@@ -353,7 +353,7 @@ function openDayModalUser(dateStr, isWeekend) {
 
 // Helpers de pintura da avaliação
 function starSvg() {
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+  return icon("star");
 }
 function paintStars(n) {
   document.querySelectorAll("#rate-stars .rate-star").forEach(b => {

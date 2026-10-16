@@ -39,7 +39,7 @@
 
 .summary-hero__label {
   font-family: var(--font-mono);
-  font-size: .62rem;
+  font-size: var(--fs-2xs);
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: .14em;
@@ -48,7 +48,7 @@
 
 .summary-hero__amount {
   font-family: var(--font-mono);
-  font-size: 3rem;
+  font-size: var(--fs-5xl);
   font-weight: 500;
   color: var(--debt);
   line-height: 1;
@@ -79,7 +79,7 @@
 
 .progress-label {
   font-family: var(--font-mono);
-  font-size: .62rem;
+  font-size: var(--fs-2xs);
   color: var(--text-muted);
   letter-spacing: 0.04em;
 }
@@ -107,7 +107,7 @@
 
 .stat-card__value {
   font-family: var(--font-mono);
-  font-size: 1.5rem;
+  font-size: var(--fs-2xl);
   font-weight: 500;
   color: var(--text);
   display: block;
@@ -115,7 +115,7 @@
 }
 
 .stat-card__label {
-  font-size: .58rem;
+  font-size: var(--fs-2xs);
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: .08em;
@@ -137,7 +137,7 @@
 }
 
 .received-card__label {
-  font-size: .72rem;
+  font-size: var(--fs-sm);
   color: var(--text-muted);
   font-family: var(--font-mono);
   letter-spacing: 0.04em;
@@ -146,7 +146,7 @@
 .received-card__value {
   font-family: var(--font-mono);
   font-weight: 600;
-  font-size: 1.1rem;
+  font-size: var(--fs-lg);
   color: var(--accent);
 }
 
@@ -169,7 +169,7 @@
 }
 
 .activity-item__icon {
-  font-size: .9rem;
+  font-size: var(--fs-base);
   flex-shrink: 0;
   width: 32px; height: 32px;
   background: var(--bg-elevated);
@@ -182,17 +182,27 @@
 
 .activity-item__info {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.activity-item__sub {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  letter-spacing: .02em;
 }
 
 .activity-item__label {
-  font-size: .82rem;
+  font-size: var(--fs-md);
   color: var(--text);
   font-weight: 500;
 }
 
 .activity-item__amount {
   font-family: var(--font-mono);
-  font-size: .82rem;
+  font-size: var(--fs-md);
   font-weight: 600;
   flex-shrink: 0;
   color: var(--text);
@@ -200,3 +210,9 @@
 /* Filtro de período (Semana / Semestre / Total) no topo do resumo.
    Mesma margem lateral do hero/stats para alinhar com os containers abaixo. */
 .sum-seg { margin: 0 1.25rem 1rem; }
+
+/* Cor do ícone por tipo de atividade (classe montada em summary.js:
+   activity-item--${a.type}). Veio do <style> embutido do index.html. */
+.activity-item--payment     .activity-item__icon { color: var(--accent); }
+.activity-item--trip-paid   .activity-item__icon { color: var(--paid); }
+.activity-item--trip-unpaid .activity-item__icon { color: var(--text-muted); }

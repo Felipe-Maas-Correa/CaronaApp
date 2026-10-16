@@ -633,7 +633,7 @@ function renderAttention() {
     return;
   }
 
-  const chev = `<svg class="attn__chev" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>`;
+  const chev = icon("chevron-right", "attn__chev");
   box.innerHTML = items.map(it => `
     <button class="attn attn--${it.tone}" data-attn="${escapeHtml(it.action)}">
       <span class="attn__ico">${it.ico}</span>
@@ -918,7 +918,7 @@ function renderSystemUserCard(user, groupNameById) {
         <div class="user-card__actions">
           <button class="btn-icon" title="${isSuper ? "Rebaixar para usuário" : "Promover a admin do sistema"}"
             data-toggle-role="${user.uid}" data-current-role="${user.role}">
-            ${isSuper ? icon("arrowDown") : icon("arrowUp")}
+            ${isSuper ? icon("arrow-down") : icon("arrow-up")}
           </button>
           <button class="btn-icon" title="${isActive ? "Desativar" : "Ativar"}"
             data-toggle-active="${user.uid}" data-current-active="${isActive}">

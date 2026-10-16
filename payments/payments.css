@@ -14,7 +14,7 @@
 }
 
 .payments-header h2 {
-  font-size: 1rem;
+  font-size: var(--fs-lg);
   font-weight: 700;
   letter-spacing: .01em;
 }
@@ -24,11 +24,11 @@
   align-items: center;
   gap: .4rem;
   background: linear-gradient(135deg, var(--accent) 0%, var(--accent-soft) 100%);
-  color: #0f0f0f;
+  color: var(--on-accent);
   border: none;
   border-radius: var(--radius);
   padding: .55rem .95rem;
-  font-size: .78rem;
+  font-size: var(--fs-sm);
   font-weight: 700;
   letter-spacing: .02em;
   transition: opacity .2s, transform .15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow .2s;
@@ -68,14 +68,14 @@
 
 .payment-card__amount {
   font-family: var(--font-mono);
-  font-size: 1.4rem;
+  font-size: var(--fs-2xl);
   font-weight: 500;
   color: var(--accent);
   letter-spacing: -0.02em;
 }
 
 .payment-card__meta {
-  font-size: .68rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
   margin-top: 3px;
   font-family: var(--font-mono);
@@ -97,11 +97,11 @@
   border-radius: 999px;
   border: 1px solid transparent;
   font-family: var(--font-mono);
-  font-size: .62rem;
+  font-size: var(--fs-2xs);
   letter-spacing: .04em;
   font-weight: 500;
 }
-.payment-card__status svg { width: .8rem; height: .8rem; }
+.payment-card__status svg { width: var(--ic-xs); height: var(--ic-xs); }
 
 .payment-card__status--pending {
   background: var(--accent-dim);
@@ -137,7 +137,7 @@
   border: 1px solid var(--border-light);
   background: var(--bg-elevated);
   color: var(--text);
-  font-size: .8rem;
+  font-size: var(--fs-md);
   font-weight: 600;
   cursor: pointer;
   transition: border-color .15s, background .15s, opacity .15s;
@@ -167,7 +167,7 @@
   border-radius: 999px;
   padding: .15rem .55rem;
   font-family: var(--font-mono);
-  font-size: .62rem;
+  font-size: var(--fs-2xs);
   color: var(--text-muted);
 }
 
@@ -185,7 +185,7 @@
   padding: .85rem;
   text-align: center;
   font-family: var(--font-mono);
-  font-size: .85rem;
+  font-size: var(--fs-md);
   color: var(--text-muted);
   margin-bottom: 1.1rem;
   border: 1px solid var(--border-gold);
@@ -216,19 +216,19 @@
 }
 
 .receipt-upload-icon {
-  font-size: 1.35rem;
+  font-size: var(--fs-2xl);
   margin-bottom: .45rem;
   opacity: .5;
 }
 
 .receipt-upload-label {
-  font-size: .78rem;
+  font-size: var(--fs-sm);
   color: var(--text-muted);
   letter-spacing: 0.02em;
 }
 
 .receipt-file-icon {
-  font-size: .8rem;
+  font-size: var(--fs-md);
   color: var(--accent);
   margin-top: .5rem;
 }
@@ -251,7 +251,7 @@
 
 .pix-box__label {
   font-family: var(--font-mono);
-  font-size: .62rem;
+  font-size: var(--fs-2xs);
   letter-spacing: .08em;
   text-transform: uppercase;
   color: var(--accent);
@@ -259,11 +259,11 @@
 
 .pix-copy-btn {
   background: var(--accent);
-  color: #0f0f0f;
+  color: var(--on-accent);
   border: none;
   border-radius: 999px;
   font-family: var(--font-display);
-  font-size: .68rem;
+  font-size: var(--fs-xs);
   font-weight: 700;
   letter-spacing: .03em;
   padding: .3rem .8rem;
@@ -275,7 +275,7 @@
 .pix-box__key {
   display: block;
   font-family: var(--font-mono);
-  font-size: .8rem;
+  font-size: var(--fs-md);
   color: var(--text);
   word-break: break-all;
   line-height: 1.4;
@@ -284,7 +284,7 @@
 }
 
 .pix-box__hint {
-  font-size: .65rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
   margin-top: .5rem;
   line-height: 1.35;
@@ -323,7 +323,7 @@
   border: 1px solid var(--border);
   border-radius: 50%;
   color: var(--text);
-  font-size: 1.1rem;
+  font-size: var(--fs-lg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -338,7 +338,7 @@
 .pay-cal-label {
   flex: 1;
   text-align: center;
-  font-size: .82rem;
+  font-size: var(--fs-md);
   font-weight: 700;
   color: var(--text);
   letter-spacing: .02em;
@@ -357,7 +357,7 @@
 
 .pcal-weekday {
   text-align: center;
-  font-size: .6rem;
+  font-size: var(--fs-2xs);
   font-weight: 600;
   color: var(--text-muted);
   padding: .2rem 0 .4rem;
@@ -372,7 +372,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: .78rem;
+  font-size: var(--fs-sm);
   color: var(--text-muted);
   position: relative;
   transition: background .1s, transform .1s;
@@ -398,7 +398,7 @@
 /* FIX: quando o dia de hoje está selecionado, o número ficava preto sobre
    fundo preto. Forçamos branco para manter legibilidade. */
 .pcal-day--today.pcal-day--selected .pcal-day__num {
-  color: #0f0f0f;
+  color: var(--on-accent);
 }
 
 /* Anel branco ao redor do número de hoje para destacar mesmo quando selecionado */
@@ -411,7 +411,7 @@
   pointer-events: none;
 }
 .pcal-day--today.pcal-day--selected .pcal-day__num::after {
-  border-color: #0f0f0f;
+  border-color: var(--on-accent);
 }
 
 .pcal-day__num {
@@ -420,7 +420,7 @@
   align-items: center;
   justify-content: center;
   line-height: 1;
-  font-size: .78rem;
+  font-size: var(--fs-sm);
 }
 
 /* Dia com viagem em aberto — clicável */
@@ -439,12 +439,12 @@
   cursor: pointer;
   background: var(--accent);
   border: 1px solid var(--accent);
-  color: #0f0f0f;
+  color: var(--on-accent);
   font-weight: 700;
   box-shadow: 0 2px 8px rgba(212,175,55,0.35);
 }
 .pcal-day--selected .pcal-day__dot {
-  background: #0f0f0f;
+  background: var(--on-accent);
 }
 
 /* regra movida para cima, junto com position:relative */
@@ -470,7 +470,7 @@
   display: flex;
   align-items: center;
   gap: .35rem;
-  font-size: .68rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
 }
 .pay-cal-legend__dot {
@@ -490,11 +490,11 @@
   margin-top: .6rem;
   padding: .6rem .75rem;
   border-radius: var(--radius-sm);
-  font-size: .78rem;
+  font-size: var(--fs-sm);
   line-height: 1.35;
   border: 1px solid transparent;
 }
-.receipt-check svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px; }
+.receipt-check svg { width: var(--ic-md); height: var(--ic-md); flex-shrink: 0; margin-top: 1px; }
 
 .receipt-check--reading {
   color: var(--warning);
@@ -518,7 +518,7 @@
   display: flex;
   align-items: center;
   gap: .45rem;
-  font-size: .8rem;
+  font-size: var(--fs-md);
   font-weight: 600;
   color: var(--accent);
   margin-bottom: .35rem;
@@ -530,7 +530,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: .72rem;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--text);
   overflow: hidden;

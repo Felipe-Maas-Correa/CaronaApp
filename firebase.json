@@ -14,6 +14,8 @@
       "**/node_modules/**",
       "*.rules",
       "README.md",
+      "DESIGN-SYSTEM.md",
+      "tools/**",
       "LICENSE",
       "js/config.example.js",
       "worker/**",

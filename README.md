@@ -110,21 +110,28 @@ O controle de acesso **não depende do cliente**: está nas
 > **100% no plano gratuito:** os comprovantes e fotos de perfil são comprimidos e
 > guardados em **Base64** no próprio documento do Firestore, dispensando o Firebase Storage.
 
+## Design system
+
+Tipografia, ícones, cores e camadas seguem [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md).
+Antes de commitar um componente novo, rode `node tools/audit-ui.js`.
+
 ## Estrutura
 
 ```
 caronaapp/
 ├── index.html            # Shell do app + modais (tudo embutido)
+├── DESIGN-SYSTEM.md      # Regras de tipografia, ícones, cores e camadas
 ├── firestore.rules       # Regras de segurança do Firestore
 ├── storage.rules         # Regras do Storage (bloqueado; não usamos)
-├── css/                  # base, layout, components (variáveis do tema)
+├── css/                  # base, layout, components, design-system (tokens)
 ├── js/
 │   ├── app.js            # Entry point: auth flow + grupo ativo + navegação
 │   ├── firebase-config.js
 │   ├── config.example.js # Modelo de credenciais (copie para config.js)
 │   ├── db.js             # Operações no Firestore (escopadas por grupo)
 │   ├── worker-api.js     # Chamadas ao Worker (pagamentos, grupos, contas)
-│   └── utils.js          # Formatação, ícones, imagem, clipboard
+│   ├── icons.js          # Registro único de ícones (Lucide)
+│   └── utils.js          # Formatação, imagem, clipboard
 ├── auth/                 # Autenticação, login e cadastro
 ├── groups/               # Tela de grupos, convites e troca de grupo ativo
 ├── summary/              # Aba Resumo (dashboard do usuário)
@@ -132,6 +139,7 @@ caronaapp/
 ├── payments/             # Aba Pagamentos + PIX + comprovante
 ├── admin/                # Painel do grupo + administração do sistema
 ├── profile/              # Tela "Meu Perfil"
+├── tools/audit-ui.js     # Linter do design system (node tools/audit-ui.js)
 └── worker/               # Cloudflare Worker (service account)
     └── src/
         ├── index.js      # Rotas de conta e pagamento
