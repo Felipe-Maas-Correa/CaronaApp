@@ -123,6 +123,34 @@ function membersOf(env, gid) {
   return queryDocs(env, "users", "groupIds", gid, "ARRAY_CONTAINS");
 }
 
+// ── LISTAR MEMBROS (dono / ADM SUPREMO) ──────────────────────
+// O cliente não consegue listar os membros sozinho: as rules só deixam o
+// dono ler quem está com o grupo dele como ATIVO (`groupId`). Quem participa
+// de vários grupos e trocou o ativo sumia do painel do grupo antigo — e a
+// dívida dele junto. Aqui a busca é por `groupIds` (todos os grupos da
+// pessoa), com o mesmo público de antes: só quem administra o grupo.
+export async function handleListMembers(request, env) {
+  const caller  = await authCaller(request, env);
+  const profile = await callerProfile(env, caller.uid);
+
+  const body  = await request.json().catch(() => ({}));
+  const gid   = String(body.groupId || profile.groupId || "");
+  const group = await loadGroup(env, gid);
+  assertCanAdminGroup(group, caller, profile);
+
+  const members = (await membersOf(env, gid)).map(m => ({
+    uid:    m.data.uid || m.id,
+    name:   m.data.name || "",
+    email:  m.data.email || "",
+    photo:  m.data.photo || null,
+    role:   m.data.role || "user",
+    active: m.data.active !== false
+  }));
+  members.sort((a, b) => a.name.localeCompare(b.name));
+
+  return json(env, request, { ok: true, members });
+}
+
 // ── CRIAR GRUPO ──────────────────────────────────────────────
 // Quem cria vira DONO na hora — este é o segundo nível de administração.
 // Não precisa de convite nem de aprovação: o grupo nasce vazio e só quem

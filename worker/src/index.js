@@ -14,7 +14,8 @@ import { getDoc, patchDoc, deleteDoc, deleteAuthUser, assertSecrets } from "./fi
 import { corsHeaders, json, clientIp, rateLimit, authCaller } from "./http.js";
 import {
   handleCreateGroup, handleCreateInvite, handleRevokeInvite, handleJoinGroup,
-  handleLeaveGroup, handleRemoveMember, handleTransferGroup, handleDeleteGroup
+  handleLeaveGroup, handleRemoveMember, handleTransferGroup, handleDeleteGroup,
+  handleListMembers
 } from "./groups.js";
 
 // Mesma janela do `recentlyAuthed()` das security rules. Apagar é
@@ -433,7 +434,8 @@ export default {
       "/groups/leave":         handleLeaveGroup,
       "/groups/remove-member": handleRemoveMember,  // dono do grupo
       "/groups/transfer":      handleTransferGroup, // dono do grupo
-      "/groups/delete":        handleDeleteGroup    // dono do grupo / ADM SUPREMO
+      "/groups/delete":        handleDeleteGroup,   // dono do grupo / ADM SUPREMO
+      "/groups/members":       handleListMembers    // dono do grupo / ADM SUPREMO
     };
 
     const handler = routes[url.pathname];

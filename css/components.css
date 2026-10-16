@@ -23,11 +23,6 @@
   box-shadow: var(--shadow-sm);
 }
 
-.card--accent {
-  border-color: var(--border-gold);
-  background: linear-gradient(135deg, var(--bg-card) 0%, rgba(212,175,55,0.04) 100%);
-}
-
 /* ── BUTTONS ─────────────────────────────────────────────────── */
 .btn {
   display: inline-flex;

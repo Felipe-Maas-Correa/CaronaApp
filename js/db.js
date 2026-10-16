@@ -14,6 +14,7 @@
 
 import { db } from "./firebase-config.js";
 import { myGroupId } from "../auth/auth.js";
+import { listGroupMembers } from "./worker-api.js";
 import {
   collection, doc, setDoc, getDoc, getDocs,
   updateDoc, deleteDoc, query, orderBy, where, writeBatch
@@ -34,6 +35,16 @@ let defaultTripValue = 15;
 
 export function getTripValue() {
   return currentTripValue;
+}
+
+/**
+ * Valor de UMA viagem. Fonte única para resumo, calendário, admin, HUB e
+ * pagamentos — antes cada tela tinha seu fallback (15 fixo em umas, valor do
+ * grupo em outras) e a dívida exibida podia divergir do valor cobrado.
+ * Viagens novas sempre gravam `amount`; o fallback só cobre as antigas.
+ */
+export function tripAmount(t) {
+  return typeof t?.amount === "number" ? t.amount : currentTripValue;
 }
 
 export function getDefaultTripValue() {
@@ -100,6 +111,18 @@ export async function updateGroupSettings(groupId, { name, pixKey, tripValue }) 
 /** Membros de um grupo (quem está com ele como grupo ATIVO). */
 export async function getGroupUsers(groupId) {
   if (!groupId) return [];
+
+  // Fonte certa: o Worker lista por `groupIds` (todos os membros). Pela
+  // consulta direta abaixo, quem trocou de grupo ativo some do grupo antigo
+  // — junto com a dívida dele. A consulta direta fica só como fallback
+  // enquanto a rota /groups/members não estiver publicada.
+  try {
+    const { members } = await listGroupMembers(groupId);
+    if (Array.isArray(members)) return members;
+  } catch {
+    // rota ainda não publicada, sem permissão (passageiro) ou offline
+  }
+
   const q = query(collection(db, "users"), where("groupId", "==", groupId));
   const snap = await getDocs(q);
   return snap.docs.map(d => d.data())

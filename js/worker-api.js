@@ -131,3 +131,11 @@ export function transferGroup(uid, groupId) {
 export function deleteGroup(groupId) {
   return callWorker("/groups/delete", { groupId });
 }
+
+/**
+ * Membros de um grupo (por `groupIds`, não pelo grupo ativo). Só o dono do
+ * grupo ou o admin do sistema — ver handleListMembers no Worker.
+ */
+export function listGroupMembers(groupId) {
+  return callWorker("/groups/members", { groupId });
+}

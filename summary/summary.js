@@ -3,7 +3,7 @@
 // Painel de resumo geral (dashboard)
 // ============================================================
 
-import { getUserTrips, getUserPayments } from "../js/db.js";
+import { getUserTrips, getUserPayments, tripAmount } from "../js/db.js";
 import { formatCurrency, formatDate, formatDateTime, icon, todayISO } from "../js/utils.js";
 import { currentProfile, myGroupId } from "../auth/auth.js";
 
@@ -103,9 +103,9 @@ function renderSummaryCards(trips, payments) {
   const totalTrips  = relevant.length;
   const paidTrips   = relevant.filter(t => t.paid).length;
   const unpaidTrips = relevant.filter(t => !t.paid).length;
-  const totalDebt   = relevant.filter(t => !t.paid).reduce((s, t) => s + (t.amount ?? 15), 0);
+  const totalDebt   = relevant.filter(t => !t.paid).reduce((s, t) => s + tripAmount(t), 0);
   // Valor já pago no período = soma das viagens pagas cujo dia cai no período.
-  const totalPaid   = relevant.filter(t => t.paid).reduce((s, t) => s + (t.amount ?? 15), 0);
+  const totalPaid   = relevant.filter(t => t.paid).reduce((s, t) => s + tripAmount(t), 0);
   // Pagamentos que cobrem ao menos uma viagem do período.
   const payCount    = payments.filter(p => (p.tripDates || []).some(d => inRange(d, range))).length;
 

@@ -21,7 +21,7 @@ import { db } from "../js/firebase-config.js";
 import {
   getGroupTrips, getGroupPayments, getGroupUsers,
   getAllTrips, getAllPayments, getAllUsers, getAllGroups,
-  getTripValue, setTripValueSetting, updateGroupSettings, clearGroupTrips
+  getTripValue, tripAmount, setTripValueSetting, updateGroupSettings, clearGroupTrips
 } from "../js/db.js";
 import {
   registerUser, currentProfile, reauthenticate, refreshProfile,
@@ -37,7 +37,7 @@ import {
 import { showToast, formatCurrency, icon, escapeHtml, safeImageSrc, todayISO, copyToClipboard } from "../js/utils.js";
 
 // Valor de cada viagem (respeita preços diferentes ao longo do tempo)
-const amt = t => (typeof t.amount === "number" ? t.amount : 15);
+const amt = t => tripAmount(t);
 
 // Conteúdo de um avatar: foto (se houver) ou a inicial do nome.
 function avatarInner(name, photo) {
@@ -104,7 +104,7 @@ function bindAdminEvents() {
   });
 
   // Copiar a chave PIX do grupo.
-  document.getElementById("btn-copy-pix")?.addEventListener("click", async () => {
+  document.getElementById("btn-copy-pix-adm")?.addEventListener("click", async () => {
     const key = document.getElementById("adm-pix-input")?.value.trim();
     if (!key) { showToast("Nenhuma chave PIX cadastrada.", "info"); return; }
     const ok = await copyToClipboard(key);

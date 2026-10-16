@@ -104,10 +104,6 @@ a {
   z-index: 9999;
   transition: opacity .5s ease;
 }
-.loading-screen--hidden {
-  opacity: 0;
-  pointer-events: none;
-}
 
 .loading-screen__logo {
   font-family: var(--font-serif);

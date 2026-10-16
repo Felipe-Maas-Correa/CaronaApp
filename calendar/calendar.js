@@ -6,7 +6,7 @@
 //    contagem por dia (visão de todos os usuários).
 // ============================================================
 
-import { setTrip, deleteTrip, getUserTrips, getGroupTrips, getGroupUsers, getTripValue, rateTrip } from "../js/db.js";
+import { setTrip, deleteTrip, getUserTrips, getGroupTrips, getGroupUsers, getTripValue, tripAmount, rateTrip } from "../js/db.js";
 import { showToast, formatCurrency, formatDate, icon, todayISO, escapeHtml, safeImageSrc } from "../js/utils.js";
 import { refreshSummary } from "../summary/summary.js";
 import { currentProfile, isAdmin, myGroupId } from "../auth/auth.js";
@@ -246,7 +246,7 @@ function renderMonthStats() {
   let debt = 0;
   const today = todayISO();
   const lists = isAdmin() ? Object.values(dayTrips) : [Object.values(tripsMap)];
-  lists.forEach(list => list.forEach(t => { if (!t.paid && t.date <= today) debt += (t.amount ?? 15); }));
+  lists.forEach(list => list.forEach(t => { if (!t.paid && t.date <= today) debt += tripAmount(t); }));
 
   document.getElementById("month-total-trips").textContent  = total;
   document.getElementById("month-paid-trips").textContent   = paid;

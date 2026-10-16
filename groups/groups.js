@@ -21,10 +21,10 @@ import {
   createGroup, createInvite, revokeInvite, joinGroup, leaveGroup
 } from "../js/worker-api.js";
 import {
-  getUserUnpaidTrips, getGroupUsers
+  getUserUnpaidTrips, getGroupUsers, tripAmount
 } from "../js/db.js";
 import {
-  showToast, escapeHtml, formatDateTime, formatCurrency, icon, copyToClipboard, safeImageSrc
+  showToast, escapeHtml, formatDateTime, formatCurrency, icon, copyToClipboard, safeImageSrc, todayISO
 } from "../js/utils.js";
 
 // Paleta de cores do grupo. A primeira é o dourado da marca (default).
@@ -290,12 +290,12 @@ async function renderHero(activeId) {
   pill.textContent = "…";
   try {
     const unpaid = await getUserUnpaidTrips(currentProfile.uid, activeId);
-    const due = unpaid.filter(t => t.date <= todayStr());
+    const due = unpaid.filter(t => t.date <= todayISO());
     if (due.length === 0) {
       pill.classList.add("hub-status-pill--ok");
       pill.textContent = "✓ Você está em dia";
     } else {
-      const total = due.reduce((s, t) => s + (typeof t.value === "number" ? t.value : value), 0);
+      const total = due.reduce((s, t) => s + tripAmount(t), 0);
       pill.classList.add("hub-status-pill--debt");
       pill.textContent = `${due.length} viagem(ns) · ${formatCurrency(total)} em aberto`;
     }
@@ -305,10 +305,6 @@ async function renderHero(activeId) {
   }
 }
 
-function todayStr() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
 
 /**
  * Pilha de avatares dos membros no cantinho do card. Mostra até 3 fotos (ou

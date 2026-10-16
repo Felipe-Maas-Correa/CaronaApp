@@ -78,74 +78,6 @@
   flex-shrink: 0;
 }
 
-/* ── VALOR DA VIAGEM ─────────────────────────────────────────── */
-.adm-price {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: .8rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border-gold);
-  border-radius: var(--radius);
-  padding: .8rem 1rem;
-  margin-bottom: 1rem;
-}
-.adm-price__info { display: flex; flex-direction: column; }
-.adm-price__label { font-size: .85rem; font-weight: 600; color: var(--text); }
-.adm-price__hint {
-  font-size: .58rem; color: var(--text-muted);
-  font-family: var(--font-mono); letter-spacing: .03em; margin-top: 2px;
-}
-.adm-price__control { display: flex; align-items: center; gap: .4rem; }
-.adm-price__currency { color: var(--accent); font-family: var(--font-mono); font-size: .85rem; }
-.adm-price__input {
-  width: 56px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-sm);
-  color: var(--text);
-  font-family: var(--font-mono);
-  font-size: .9rem;
-  font-weight: 700;
-  text-align: center;
-  padding: .4rem .3rem;
-}
-/* Esconde as setinhas nativas (não combinam com o tema) */
-.adm-price__input::-webkit-outer-spin-button,
-.adm-price__input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-.adm-price__input { -moz-appearance: textfield; appearance: textfield; }
-
-/* Stepper dourado próprio */
-.adm-price__stepper { display: flex; flex-direction: column; gap: 3px; }
-.adm-price__step {
-  width: 22px;
-  height: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--accent-dim);
-  border: 1px solid var(--border-gold);
-  border-radius: 5px;
-  color: var(--accent);
-  padding: 0;
-  transition: background .15s;
-}
-.adm-price__step:active { background: var(--accent); color: #0f0f0f; }
-.adm-price__step svg {
-  width: 12px; height: 12px;
-  stroke: currentColor; stroke-width: 2.5; fill: none;
-}
-.adm-price__btn {
-  background: var(--accent);
-  color: #0f0f0f;
-  border: none;
-  border-radius: 999px;
-  font-weight: 700;
-  font-size: .72rem;
-  padding: .45rem .9rem;
-}
-.adm-price__btn:disabled { opacity: .6; }
-
 /* ── SELETOR DE PERÍODO ──────────────────────────────────────── */
 .adm-seg {
   display: flex;
@@ -183,193 +115,6 @@
   text-transform: capitalize;
 }
 
-/* ── CARDS DE TOTAIS ─────────────────────────────────────────── */
-.adm-stats {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: .6rem;
-  margin-bottom: .8rem;
-}
-.adm-stat {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: .8rem .9rem;
-}
-.adm-stat--paid { border-color: var(--border-gold); }
-.adm-stat--debt { border-color: rgba(224,92,92,.25); }
-.adm-stat__label {
-  font-family: var(--font-mono);
-  font-size: .6rem;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: .3rem;
-}
-.adm-stat__value {
-  font-size: 1.25rem;
-  font-weight: 700;
-  font-family: var(--font-mono);
-  color: var(--text);
-}
-.adm-stat--paid .adm-stat__value { color: var(--accent); }
-.adm-stat--debt .adm-stat__value { color: var(--debt); }
-
-/* ── MÉDIAS ──────────────────────────────────────────────────── */
-.adm-avg {
-  display: flex;
-  gap: .6rem;
-  margin-bottom: 1.2rem;
-}
-.adm-avg__item {
-  flex: 1;
-  background: var(--bg-subtle);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: .6rem .5rem;
-  text-align: center;
-}
-.adm-avg__label {
-  display: block;
-  font-size: .58rem;
-  color: var(--text-muted);
-  font-family: var(--font-mono);
-  letter-spacing: .03em;
-  margin-bottom: .3rem;
-}
-.adm-avg__value {
-  display: block;
-  font-size: .82rem;
-  font-weight: 700;
-  color: var(--accent);
-  font-family: var(--font-mono);
-}
-
-/* ── TÍTULOS DE SEÇÃO ────────────────────────────────────────── */
-.adm-section-title {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-bottom: .6rem;
-}
-.adm-section-title > span:first-child {
-  font-size: .95rem;
-  font-weight: 700;
-  color: var(--text);
-}
-.adm-section-hint {
-  font-size: .6rem;
-  color: var(--text-muted);
-  font-family: var(--font-mono);
-  letter-spacing: .04em;
-}
-
-/* ── RANKING POR USUÁRIO ─────────────────────────────────────── */
-.adm-user {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: .75rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: .7rem .85rem;
-  margin-bottom: .5rem;
-  text-align: left;
-  transition: border-color .2s, background .2s;
-}
-.adm-user:active { border-color: var(--border-gold); background: var(--bg-hover); }
-.adm-user__avatar {
-  width: 34px; height: 34px;
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: .85rem; font-weight: 700;
-  color: var(--text); flex-shrink: 0;
-  border: 1px solid var(--border-light);
-}
-.adm-user__info { flex: 1; min-width: 0; }
-.adm-user__name {
-  font-size: .85rem; font-weight: 600; color: var(--text);
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.adm-user__sub {
-  font-size: .62rem; color: var(--text-muted); font-family: var(--font-mono);
-  margin-top: 2px;
-}
-.adm-user__values { text-align: right; flex-shrink: 0; }
-.adm-user__paid {
-  display: block; font-family: var(--font-mono); font-size: .85rem;
-  font-weight: 700; color: var(--accent);
-}
-.adm-user__open {
-  display: block; font-family: var(--font-mono); font-size: .6rem;
-  color: var(--debt); margin-top: 2px;
-}
-.adm-user__open.is-zero { color: var(--text-dim); }
-
-/* ── DETALHE DO USUÁRIO (modal) ──────────────────────────────── */
-.adm-detail__head,
-.adm-detail__row {
-  display: grid;
-  grid-template-columns: 1.2fr .8fr 1fr 1fr;
-  gap: .3rem;
-  align-items: center;
-  padding: .55rem .2rem;
-}
-.adm-detail__head {
-  border-bottom: 1px solid var(--border);
-  font-size: .58rem; text-transform: uppercase; letter-spacing: .06em;
-  color: var(--text-muted); font-family: var(--font-mono);
-}
-.adm-detail__head span:not(:first-child) { text-align: right; }
-.adm-detail__row { border-bottom: 1px solid var(--border); }
-.adm-detail__row:last-child {
-  border-bottom: none;
-  border-top: 1px solid var(--border-light);
-  margin-top: .2rem;
-}
-.adm-detail__period { font-size: .78rem; font-weight: 600; color: var(--text); }
-.adm-detail__trips  { font-size: .72rem; color: var(--text-muted); text-align: right; font-family: var(--font-mono); }
-.adm-detail__paid   { font-size: .78rem; color: var(--accent); text-align: right; font-family: var(--font-mono); font-weight: 600; }
-.adm-detail__open   { font-size: .78rem; color: var(--debt); text-align: right; font-family: var(--font-mono); }
-.adm-detail__open.is-zero { color: var(--text-dim); }
-
-/* ── ADMIN HINT ──────────────────────────────────────────────── */
-.admin-hint {
-  margin: 1.1rem 0;
-  padding: .85rem 1rem;
-  background: var(--bg-elevated);
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  display: flex;
-  gap: .6rem;
-  align-items: flex-start;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Borda lateral sutil */
-.admin-hint::before {
-  content: "";
-  position: absolute;
-  top: .5rem; bottom: .5rem; left: 0;
-  width: 2px;
-  background: linear-gradient(180deg, transparent, var(--border-gold), transparent);
-  border-radius: 0 2px 2px 0;
-}
-
-.admin-hint__icon {
-  font-size: .9rem;
-  flex-shrink: 0;
-  opacity: .5;
-  margin-top: 1px;
-}
-
-.admin-hint p {
-  font-size: .7rem;
-  color: var(--text-muted);
-  line-height: 1.65;
-}
 /* ═══════════════════════════════════════════════════════════════
    ADMIN DASHBOARD (redesign — Tela 2)
    Mantém tokens do tema. Botões novos resetam appearance.
@@ -402,8 +147,6 @@
 }
 .adm2-gear svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2; fill: none; }
 .adm2-gear:hover { color: var(--accent); border-color: var(--accent-border); }
-.adm2-invite { margin: 0; }
-.adm2-invite svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2.4; fill: none; vertical-align: -3px; margin-right: 5px; }
 
 .adm2-period { margin-top: .3rem; }
 .adm2-period-label {
@@ -419,8 +162,6 @@
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
 }
-.kpi__top { display: flex; align-items: center; gap: .4rem; margin-bottom: .45rem; }
-.kpi__ico { font-size: .9rem; }
 .kpi__label { font-size: .64rem; font-family: var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
 .kpi__val { font-family: var(--font-serif); font-size: 1.5rem; font-weight: 700; color: var(--text); line-height: 1; }
 .kpi--paid { border-color: var(--accent-border); }
@@ -438,28 +179,7 @@
 }
 .adm2-sectitle__hint { font-size: .68rem; color: var(--text-dim); }
 
-/* ── CONFIGURAÇÕES RÁPIDAS ───────────────────────────────────── */
-.qs-grid { display: flex; flex-direction: column; gap: .7rem; }
-.qs-card {
-  padding: .8rem .9rem;
-  background: var(--bg-card); border: 1px solid var(--border-light);
-  border-radius: var(--radius-lg);
-}
-.qs-card__label {
-  font-size: .68rem; font-family: var(--font-mono); letter-spacing: .06em;
-  text-transform: uppercase; color: var(--text-muted); margin-bottom: .5rem;
-}
-.qs-card__row { display: flex; align-items: center; gap: .5rem; }
-.qs-card__cur { color: var(--text-muted); font-size: .9rem; }
-.qs-card__input {
-  flex: 1; min-width: 0; background: var(--bg-elevated);
-  border: 1px solid var(--border-light); border-radius: 10px;
-  padding: .5rem .6rem; color: var(--text); font-size: .95rem;
-  font-family: var(--font-mono);
-}
-.qs-card__input--text { font-family: var(--font-display); font-size: .85rem; }
-.qs-card__input:focus { outline: none; border-color: var(--accent-border); }
-.qs-card__hint { flex: 1; font-size: .76rem; color: var(--text-muted); }
+/* ── STEPPER E BOTÃO-ÍCONE (editores de configuração) ───────── */
 .qs-stepper { display: flex; flex-direction: column; gap: 2px; }
 .qs-step {
   width: 26px; height: 20px; display: grid; place-items: center;
@@ -475,51 +195,6 @@
 }
 .qs-icon svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; }
 .qs-icon:hover { color: var(--accent); border-color: var(--accent-border); }
-.qs-save {
-  flex-shrink: 0; padding: .5rem .9rem; border: none; border-radius: 10px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-soft));
-  color: #1a1500; font-weight: 700; font-size: .8rem;
-}
-.qs-save--ghost {
-  background: transparent; border: 1px solid var(--accent-border); color: var(--accent);
-}
-
-/* ── TABELA DE PASSAGEIROS ───────────────────────────────────── */
-.pax-table {
-  background: var(--bg-card); border: 1px solid var(--border-light);
-  border-radius: var(--radius-lg); overflow: hidden;
-}
-.pax-row {
-  width: 100%; display: flex; align-items: center; gap: .7rem;
-  padding: .7rem .85rem; text-align: left; background: none; border: none;
-  border-bottom: 1px solid var(--border);
-  transition: background .18s;
-}
-.pax-row:last-child { border-bottom: none; }
-.pax-row:hover { background: var(--bg-hover); }
-.pax-row--off { opacity: .5; }
-.pax-row__avatar {
-  width: 36px; height: 36px; flex-shrink: 0; border-radius: 50%;
-  display: grid; place-items: center; color: var(--text);
-  font-weight: 700; font-size: .85rem; overflow: hidden;
-}
-.pax-row__avatar .avatar-img { width: 100%; height: 100%; object-fit: cover; }
-.pax-row__id { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.pax-row__name {
-  font-weight: 600; color: var(--text); font-size: .88rem;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.pax-tag {
-  font-size: .58rem; font-weight: 700; color: var(--accent);
-  background: var(--accent-dim); border-radius: 999px; padding: .05rem .35rem;
-}
-.pax-row__role { font-size: .68rem; color: var(--text-muted); }
-.pax-row__nums { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0; }
-.pax-row__paid { font-size: .82rem; font-weight: 600; color: var(--paid); }
-.pax-row__open { font-size: .66rem; color: var(--debt); }
-.pax-row__open.is-zero { color: var(--text-muted); }
-.pax-row__chev { color: var(--text-dim); display: grid; place-items: center; }
-.pax-row__chev svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; }
 
 /* ── DRAWER LATERAL ──────────────────────────────────────────── */
 .drawer { position: fixed; inset: 0; z-index: 210; }
@@ -590,37 +265,8 @@
 .drawer-act--danger { color: var(--debt); border-color: rgba(224,92,92,.3); }
 .drawer-act--danger:hover { color: var(--debt); background: var(--debt-dim); border-color: var(--debt); }
 
-/* ── ZONA DE PERIGO ──────────────────────────────────────────── */
-.danger-zone {
-  margin-top: 1rem; padding: .9rem 1rem 1rem;
-  border: 1px solid rgba(224,92,92,.3); border-radius: var(--radius-lg);
-  background: var(--debt-dim);
-  display: flex; flex-direction: column; gap: .6rem;
-}
-.danger-zone__head { display: flex; align-items: center; gap: .45rem; color: var(--debt); margin-bottom: .1rem; }
-.danger-zone__head svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; }
-.danger-zone__head span { font-size: .7rem; font-family: var(--font-mono); letter-spacing: .1em; text-transform: uppercase; }
-.danger-btn {
-  display: flex; align-items: center; gap: .5rem; justify-content: center;
-  width: 100%; padding: .7rem; border-radius: 12px;
-  background: transparent; border: 1px solid rgba(224,92,92,.35); color: var(--debt);
-  font-weight: 600; font-size: .85rem; -webkit-appearance: none; appearance: none; cursor: pointer;
-}
-.danger-btn svg { width: 15px; height: 15px; stroke: currentColor; stroke-width: 2; fill: none; }
-.danger-btn:hover { background: var(--debt); color: #fff; border-color: var(--debt); }
-
-
 /* O drawer fica fora de .adm2 — reset de appearance nos seus botões. */
 .drawer button { -webkit-appearance: none; appearance: none; cursor: pointer; }
-
-/* ── ÍCONES LIMPOS (sem emoji): KPIs e cargos ────────────────── */
-.kpi__ico { display: inline-flex; }
-.kpi__ico svg { width: 15px; height: 15px; stroke: var(--text-muted); stroke-width: 2; fill: none; }
-.kpi--paid .kpi__ico svg { stroke: var(--paid); }
-.kpi--debt .kpi__ico svg { stroke: var(--debt); }
-.adm2-role { display: inline-flex; align-items: center; }
-.adm2-role svg { width: 12px; height: 12px; stroke: currentColor; stroke-width: 2; fill: none; margin-right: 3px; color: var(--accent); }
-.pax-row__role svg { width: 12px; height: 12px; stroke: currentColor; stroke-width: 2; fill: none; vertical-align: -2px; margin-right: 2px; }
 
 /* ═══ TELA DO ADMIN DO SISTEMA (ADM MASTER) ═══════════════════ */
 .sys2 { padding: 1rem 1rem 2rem; display: flex; flex-direction: column; gap: 1rem; max-width: 520px; margin: 0 auto; }
@@ -634,7 +280,6 @@
   padding: .32rem .6rem; border-radius: 999px;
 }
 .sys2-head__badge svg { width: 13px; height: 13px; stroke: currentColor; stroke-width: 2; fill: none; }
-
 
 /* ═══════════════════════════════════════════════════════════════
    ADM DO GRUPO — Fase 2 (atenção, KPIs, passageiros, atividade,

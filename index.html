@@ -764,7 +764,7 @@
         <div class="set-field">
           <input id="adm-pix-input" type="text" class="set-field__input set-field__input--text"
                  placeholder="e-mail, CPF, telefone ou chave" maxlength="140" />
-          <button id="btn-copy-pix" class="qs-icon" title="Copiar chave" aria-label="Copiar">
+          <button id="btn-copy-pix-adm" class="qs-icon" title="Copiar chave" aria-label="Copiar">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
           </button>
         </div>
@@ -1005,18 +1005,6 @@
         </div>
         <p id="profile-pass-error" class="auth-error"></p>
         <button id="btn-change-pass" class="btn btn--secondary btn--full">Trocar senha</button>
-      </div>
-    </div>
-
-    <!-- Modal: Detalhe do usuário (admin) -->
-    <div id="modal-user-detail" class="modal">
-      <div class="modal-sheet" style="position:relative">
-        <div class="modal-handle"></div>
-        <button class="modal-close-btn" data-close-modal="modal-user-detail">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-        <div id="user-detail-title" class="modal-title">Usuário</div>
-        <div id="user-detail-content"></div>
       </div>
     </div>
 

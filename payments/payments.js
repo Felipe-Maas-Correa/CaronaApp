@@ -3,7 +3,7 @@
 // Registro e listagem de pagamentos com comprovantes
 // ============================================================
 
-import { getUserPayments, getGroupPayments, getGroupUsers, getUserUnpaidTrips, getTripValue, toMillis } from "../js/db.js";
+import { getUserPayments, getGroupPayments, getGroupUsers, getUserUnpaidTrips, getTripValue, tripAmount, toMillis } from "../js/db.js";
 import { createPayment, deletePayment, approvePayment, rejectPayment } from "../js/worker-api.js";
 import { showToast, formatCurrency, formatDate, formatDateTime, icon, todayISO, escapeHtml, safeImageSrc, safeReceiptSrc, copyToClipboard, readFileAsDataURL } from "../js/utils.js";
 import { readPdfReceipt, valuesMatch } from "../js/receipt-parser.js";
@@ -257,7 +257,7 @@ async function openNewPaymentModal() {
   selectedDates  = new Set();
   unpaidDatesSet = new Set(unpaidTrips.map(t => t.date));
   amountByDate   = {};
-  unpaidTrips.forEach(t => { amountByDate[t.date] = t.amount ?? getTripValue(); });
+  unpaidTrips.forEach(t => { amountByDate[t.date] = tripAmount(t); });
 
   // Navega para o mês mais antigo com viagem em aberto
   if (unpaidTrips.length > 0) {

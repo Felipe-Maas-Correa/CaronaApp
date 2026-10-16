@@ -178,57 +178,6 @@
 }
 
 /* ── MODAL DE NOVO PAGAMENTO ─────────────────────────────────── */
-.trips-select-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: .65rem;
-}
-
-.unpaid-trips-list {
-  max-height: 240px;
-  overflow-y: auto;
-  margin-bottom: 1.1rem;
-}
-
-.trip-check-item {
-  display: flex;
-  align-items: center;
-  gap: .85rem;
-  padding: .7rem .6rem;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: background .15s;
-  border: 1px solid transparent;
-}
-
-.trip-check-item:active {
-  background: var(--bg-hover);
-}
-
-.trip-check-item input[type="checkbox"] {
-  width: 17px;
-  height: 17px;
-  accent-color: var(--accent);
-  flex-shrink: 0;
-}
-
-.trip-check-info {
-  flex: 1;
-  display: flex;
-  justify-content: space-between;
-}
-
-.trip-check-date {
-  font-size: .85rem;
-  color: var(--text);
-}
-
-.trip-check-amount {
-  font-family: var(--font-mono);
-  font-size: .8rem;
-  color: var(--text-muted);
-}
 
 .payment-total-bar {
   background: linear-gradient(135deg, var(--bg-elevated) 0%, rgba(212,175,55,0.05) 100%);
@@ -278,14 +227,6 @@
   letter-spacing: 0.02em;
 }
 
-.receipt-thumb {
-  width: 100%;
-  max-height: 120px;
-  object-fit: cover;
-  border-radius: var(--radius-sm);
-  margin-top: .5rem;
-}
-
 .receipt-file-icon {
   font-size: .8rem;
   color: var(--accent);
@@ -329,7 +270,7 @@
   transition: background .2s, transform .1s;
 }
 .pix-copy-btn:active { transform: scale(.96); }
-.pix-copy-btn--done  { background: #00cec9; color: #0f0f0f; }
+.pix-copy-btn--done  { background: var(--accent-dim); color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent-border); }
 
 .pix-box__key {
   display: block;

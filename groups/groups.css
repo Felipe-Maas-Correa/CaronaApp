@@ -31,73 +31,12 @@
 /* A sessão do Firebase é persistente: quem já entrou uma vez reabre o app
    direto aqui, sem passar pela tela de login. Esta barra é o que explica
    isso — diz de quem é a conta e dá a saída num toque. */
-.group-account {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: .7rem;
-  padding: .6rem .7rem .6rem .95rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-lg);
-}
-
-.group-account__info {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.group-account__label {
-  font-size: .55rem;
-  font-family: var(--font-mono);
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: .14em;
-}
-
-.group-account__who {
-  font-size: .82rem;
-  font-weight: 600;
-  color: var(--text);
-  margin-top: 2px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.group-account__exit {
-  flex-shrink: 0;
-  padding: .42rem .95rem;
-  background: transparent;
-  border: 1px solid var(--border-light);
-  border-radius: 999px;
-  color: var(--text-muted);
-  font-family: var(--font-display);
-  font-size: .74rem;
-  font-weight: 600;
-  letter-spacing: .02em;
-  transition: color .2s, border-color .2s, background .2s;
-}
-.group-account__exit:hover,
-.group-account__exit:active {
-  color: var(--debt);
-  border-color: rgba(224, 92, 92, 0.3);
-  background: var(--debt-dim);
-}
 
 /* ── CARTÃO DE SEÇÃO ─────────────────────────────────────────── */
 /* Os formulários de entrar/criar usam .auth-form — o mesmo cartão da tela
    de login. Este aqui é para os blocos de contexto (meus grupos, convites
    recebidos), que ficam acima das abas; o raio acompanha o .auth-form para
    as duas telas parecerem a mesma família. */
-.group-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-  padding: 1.15rem 1.25rem;
-  box-shadow: var(--shadow-sm);
-}
 
 /* ── LISTA "MEUS GRUPOS" (o seletor de grupo ativo) ──────────── */
 .group-item {
@@ -116,11 +55,6 @@
 }
 .group-item:last-child { margin-bottom: 0; }
 .group-item:active     { transform: scale(.985); }
-
-.group-item--active {
-  border-color: var(--border-gold);
-  background: linear-gradient(135deg, var(--bg-elevated) 0%, rgba(212,175,55,0.07) 100%);
-}
 
 .group-item__mark {
   width: 18px;
@@ -153,36 +87,6 @@
   font-family: var(--font-mono);
   color: var(--text-muted);
   letter-spacing: .04em;
-}
-
-/* ── CONVITES RECEBIDOS ──────────────────────────────────────── */
-.group-invite {
-  display: flex;
-  align-items: center;
-  gap: .7rem;
-  padding: .7rem .85rem;
-  margin-bottom: .5rem;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-gold);
-  border-radius: var(--radius);
-}
-.group-invite:last-child { margin-bottom: 0; }
-
-.group-invite__info { flex: 1; min-width: 0; }
-
-.group-invite__group {
-  font-size: .85rem;
-  font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.group-invite__by {
-  font-size: .62rem;
-  font-family: var(--font-mono);
-  color: var(--text-muted);
-  margin-top: 2px;
 }
 
 /* ── CÓDIGO DE CONVITE ───────────────────────────────────────── */
@@ -292,33 +196,6 @@
 }
 .profile-group__actions .btn { flex: 1; }
 
-/* ── CABEÇALHO DO GRUPO NO PAINEL ────────────────────────────── */
-.adm-group-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: .7rem;
-  margin-bottom: .9rem;
-}
-
-.adm-group-head__name {
-  font-family: var(--font-serif);
-  font-size: 1.05rem;
-  color: var(--accent);
-  font-weight: 700;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.adm-group-head__sub {
-  font-size: .62rem;
-  font-family: var(--font-mono);
-  color: var(--text-muted);
-  margin-top: 2px;
-  letter-spacing: .05em;
-}
-
 /* ── LISTA DE GRUPOS DO SISTEMA (ADM SUPREMO) ────────────────── */
 .sys-group {
   display: flex;
@@ -371,43 +248,9 @@
 }
 .sys-group__open.is-zero { color: var(--text-dim); }
 
-/* ── AVISO DE "SEM GRUPO" NAS ABAS ───────────────────────────── */
-.no-group-note {
-  margin: 1.25rem;
-  padding: 1.1rem 1.25rem;
-  background: var(--bg-card);
-  border: 1px dashed var(--border-gold);
-  border-radius: var(--radius);
-  text-align: center;
-  color: var(--text-muted);
-  font-size: .82rem;
-  line-height: 1.6;
-}
-
 /* ── CHAVE PIX NO PAINEL DO GRUPO ────────────────────────────── */
 /* Empilhado (e nao em linha, como o valor da viagem) porque uma chave
    PIX aleatoria tem 36 caracteres e nao cabe ao lado do rotulo. */
-.adm-pix {
-  background: var(--bg-card);
-  border: 1px solid var(--border-gold);
-  border-radius: var(--radius);
-  padding: .8rem 1rem;
-  margin-bottom: 1rem;
-}
-
-.adm-pix__row {
-  display: flex;
-  gap: .5rem;
-  margin-top: .65rem;
-}
-
-.adm-pix__row .form-input {
-  flex: 1;
-  min-width: 0;
-  padding: .5rem .8rem;
-  font-size: .82rem;
-  font-family: var(--font-mono);
-}
 
 /* ═══════════════════════════════════════════════════════════════
    HUB DE GRUPOS (redesign — Tela 1)
