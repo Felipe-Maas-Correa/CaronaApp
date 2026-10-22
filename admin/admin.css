@@ -125,6 +125,15 @@
 .adm2 { padding: 1rem 1rem 2rem; display: flex; flex-direction: column; gap: 1rem; max-width: 520px; margin: 0 auto; }
 .adm2 button { -webkit-appearance: none; appearance: none; cursor: pointer; }
 
+/* Agrupadores das colunas do computador (css/desktop.css). No celular a
+   coluna some e os grupos voltam à ordem de leitura original. */
+.adm2-col { display: contents; }
+.adm2-grp { display: flex; flex-direction: column; gap: 1rem; }
+.adm2-grp--overview { order: 1; }
+.adm2-grp--people   { order: 2; }
+.adm2-grp--stats    { order: 3; }
+.adm2-col .danger2  { order: 4; }
+
 /* ── HEADER ──────────────────────────────────────────────────── */
 .adm2-head {
   display: flex; align-items: flex-start; justify-content: space-between; gap: .8rem;

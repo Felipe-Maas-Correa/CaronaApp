@@ -168,6 +168,9 @@
   background: linear-gradient(90deg, transparent, var(--accent-border), transparent);
 }
 
+/* Marca da barra lateral — só aparece no computador (css/desktop.css) */
+.side-brand { display: none; }
+
 .nav-btn {
   flex: 1;
   display: flex;

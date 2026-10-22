@@ -193,7 +193,8 @@ Ordem fixa — use o token, nunca um número:
 - [ ] Cores e camadas por token
 - [ ] Sem `style=""` novo, sem `<style>`, sem `<svg>` colado, sem emoji
 - [ ] IDs únicos (um `id` repetido faz o `getElementById` pegar o elemento errado)
-- [ ] Coluna única, sem rolagem horizontal (o app é para celular)
+- [ ] Coluna única, sem rolagem horizontal no celular. Colunas/grades para o
+      computador só em `css/desktop.css` (`@media (min-width: 1024px)`)
 - [ ] `node tools/audit-ui.js` passando
 
 ---

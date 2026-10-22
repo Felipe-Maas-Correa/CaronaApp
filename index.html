@@ -34,6 +34,10 @@
   <!-- Tokens de tipografia, ícones e camadas — por último, de propósito
        (ver o cabeçalho de css/design-system.css). -->
   <link rel="stylesheet" href="css/design-system.css" />
+
+  <!-- Layout de computador (≥ 1024px): sobrescreve os anteriores só
+       dentro do @media, então vem depois de tudo. -->
+  <link rel="stylesheet" href="css/desktop.css" />
 </head>
 <body>
 
@@ -472,6 +476,12 @@
               </button>
             </div>
 
+            <!-- Colunas: no celular somem (display: contents) e a ordem
+                 original volta por `order`; no computador viram duas
+                 colunas (ver css/desktop.css). -->
+            <div class="adm2-col adm2-col--main">
+            <div class="adm2-grp adm2-grp--overview">
+
             <!-- ═══ PRECISA DA SUA ATENÇÃO ═══ pendências dinâmicas. -->
             <div class="adm2-sectitle"><span>Precisa da sua atenção</span></div>
             <div id="adm-attention"></div>
@@ -506,6 +516,20 @@
               </div>
             </div>
 
+            </div><!-- /adm2-grp--overview -->
+
+            <div class="adm2-grp adm2-grp--stats">
+            <!-- ═══ ESTATÍSTICAS ═══ gráfico SVG simples. -->
+            <div class="adm2-sectitle"><span>Estatísticas</span></div>
+            <div id="adm-stats">
+              <div class="loading-spinner"></div>
+            </div>
+            </div><!-- /adm2-grp--stats -->
+            </div><!-- /adm2-col--main -->
+
+            <div class="adm2-col adm2-col--side">
+            <div class="adm2-grp adm2-grp--people">
+
             <!-- ═══ PASSAGEIROS ═══ linha enxuta; toque abre o drawer. O "+"
                  é a única entrada de convite (sem botão gigante no topo). -->
             <div class="adm2-sectitle">
@@ -524,12 +548,7 @@
             <div id="adm-activity">
               <div class="loading-spinner"></div>
             </div>
-
-            <!-- ═══ ESTATÍSTICAS ═══ gráfico SVG simples. -->
-            <div class="adm2-sectitle"><span>Estatísticas</span></div>
-            <div id="adm-stats">
-              <div class="loading-spinner"></div>
-            </div>
+            </div><!-- /adm2-grp--people -->
 
             <!-- ═══ ZONA DE PERIGO ═══ discreta: lista sóbria, vermelho só
                  no texto das ações. -->
@@ -550,6 +569,7 @@
                 <i data-icon="chevron-right" class="danger2__chev"></i>
               </button>
             </div>
+            </div><!-- /adm2-col--side -->
           </div>
         </div>
 
@@ -597,8 +617,13 @@
 
       </div>
 
-      <!-- Bottom Nav -->
+      <!-- Bottom Nav (no computador vira a barra lateral; a marca abaixo só
+           aparece lá — ver css/desktop.css) -->
       <nav class="bottom-nav">
+        <div class="side-brand">
+          <i data-icon="logo"></i>
+          CaronaApp
+        </div>
         <button class="nav-btn nav-btn--active" data-tab="tab-summary">
           <span class="nav-btn__icon">
             <i data-icon="bar-chart"></i>
