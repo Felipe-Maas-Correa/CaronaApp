@@ -1,29 +1,69 @@
 /* ============================================================
-   components.css — Cards, botões, badges, toast, spinner, utilitários
+   components.css — GUIA DE ESTILO: COMPONENTES CANÔNICOS
    Premium Dark Gold — CaronaApp
+
+   Fonte única dos blocos de interface. Tela nova PUXA daqui — não
+   cria botão, selo, campo ou card próprio no CSS da pasta dela.
+   Catálogo visual com exemplos: guia/index.html (abrir no dev server).
+   Regras e tabela de variantes: DESIGN-SYSTEM.md.
+
+   O CSS de cada tela só cuida de LAYOUT (posição, espaçamento, grade)
+   e de peças que só existem nela (ex.: o dia do calendário).
+
+   Sumário
+     1. Card ............ .card
+     2. Botão ........... .btn
+     3. Botão-ícone ..... .btn-icon
+     4. Linha de botões  .btn-row
+     5. Segmentado ...... .seg
+     6. Título de seção . .section-head / .section-title
+     7. Selo ............ .badge
+     8. Formulário ...... .form-group / .form-input / .input-group
+     9. Número (KPI) .... .stat
+    10. Avatar .......... .avatar
+    11. Lista ........... .list / .list-item
+    12. Estado vazio .... .empty-state
+    13. Toast, spinner, scrollbar, utilitários
    ============================================================ */
 
-/* ── SECTION TITLE ───────────────────────────────────────────── */
-.section-title {
-  font-size: var(--fs-2xs);
-  font-family: var(--font-mono);
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: .16em;
-  margin-bottom: .65rem;
-}
 
-/* ── CARD ────────────────────────────────────────────────────── */
+/* ══ 1. CARD ═══════════════════════════════════════════════════
+   A superfície padrão. Quem precisa de layout interno compõe:
+   class="card payment-card".                                     */
 .card {
   background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1.1rem 1.25rem;
-  margin: 0 1.25rem 1rem;
-  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.1rem;
+}
+.card--elevated    { background: var(--bg-elevated); }
+.card--accent      { border-color: var(--accent-border); }
+.card--debt        { border-color: rgba(224, 92, 92, 0.3); }
+.card--dashed      { border-style: dashed; border-color: var(--border-gold); }
+.card--flush       { padding: 0; overflow: hidden; }
+.card--interactive {
+  cursor: pointer;
+  transition: transform .16s ease, border-color .2s, box-shadow .2s;
+}
+.card--interactive:hover  { transform: translateY(-2px); border-color: var(--border-gold); box-shadow: var(--shadow); }
+.card--interactive:active { transform: translateY(0); }
+.card__title {
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: .9rem;
 }
 
-/* ── BUTTONS ─────────────────────────────────────────────────── */
+
+/* ══ 2. BOTÃO ══════════════════════════════════════════════════
+   Tom:     --primary  ação principal (1 por tela/sheet)
+            --secondary neutra · --ghost só contorno · --soft dourado suave
+            --danger   destrutiva · --link  texto sem caixa
+   Tamanho: --xs (cabeçalho, 34px) · --sm · padrão · --lg (formulário)
+   Forma:   --full largura toda · --pill cantos redondos
+   Estado:  .is-active (alternância ligada) · :disabled              */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -31,157 +71,518 @@
   gap: .45rem;
   padding: .8rem 1.35rem;
   border-radius: var(--radius);
-  border: none;
+  border: 1px solid transparent;
+  background: none;
+  color: var(--text);
   font-family: var(--font-display);
   font-size: var(--fs-md);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   letter-spacing: .02em;
-  transition: opacity .2s, transform .15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow .2s;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: opacity .2s, transform .15s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow .2s, background .2s, border-color .2s, color .2s;
 }
-
-.btn:active {
-  transform: scale(.95);
-}
-
+.btn:active   { transform: scale(.96); }
 .btn:disabled {
   opacity: .35;
   cursor: not-allowed;
   transform: none !important;
 }
+.btn .lucide { width: var(--ic-md); height: var(--ic-md); }
 
 .btn--primary {
   background: linear-gradient(135deg, var(--accent) 0%, var(--accent-soft) 100%);
   color: var(--on-accent);
   box-shadow: 0 4px 16px rgba(212, 175, 55, 0.2);
 }
-.btn--primary:hover {
-  box-shadow: 0 6px 24px rgba(212, 175, 55, 0.3);
-}
-.btn--primary:active {
-  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.2);
-}
+.btn--primary:hover  { box-shadow: 0 6px 24px rgba(212, 175, 55, 0.3); }
+.btn--primary:active { box-shadow: 0 2px 8px rgba(212, 175, 55, 0.2); }
 
 .btn--secondary {
   background: var(--bg-elevated);
-  color: var(--text);
-  border: 1px solid var(--border-light);
+  border-color: var(--border-light);
 }
-.btn--secondary:active {
-  background: var(--bg-hover);
+.btn--secondary:hover  { border-color: var(--accent-border); color: var(--accent); }
+.btn--secondary:active { background: var(--bg-hover); }
+
+.btn--ghost {
+  color: var(--text-muted);
+  border-color: var(--border-light);
 }
+.btn--ghost:hover { color: var(--text); background: var(--bg-hover); }
+
+.btn--soft {
+  background: var(--accent-dim);
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+.btn--soft:hover { background: rgba(212, 175, 55, 0.18); }
 
 .btn--danger {
   background: var(--debt-dim);
+  border-color: rgba(224, 92, 92, 0.3);
   color: var(--debt);
-  border: 1px solid rgba(224, 92, 92, 0.25);
 }
-.btn--danger:active {
-  background: rgba(224, 92, 92, 0.2);
+.btn--danger:hover  { border-color: var(--debt); }
+.btn--danger:active { background: rgba(224, 92, 92, 0.2); }
+
+.btn.is-active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+  font-weight: var(--fw-bold);
 }
 
+.btn--xs {
+  height: 34px;
+  padding: 0 .75rem;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .04em;
+}
+.btn--sm  { padding: .5rem .9rem; font-size: var(--fs-sm); }
+.btn--lg  { padding: .9rem 1.35rem; font-size: var(--fs-base); letter-spacing: .04em; }
 .btn--full { width: 100%; }
+.btn--pill { border-radius: 999px; }
 
-.btn--sm {
-  padding: .5rem .9rem;
+/* Depois dos tamanhos de propósito: link nunca ganha caixa nem padding */
+.btn--link {
+  padding: .2rem;
+  border: none;
+  color: var(--text-muted);
   font-size: var(--fs-sm);
+  font-weight: var(--fw-regular);
 }
+.btn--link:hover { color: var(--accent); }
 
-/* Ícone circular */
+
+/* ══ 3. BOTÃO-ÍCONE ════════════════════════════════════════════
+   Quadrado com um ícone e nada mais. SEMPRE com aria-label.
+   Tamanho: --sm 28px · padrão 34px · --lg 40px    Forma: --round
+   Tom: padrão neutro · --accent · --danger (contorno) · --danger-solid */
 .btn-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border-light);
   background: var(--bg-elevated);
-  font-size: var(--fs-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background .15s, border-color .15s, transform .15s;
-  color: var(--text-muted);
-}
-.btn-icon:active {
-  transform: scale(.9);
-}
-
-.btn-icon--delete {
-  border-color: rgba(224, 92, 92, 0.25);
-  color: var(--debt);
-}
-.btn-icon--delete:active {
-  background: var(--debt-dim);
-}
-
-.btn-icon--receipt:active {
-  background: var(--accent-dim);
-  border-color: var(--border-gold);
-  color: var(--accent);
-}
-
-/* Botão de navegação */
-.btn-nav {
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-  border: 1px solid var(--border-light);
-  background: var(--bg-card);
   color: var(--text-muted);
   font-size: var(--fs-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
   transition: background .15s, border-color .15s, color .15s, transform .15s;
 }
-.btn-nav:active {
+.btn-icon:hover  { color: var(--accent); border-color: var(--accent-border); }
+.btn-icon:active { transform: scale(.9); }
+.btn-icon .lucide { width: var(--ic-md); height: var(--ic-md); }
+
+.btn-icon--sm { width: 28px; height: 28px; border-radius: 8px; }
+.btn-icon--lg { width: 40px; height: 40px; border-radius: 12px; }
+.btn-icon--lg .lucide { width: var(--ic-lg); height: var(--ic-lg); }
+.btn-icon--round { border-radius: 50%; }
+
+.btn-icon--accent {
+  background: var(--accent-dim);
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+.btn-icon--accent:hover { background: rgba(212, 175, 55, 0.18); }
+.btn-icon--accent .lucide { stroke-width: var(--ic-stroke-bold); }
+
+.btn-icon--danger { color: var(--debt); border-color: rgba(224, 92, 92, 0.25); }
+.btn-icon--danger:hover { color: var(--debt); border-color: var(--debt); background: var(--debt-dim); }
+
+.btn-icon--danger-solid {
+  background: var(--debt);
+  border-color: var(--debt);
+  color: var(--on-debt);
+  box-shadow: 0 1px 4px rgba(224, 92, 92, .35);
+}
+.btn-icon--danger-solid:hover { color: var(--on-debt); border-color: var(--debt); filter: brightness(.92); }
+
+
+/* ══ 4. LINHA DE BOTÕES ════════════════════════════════════════
+   Botões lado a lado dividindo a largura (Cancelar | Salvar).      */
+.btn-row { display: flex; gap: .6rem; }
+.btn-row > .btn { flex: 1; }
+
+
+/* ══ 5. SEGMENTADO ═════════════════════════════════════════════
+   Escolha exclusiva entre poucas opções (período, Entrar/Criar).
+   Ativo: .seg__btn--active.  --soft: ativo em dourado suave.       */
+.seg {
+  display: flex;
+  gap: 4px;
   background: var(--bg-elevated);
-  transform: scale(.9);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px;
+}
+.seg__btn {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: .02em;
+  padding: .45rem .2rem;
+  border-radius: 999px;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  /* Alvo de toque, não texto: toque duplo não seleciona nem dá zoom */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: background .2s, color .2s;
+}
+.seg__btn:hover { color: var(--text); }
+.seg__btn--active,
+.seg__btn--active:hover {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.seg--soft { background: var(--bg-card); }
+.seg--soft .seg__btn { font-size: var(--fs-sm); padding: .55rem .9rem; }
+.seg--soft .seg__btn--active {
+  background: var(--accent-dim);
+  color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--border-gold);
 }
 
-/* ── BADGES ──────────────────────────────────────────────────── */
+
+/* ══ 6. TÍTULO DE SEÇÃO ════════════════════════════════════════
+   Rótulo em caixa-alta acima de um bloco. Com ação ao lado (um "+",
+   "Ordenar"), envolva em .section-head. Sem margem própria: quem
+   espaça é o layout da tela.                                       */
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .6rem;
+  min-height: 1.5rem;
+}
+.section-title {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.section-hint  { font-size: var(--fs-xs); color: var(--text-dim); }
+.section-count { font-family: var(--font-mono); color: var(--text-dim); }
+
+
+/* ══ 7. SELO ═══════════════════════════════════════════════════
+   Etiqueta curta (status, cargo, data). Não é clicável.
+   Tom: --muted (padrão neutro) · --accent · --outline · --solid
+        --debt · --debt-outline        Tamanho: --lg               */
 .badge {
   display: inline-flex;
   align-items: center;
-  font-size: var(--fs-2xs);
+  gap: .3rem;
   font-family: var(--font-mono);
-  padding: .15rem .5rem;
-  border-radius: 999px;
-  border: 1px solid transparent;
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-medium);
   letter-spacing: .04em;
-  font-weight: 500;
+  padding: .15rem .55rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-light);
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.badge .lucide { width: var(--ic-xs); height: var(--ic-xs); }
+
+.badge--muted        { background: var(--bg-elevated); border-color: var(--border-light); color: var(--text-muted); }
+.badge--accent       { background: var(--accent-dim); border-color: var(--accent-border); color: var(--accent); }
+.badge--outline      { background: transparent; border-color: var(--accent-border); color: var(--accent); }
+.badge--solid        { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: var(--fw-bold); }
+.badge--debt         { background: var(--debt-dim); border-color: rgba(224, 92, 92, 0.35); color: var(--debt); }
+.badge--debt-outline { background: transparent; border-color: rgba(224, 92, 92, 0.3); color: var(--debt); }
+.badge--lg {
+  font-size: var(--fs-xs);
+  letter-spacing: .06em;
+  padding: .3rem .65rem;
 }
 
-.badge--admin {
-  background: var(--accent-dim);
+
+/* ══ 8. FORMULÁRIO ═════════════════════════════════════════════
+   .form-group > .form-label + .form-input   (campo comum)
+   .input-wrap + .input-eye                   (senha com olho)
+   .input-group > .input-group__affix + .input-group__input
+                                              (prefixo "R$", lupa, botão
+                                               embutido; --lg = valor grande) */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: .45rem;
+}
+.form-label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .12em;
+}
+.form-opt { color: var(--text-dim); font-weight: var(--fw-regular); }
+
+.form-input {
+  width: 100%;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: .8rem 1.1rem;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--fs-base);
+  transition: border-color .25s, box-shadow .25s, background .25s;
+  -webkit-appearance: none;
+}
+.form-input:focus {
+  outline: none;
   border-color: var(--border-gold);
-  color: var(--accent);
+  background: var(--bg-hover);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+.form-input::placeholder { color: var(--text-dim); }
+
+/* Código de convite: grande, espaçado, em caixa-alta */
+.form-input--code {
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xl);
+  letter-spacing: .35em;
+  text-transform: uppercase;
+  padding-left: .35em; /* compensa o letter-spacing do último caractere */
 }
 
-.badge--user {
-  background: var(--bg-elevated);
-  border-color: var(--border-light);
+.form-select {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%237a7570' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  padding-right: 2.5rem;
+}
+.form-select option { background: var(--bg-card); }
+
+.input-wrap { position: relative; }
+.input-wrap .form-input { padding-right: 3rem; }
+.input-eye {
+  position: absolute;
+  right: .8rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: var(--fs-base);
+  cursor: pointer;
+  padding: .25rem;
   color: var(--text-muted);
+  transition: color .2s;
+}
+.input-eye:hover { color: var(--text); }
+.input-eye .lucide { stroke-width: var(--ic-stroke-light); }
+
+.input-group {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .3rem .6rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  transition: border-color .25s, box-shadow .25s;
+}
+.input-group:focus-within {
+  border-color: var(--border-gold);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+.input-group__affix {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+.input-group__affix.lucide { stroke: var(--text-muted); }
+.input-group__input {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  padding: .45rem .2rem;
+}
+.input-group__input::placeholder { color: var(--text-dim); }
+.input-group__input::-webkit-outer-spin-button,
+.input-group__input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.input-group__input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+.input-group--lg .input-group__input {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  padding: .5rem .2rem;
+}
+.input-group--lg .input-group__input[type=number] {
+  font-family: var(--font-mono);
+  font-weight: var(--fw-bold);
 }
 
-.badge--active {
-  background: transparent;
-  border-color: rgba(212, 175, 55, 0.3);
-  color: var(--accent);
-}
 
-.badge--inactive {
-  background: transparent;
-  border-color: rgba(224, 92, 92, 0.25);
+/* ══ 9. NÚMERO (KPI) ═══════════════════════════════════════════
+   Valor em destaque + rótulo embaixo. Dinheiro e contagens.
+   Tom do valor: --paid · --debt · --accent    Caixa: --highlight
+   Variação: --sm (valor menor) · --center · --elevated (dentro de sheet)
+   Grade: .stat-grid (2 colunas) · .stat-grid--3                     */
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+  padding: .85rem .95rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  min-width: 0;
+}
+.stat__value {
+  font-family: var(--font-serif);
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+  line-height: 1.05;
+  color: var(--text);
+  /* Dinheiro nunca some atrás de reticências: se faltar espaço, quebra */
+  overflow-wrap: anywhere;
+}
+.stat__label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+.stat--paid   .stat__value { color: var(--paid); }
+.stat--debt   .stat__value { color: var(--debt); }
+.stat--accent .stat__value { color: var(--accent); }
+.stat--highlight { border-color: var(--accent-border); }
+.stat--sm .stat__value { font-size: var(--fs-xl); }
+.stat--center { align-items: center; text-align: center; }
+.stat--center .stat__label { white-space: normal; }
+.stat--elevated { background: var(--bg-elevated); border-radius: var(--radius); }
+
+.stat-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; }
+.stat-grid--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+
+/* ══ 10. AVATAR ════════════════════════════════════════════════
+   Foto ou inicial. No JS use avatar() de js/ui.js — ele já escolhe
+   foto/inicial e a cor de fundo pelo nome.
+   Tamanho: --xs 18 · --sm 28 · padrão 40 · --lg 46
+   Forma: --square (grupo)   Tom: --accent (dourado) · --ring (borda) */
+.avatar {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+  overflow: hidden;
+  background: var(--bg-elevated);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-bold);
+  line-height: 1;
+}
+.avatar--xs { width: 18px; height: 18px; font-size: var(--fs-2xs); }
+.avatar--sm { width: 28px; height: 28px; font-size: var(--fs-sm); }
+.avatar--lg { width: 46px; height: 46px; font-size: var(--fs-lg); }
+.avatar--square { border-radius: 9px; }
+.avatar--accent {
+  background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+  color: var(--on-accent);
+}
+.avatar--ring { border: 1px solid var(--border-gold); color: var(--accent); }
+.avatar--photo { background: none; }
+.avatar-img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; display: block; }
+
+
+/* ══ 11. LISTA ═════════════════════════════════════════════════
+   Linhas dentro de uma caixa, separadas por fio. A linha pode ser
+   <button> (abre algo) ou <div>.  --elevated: dentro de sheet.      */
+.list {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.list--elevated { background: var(--bg-elevated); }
+.list-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .8rem .9rem;
+  text-align: left;
+  color: var(--text);
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-display);
+  -webkit-appearance: none;
+  appearance: none;
+  transition: background .18s;
+}
+.list-item:last-child { border-bottom: none; }
+button.list-item { cursor: pointer; }
+button.list-item:hover { background: var(--bg-hover); }
+
+
+/* ══ 12. ESTADO VAZIO ══════════════════════════════════════════
+   Quando uma lista não tem nada. No JS: emptyState(ícone, texto) de
+   js/ui.js.  --compact: sem ícone, menos respiro (dentro de sheet). */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: var(--text-muted);
+  font-size: var(--fs-md);
+  line-height: 1.6;
+}
+.empty-state__icon {
+  margin-bottom: .65rem;
+  opacity: .4;
+}
+.empty-state__icon .lucide {
+  width: var(--ic-3xl);
+  height: var(--ic-3xl);
+  stroke-width: var(--ic-stroke-thin);
+  stroke: var(--text-muted);
+}
+.empty-state--compact { padding: 1rem .5rem; grid-column: 1 / -1; }
+
+.error-msg {
   color: var(--debt);
+  font-size: var(--fs-md);
+  text-align: center;
+  padding: 1.25rem;
 }
 
-.badge--you {
-  background: var(--bg-elevated);
-  border-color: var(--border);
-  color: var(--text-muted);
-  font-style: italic;
-}
 
-/* ── TOAST ───────────────────────────────────────────────────── */
+/* ══ 13. TOAST ═════════════════════════════════════════════════
+   Aviso rápido. No JS: showToast(texto, "success" | "error" | "info"). */
 .toast {
   position: fixed;
   bottom: calc(var(--nav-h) + var(--nav-safe) + 1rem);
@@ -192,7 +593,7 @@
   border-radius: var(--radius);
   padding: .7rem 1.35rem;
   font-size: var(--fs-md);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
@@ -202,29 +603,23 @@
   letter-spacing: .01em;
   box-shadow: var(--shadow);
 }
-
 .toast--visible {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
-
 .toast--success {
   border-color: var(--border-gold);
   color: var(--accent);
   background: linear-gradient(135deg, var(--bg-elevated) 0%, rgba(212,175,55,0.06) 100%);
 }
-
 .toast--error {
   border-color: rgba(224, 92, 92, 0.3);
   color: var(--debt);
   background: linear-gradient(135deg, var(--bg-elevated) 0%, rgba(224,92,92,0.06) 100%);
 }
+.toast--info { color: var(--text); }
 
-.toast--info {
-  color: var(--text);
-}
-
-/* ── LOADING SPINNER ─────────────────────────────────────────── */
+/* ── SPINNER ─────────────────────────────────────────────────── */
 .loading-spinner {
   width: 22px;
   height: 22px;
@@ -234,7 +629,6 @@
   animation: spin .75s linear infinite;
   margin: 2rem auto;
 }
-
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ── SCROLLBAR ───────────────────────────────────────────────── */
@@ -245,9 +639,9 @@
   border-radius: 3px;
 }
 
-/* ── UTILITIES ───────────────────────────────────────────────── */
-.text-paid  { color: var(--accent); }
-.text-debt  { color: var(--debt); }
+/* ── UTILITÁRIOS ─────────────────────────────────────────────── */
+.text-paid    { color: var(--accent); }
+.text-debt    { color: var(--debt); }
 .text-pending { color: var(--accent-soft); }
 .text-muted {
   color: var(--text-muted);
@@ -256,33 +650,6 @@
 }
 .mt-sm  { margin-top: .5rem; }
 .hidden { display: none !important; }
-
-.empty-state {
-  text-align: center;
-  padding: 3rem 1.5rem;
-  color: var(--text-muted);
-}
-
-.empty-state__icon {
-  font-size: var(--fs-3xl);
-  margin-bottom: .65rem;
-  opacity: .4;
-}
-
-.empty-msg {
-  text-align: center;
-  color: var(--text-muted);
-  font-size: var(--fs-md);
-  padding: 1.25rem;
-  line-height: 1.6;
-}
-
-.error-msg {
-  color: var(--debt);
-  font-size: var(--fs-md);
-  text-align: center;
-  padding: 1.25rem;
-}
 
 .no-receipt {
   font-size: var(--fs-md);

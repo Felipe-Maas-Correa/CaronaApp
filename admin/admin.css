@@ -1,45 +1,22 @@
 /* ============================================================
-   admin.css — Tab Admin: cards de usuário, hint
+   admin.css — Abas Admin (grupo) e Sistema (ADM master)
    Premium Dark Gold — CaronaApp
+
+   Botões, selos, números, avatares, listas e títulos de seção vêm de
+   css/components.css (guia de estilo). Aqui fica só o layout das telas
+   e as peças que só existem nelas (atenção, gráfico, drawer).
    ============================================================ */
 
-/* ── USER CARD ───────────────────────────────────────────────── */
+/* ── USER CARD (Sistema → Contas) ── compõe .card ───────────── */
 .user-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 1rem 1.1rem;
   margin-bottom: .6rem;
   display: flex;
   align-items: center;
   gap: .85rem;
   transition: opacity .25s, border-color .25s;
-  box-shadow: var(--shadow-sm);
 }
-
-.user-card:active {
-  border-color: var(--border-gold);
-}
-
-.user-card--inactive {
-  opacity: .45;
-}
-
-.user-card__avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--fs-lg);
-  font-weight: 700;
-  flex-shrink: 0;
-  border: 1px solid var(--border-light);
-  background: var(--bg-elevated);
-  color: var(--text-muted);
-  letter-spacing: 0;
-}
+.user-card:active { border-color: var(--border-gold); }
+.user-card--inactive { opacity: .45; }
 
 .user-card__info  { flex: 1; min-width: 0; }
 
@@ -78,52 +55,14 @@
   flex-shrink: 0;
 }
 
-/* ── SELETOR DE PERÍODO ──────────────────────────────────────── */
-.adm-seg {
-  display: flex;
-  gap: 4px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 4px;
-  margin-bottom: .5rem;
-}
-.adm-seg__btn {
-  flex: 1;
-  border: none;
-  background: transparent;
-  color: var(--text-muted);
-  font-family: var(--font-display);
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  letter-spacing: .02em;
-  padding: .45rem .2rem;
-  border-radius: 999px;
-  transition: background .2s, color .2s;
-}
-.adm-seg__btn--active {
-  background: var(--accent);
-  color: var(--on-accent);
-}
-.adm-period-label {
-  text-align: center;
-  font-family: var(--font-mono);
-  font-size: var(--fs-xs);
-  color: var(--text-muted);
-  letter-spacing: .04em;
-  margin-bottom: 1rem;
-  text-transform: capitalize;
-}
-
 /* ═══════════════════════════════════════════════════════════════
-   ADMIN DASHBOARD (redesign — Tela 2)
-   Mantém tokens do tema. Botões novos resetam appearance.
+   ADMIN DO GRUPO
    ═══════════════════════════════════════════════════════════════ */
 
-/* Foco em celular: coluna única, largura de telefone mesmo em janela larga
-   (centralizada). Nunca espalha na horizontal — sem rolagem lateral. */
+/* Celular: coluna única, largura de telefone (centralizada). O computador
+   abre em duas colunas em css/desktop.css. */
 .adm2 { padding: 1rem 1rem 2rem; display: flex; flex-direction: column; gap: 1rem; max-width: 520px; margin: 0 auto; }
-.adm2 button { -webkit-appearance: none; appearance: none; cursor: pointer; }
+.adm2 .section-head { margin-top: .4rem; }
 
 /* Agrupadores das colunas do computador (css/desktop.css). No celular a
    coluna some e os grupos voltam à ordem de leitura original. */
@@ -148,14 +87,6 @@
   font-size: var(--fs-sm); color: var(--text-muted); margin-top: .25rem;
   line-height: 1.4;
 }
-.adm2-gear {
-  flex-shrink: 0; width: 40px; height: 40px; display: grid; place-items: center;
-  background: var(--bg-elevated); border: 1px solid var(--border-light);
-  border-radius: 12px; color: var(--text-muted);
-  transition: color .2s, border-color .2s;
-}
-.adm2-gear svg { width: var(--ic-lg); height: var(--ic-lg); stroke: currentColor; stroke-width: var(--ic-stroke); fill: none; }
-.adm2-gear:hover { color: var(--accent); border-color: var(--accent-border); }
 
 .adm2-period { margin-top: .3rem; }
 .adm2-period-label {
@@ -163,43 +94,16 @@
   font-family: var(--font-mono); letter-spacing: .04em; margin-top: -.2rem;
 }
 
-/* ── KPI GRID ────────────────────────────────────────────────── */
-.kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; }
-.kpi {
-  padding: .85rem .9rem;
-  background: var(--bg-card); border: 1px solid var(--border-light);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-}
-.kpi--paid { border-color: var(--accent-border); }
-
-/* ── SEÇÕES ──────────────────────────────────────────────────── */
-.adm2-sectitle {
-  display: flex; align-items: baseline; justify-content: space-between;
-  margin-top: .4rem;
-}
-.adm2-sectitle > span:first-child {
-  font-size: var(--fs-xs); font-family: var(--font-mono); letter-spacing: .12em;
-  text-transform: uppercase; color: var(--text-muted);
-}
-.adm2-sectitle__hint { font-size: var(--fs-xs); color: var(--text-dim); }
-
-/* ── STEPPER E BOTÃO-ÍCONE (editores de configuração) ───────── */
+/* ── STEPPER (editor do valor por viagem) ────────────────────── */
 .qs-stepper { display: flex; flex-direction: column; gap: 2px; }
 .qs-step {
   width: 26px; height: 20px; display: grid; place-items: center;
   background: var(--bg-elevated); border: 1px solid var(--border-light);
   border-radius: 7px; color: var(--text-muted);
+  -webkit-appearance: none; appearance: none; cursor: pointer;
 }
-.qs-step svg { width: var(--ic-sm); height: var(--ic-sm); stroke: currentColor; stroke-width: var(--ic-stroke-bold); fill: none; }
+.qs-step .lucide { width: var(--ic-sm); height: var(--ic-sm); stroke-width: var(--ic-stroke-bold); }
 .qs-step:hover { color: var(--accent); border-color: var(--accent-border); }
-.qs-icon {
-  width: 36px; height: 36px; flex-shrink: 0; display: grid; place-items: center;
-  background: var(--bg-elevated); border: 1px solid var(--border-light);
-  border-radius: 10px; color: var(--text-muted);
-}
-.qs-icon svg { width: var(--ic-md); height: var(--ic-md); stroke: currentColor; stroke-width: var(--ic-stroke); fill: none; }
-.qs-icon:hover { color: var(--accent); border-color: var(--accent-border); }
 
 /* ── DRAWER LATERAL ──────────────────────────────────────────── */
 .drawer { position: fixed; inset: 0; z-index: var(--z-drawer); }
@@ -221,25 +125,8 @@
 .drawer--open .drawer__panel { transform: translateX(0); }
 .drawer__head { display: flex; align-items: center; justify-content: space-between; gap: .7rem; }
 .drawer__id { display: flex; align-items: center; gap: .7rem; min-width: 0; }
-.drawer__avatar {
-  width: 46px; height: 46px; border-radius: 50%; flex-shrink: 0;
-  display: grid; place-items: center; color: var(--text);
-  font-weight: 700; font-size: var(--fs-lg); overflow: hidden;
-}
-.drawer__avatar .avatar-img { width: 100%; height: 100%; object-fit: cover; }
 .drawer__name { font-family: var(--font-serif); font-size: var(--fs-xl); font-weight: 700; color: var(--text); }
 .drawer__mail { font-size: var(--fs-sm); color: var(--text-muted); font-family: var(--font-mono); }
-
-.drawer-kpis { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
-.drawer-kpi {
-  padding: .7rem; text-align: center;
-  background: var(--bg-elevated); border: 1px solid var(--border-light);
-  border-radius: var(--radius);
-}
-.drawer-kpi span { display: block; font-family: var(--font-serif); font-size: var(--fs-xl); font-weight: 700; color: var(--text); }
-.drawer-kpi small { font-size: var(--fs-xs); color: var(--text-muted); font-family: var(--font-mono); }
-.drawer-kpi--paid span { color: var(--paid); }
-.drawer-kpi--debt span { color: var(--debt); }
 
 .drawer-table {
   background: var(--bg-elevated); border: 1px solid var(--border-light);
@@ -259,44 +146,13 @@
 .drawer-row__open.is-zero { color: var(--text-dim); }
 
 .drawer__actions { display: flex; flex-direction: column; gap: .5rem; margin-top: auto; }
-.drawer-act {
-  display: flex; align-items: center; gap: .5rem; justify-content: center;
-  padding: .7rem; border-radius: 12px;
-  background: var(--bg-elevated); border: 1px solid var(--border-light);
-  color: var(--text); font-weight: 600; font-size: var(--fs-md);
-}
-.drawer-act svg, .drawer-act .lucide { width: var(--ic-md); height: var(--ic-md); }
-.drawer-act:hover { border-color: var(--accent-border); color: var(--accent); }
-.drawer-act--danger { color: var(--debt); border-color: rgba(224,92,92,.3); }
-.drawer-act--danger:hover { color: var(--debt); background: var(--debt-dim); border-color: var(--debt); }
-
-/* O drawer fica fora de .adm2 — reset de appearance nos seus botões. */
-.drawer button { -webkit-appearance: none; appearance: none; cursor: pointer; }
 
 /* ═══ TELA DO ADMIN DO SISTEMA (ADM MASTER) ═══════════════════ */
 .sys2 { padding: 1rem 1rem 2rem; display: flex; flex-direction: column; gap: 1rem; max-width: 520px; margin: 0 auto; }
+.sys2 .section-head { margin-top: .4rem; }
 .sys2-head { display: flex; align-items: center; justify-content: space-between; gap: .8rem; }
 .sys2-head__name { font-family: var(--font-serif); font-size: var(--fs-2xl); font-weight: 700; color: var(--text); line-height: 1.15; }
 .sys2-head__sub { font-size: var(--fs-sm); color: var(--text-muted); margin-top: .2rem; }
-.sys2-head__badge {
-  flex-shrink: 0; display: inline-flex; align-items: center; gap: .35rem;
-  font-size: var(--fs-xs); font-family: var(--font-mono); letter-spacing: .08em; text-transform: uppercase;
-  color: var(--accent); background: var(--accent-dim); border: 1px solid var(--accent-border);
-  padding: .32rem .6rem; border-radius: 999px;
-}
-.sys2-head__badge svg { width: var(--ic-xs); height: var(--ic-xs); stroke: currentColor; stroke-width: var(--ic-stroke); fill: none; }
-
-/* ═══════════════════════════════════════════════════════════════
-   ADM DO GRUPO — Fase 2 (atenção, KPIs, passageiros, atividade,
-   estatísticas, zona de perigo discreta)
-   ═══════════════════════════════════════════════════════════════ */
-
-/* ── KPIs: valor grande (Playfair) primeiro, label discreto embaixo ── */
-.kpi { display: flex; flex-direction: column; gap: .15rem; }
-.kpi__val { font-family: var(--font-serif); font-size: var(--fs-2xl); font-weight: 700; color: var(--text); line-height: 1.05; }
-.kpi__label { font-family: var(--font-mono); font-size: var(--fs-2xs); letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); margin: 0; }
-.kpi--paid .kpi__val { color: var(--paid); }
-.kpi--debt .kpi__val { color: var(--debt); }
 
 /* ── PRECISA DA SUA ATENÇÃO ──────────────────────────────────── */
 #adm-attention { display: flex; flex-direction: column; gap: .6rem; }
@@ -309,11 +165,10 @@
 button.attn { cursor: pointer; transition: border-color .2s, background .2s; }
 button.attn:hover { background: var(--bg-hover); }
 .attn__ico { flex-shrink: 0; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; }
-.attn__ico svg { width: var(--ic-md); height: var(--ic-md); stroke: currentColor; stroke-width: var(--ic-stroke); fill: none; }
 .attn__txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .attn__title { font-weight: 600; font-size: var(--fs-base); color: var(--text); }
 .attn__desc { font-size: var(--fs-sm); color: var(--text-muted); }
-.attn__chev { width: 16px; height: 16px; stroke: var(--text-dim); stroke-width: 2; fill: none; flex-shrink: 0; }
+.attn__chev { stroke: var(--text-dim); }
 /* Tom dourado = atenção normal; vermelho = dívida; verde-dourado = ok */
 .attn--warn { border-color: var(--accent-border); }
 .attn--warn .attn__ico { background: var(--accent-dim); color: var(--accent); }
@@ -321,55 +176,21 @@ button.attn:hover { background: var(--bg-hover); }
 .attn--debt .attn__ico { background: var(--debt-dim); color: var(--debt); }
 .attn--ok .attn__ico { background: var(--accent-dim); color: var(--accent); }
 
-/* ── PASSAGEIROS (linha enxuta) ──────────────────────────────── */
-.adm2-sectitle__num { color: var(--text-dim); font-family: var(--font-mono); }
-.adm2-add {
-  width: 32px; height: 32px; flex-shrink: 0; display: grid; place-items: center;
-  background: var(--accent-dim); border: 1px solid var(--accent-border);
-  border-radius: 10px; color: var(--accent);
-  -webkit-appearance: none; appearance: none; cursor: pointer; transition: background .2s;
-}
-.adm2-add:hover { background: rgba(212,175,55,.18); }
-.adm2-add svg { width: var(--ic-md); height: var(--ic-md); stroke: currentColor; stroke-width: var(--ic-stroke-bold); fill: none; }
-
-.pax2-list {
-  background: var(--bg-card); border: 1px solid var(--border-light);
-  border-radius: var(--radius-lg); overflow: hidden;
-}
-.pax2 {
-  width: 100%; display: flex; align-items: center; gap: .75rem;
-  padding: .7rem .85rem; text-align: left; background: none; border: none;
-  border-bottom: 1px solid var(--border);
-  -webkit-appearance: none; appearance: none; cursor: pointer; transition: background .18s;
-}
-.pax2:last-child { border-bottom: none; }
-.pax2:hover { background: var(--bg-hover); }
+/* ── PASSAGEIROS ── linha compõe .list-item ──────────────────── */
+.pax2 { padding: .7rem .85rem; }
 .pax2--off { opacity: .5; }
-.pax2__avatar {
-  width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%;
-  display: grid; place-items: center; color: var(--text); font-weight: 700; font-size: var(--fs-base); overflow: hidden;
-}
-.pax2__avatar .avatar-img { width: 100%; height: 100%; object-fit: cover; }
 .pax2__id { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
 .pax2__name {
   font-weight: 600; color: var(--text); font-size: var(--fs-base);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.pax2__you { font-size: var(--fs-2xs); font-weight: 700; color: var(--accent); background: var(--accent-dim); border-radius: 999px; padding: .05rem .35rem; }
 .pax2__status { display: inline-flex; align-items: center; gap: .3rem; font-size: var(--fs-sm); }
-.pax2__status svg { width: var(--ic-xs); height: var(--ic-xs); stroke: currentColor; stroke-width: var(--ic-stroke); fill: none; }
+.pax2__status .lucide { width: var(--ic-xs); height: var(--ic-xs); }
 .pax2__status--ok { color: var(--text-muted); }
 .pax2__dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); display: inline-block; }
 .pax2__status--debt { color: var(--debt); }
 .pax2__value { font-family: var(--font-serif); font-size: var(--fs-lg); font-weight: 700; color: var(--text); flex-shrink: 0; }
-
-.adm2-seeall {
-  width: 100%; margin-top: .1rem; padding: .6rem; text-align: center;
-  background: none; border: 1px solid var(--border-light); border-radius: 12px;
-  color: var(--text-muted); font-weight: 600; font-size: var(--fs-md);
-  -webkit-appearance: none; appearance: none; cursor: pointer; transition: color .2s, border-color .2s;
-}
-.adm2-seeall:hover { color: var(--accent); border-color: var(--accent-border); }
+#btn-pax-all { margin-top: .1rem; }
 
 /* ── ATIVIDADE ───────────────────────────────────────────────── */
 .act {
@@ -392,16 +213,8 @@ button.attn:hover { background: var(--bg-hover); }
 .act__pax { flex: 1; font-size: var(--fs-md); color: var(--text); }
 .act__val { font-family: var(--font-mono); font-size: var(--fs-md); color: var(--text-muted); }
 
-/* ── ESTATÍSTICAS (barras em CSS puro) ───────────────────────── */
+/* ── ESTATÍSTICAS (barras em CSS puro, dentro de .card) ──────── */
 #adm-stats { display: flex; flex-direction: column; gap: .7rem; }
-.stat-card {
-  background: var(--bg-card); border: 1px solid var(--border-light);
-  border-radius: var(--radius-lg); padding: .95rem 1rem 1.1rem;
-}
-.stat-card__head {
-  font-family: var(--font-mono); font-size: var(--fs-2xs); letter-spacing: .08em; text-transform: uppercase;
-  color: var(--text-muted); margin-bottom: .9rem;
-}
 .barchart { display: flex; align-items: flex-end; justify-content: space-between; gap: .5rem; height: 110px; }
 .bar { flex: 1; display: flex; flex-direction: column; align-items: center; gap: .35rem; height: 100%; justify-content: flex-end; }
 .bar__val { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--text-muted); }
@@ -423,10 +236,7 @@ button.attn:hover { background: var(--bg-hover); }
   margin-top: 1rem; display: flex; flex-direction: column;
   border-top: 1px solid var(--border-light); padding-top: 1rem;
 }
-.danger2__title {
-  font-family: var(--font-mono); font-size: var(--fs-2xs); letter-spacing: .1em; text-transform: uppercase;
-  color: var(--text-muted); margin-bottom: .5rem;
-}
+.danger2__title { margin-bottom: .5rem; }
 .danger2__item {
   width: 100%; display: flex; align-items: center; gap: .75rem;
   padding: .8rem .2rem; text-align: left; background: none; border: none;
@@ -437,58 +247,22 @@ button.attn:hover { background: var(--bg-hover); }
 .danger2__txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .danger2__name { font-weight: 600; font-size: var(--fs-md); color: var(--debt); }
 .danger2__desc { font-size: var(--fs-sm); color: var(--text-muted); }
-.danger2__chev { width: 16px; height: 16px; stroke: var(--text-dim); stroke-width: 2; fill: none; flex-shrink: 0; }
+.danger2__chev { stroke: var(--text-dim); }
 .danger2__item:hover .danger2__chev { stroke: var(--debt); }
 
-/* ═══ CONFIGURAÇÕES DO GRUPO — lista de itens + editores (Fase 3) ═══ */
+/* ═══ CONFIGURAÇÕES DO GRUPO — lista de itens + editores ═══════ */
 .set-subtitle { margin: .1rem 0 0; font-size: var(--fs-sm); color: var(--text-muted); }
 .hub-sheet__head > div { min-width: 0; }
-.set-group-label {
-  font-family: var(--font-mono); font-size: var(--fs-2xs); letter-spacing: .1em; text-transform: uppercase;
-  color: var(--text-muted); margin: 1rem 0 .5rem;
-}
-.set-list {
-  background: var(--bg-elevated); border: 1px solid var(--border-light);
-  border-radius: var(--radius-lg); overflow: hidden;
-}
-.set-item {
-  width: 100%; display: flex; align-items: center; gap: .75rem;
-  padding: .85rem .9rem; text-align: left; background: none; border: none;
-  border-bottom: 1px solid var(--border);
-  -webkit-appearance: none; appearance: none; cursor: pointer; transition: background .18s;
-}
-.set-item:last-child { border-bottom: none; }
-.set-item:hover { background: var(--bg-hover); }
+.set-group-label { display: block; margin: 1rem 0 .5rem; }
+/* Linha compõe .list-item; aqui só o conteúdo dela */
+.set-item { padding: .85rem .9rem; }
 .set-item__txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .set-item__label { font-weight: 600; font-size: var(--fs-md); color: var(--text); }
 .set-item__value {
   font-size: var(--fs-sm); color: var(--text-muted); font-family: var(--font-mono);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.set-item__chev { width: 16px; height: 16px; stroke: var(--text-dim); stroke-width: 2; fill: none; flex-shrink: 0; }
+.set-item__chev { stroke: var(--text-dim); }
 
-/* Editores */
-.set-field {
-  display: flex; align-items: center; gap: .5rem; margin-bottom: 1rem;
-  background: var(--bg-elevated); border: 1px solid var(--border-light);
-  border-radius: 12px; padding: .3rem .6rem;
-}
-.set-field__cur { color: var(--text-muted); font-family: var(--font-mono); }
-.set-field__input {
-  flex: 1; min-width: 0; background: none; border: none; outline: none;
-  color: var(--text); font-family: var(--font-mono); font-size: var(--fs-lg); font-weight: 700;
-  padding: .5rem .2rem;
-}
-.set-field__input--text { font-family: var(--font-display); font-weight: 600; font-size: var(--fs-lg); }
-.set-field__input::-webkit-outer-spin-button,
-.set-field__input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-.set-field__input[type=number] { -moz-appearance: textfield; appearance: textfield; }
-
-.set-actions { display: flex; gap: .6rem; }
-.set-btn {
-  flex: 1; padding: .75rem; border-radius: 12px; font-weight: 600; font-size: var(--fs-base);
-  -webkit-appearance: none; appearance: none; cursor: pointer;
-}
-.set-btn--ghost { background: transparent; border: 1px solid var(--border-light); color: var(--text-muted); }
-.set-btn--ghost:hover { color: var(--text); border-color: var(--text-muted); }
-.set-btn--primary { background: linear-gradient(135deg, var(--accent), var(--accent-soft)); border: none; color: var(--on-accent); }
+/* Editores: campo compõe .input-group, botões em .btn-row */
+.set-field { margin-bottom: 1rem; }

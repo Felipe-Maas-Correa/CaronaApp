@@ -26,6 +26,7 @@ import {
 import {
   showToast, escapeHtml, formatDateTime, formatCurrency, icon, copyToClipboard, safeImageSrc, todayISO
 } from "../js/utils.js";
+import { avatar, emptyState } from "../js/ui.js";
 
 // Paleta de cores do grupo. A primeira é o dourado da marca (default).
 const GROUP_COLORS = ["#d4af37", "#e05c5c", "#4f9dde", "#5fbf7f", "#a678de", "#e08a3c"];
@@ -218,10 +219,10 @@ export async function renderGroupScreen() {
     // fallback de quem ainda não colocou uma.
     const photo = safeImageSrc(currentProfile?.photo);
     if (photo) {
-      avEl.classList.add("hub-identity__avatar--photo");
-      avEl.innerHTML = `<img src="${photo}" alt="">`;
+      avEl.classList.add("avatar--photo");
+      avEl.innerHTML = `<img src="${photo}" alt="" class="avatar-img">`;
     } else {
-      avEl.classList.remove("hub-identity__avatar--photo");
+      avEl.classList.remove("avatar--photo");
       avEl.textContent = (name || mail || "?").charAt(0).toUpperCase();
     }
   }
@@ -273,7 +274,7 @@ async function renderHero(activeId) {
   roleEl.innerHTML = role === "owner"
     ? `${icon("crown")} Você é o dono`
     : `${icon("user")} Passageiro`;
-  roleEl.classList.toggle("hub-hero__badge--owner", role === "owner");
+  roleEl.classList.toggle("badge--accent", role === "owner");
 
   const members = Number(doc.memberCount) || 0;
   document.getElementById("hero-members").textContent =
@@ -318,14 +319,8 @@ function memberStack(gid, memberCount) {
   }
   const shown = members.slice(0, 3);
   const rest  = Math.max(0, (memberCount || members.length) - shown.length);
-  const dots = shown.map(m => {
-    const src = safeImageSrc(m.photo);
-    const inner = src
-      ? `<img src="${src}" alt="">`
-      : escapeHtml((m.name || "?").charAt(0).toUpperCase());
-    return `<span class="gcard__pax" style="background:${src ? "transparent" : "var(--bg-hover)"}">${inner}</span>`;
-  }).join("");
-  return `<span class="gcard__pax-stack">${dots}${rest > 0 ? `<span class="gcard__pax gcard__pax--more">+${rest}</span>` : ""}</span>`;
+  const dots = shown.map(m => avatar({ name: m.name, photo: m.photo, size: "xs", tint: false, cls: "gcard__pax" })).join("");
+  return `<span class="gcard__pax-stack">${dots}${rest > 0 ? `<span class="avatar avatar--xs gcard__pax gcard__pax--more">+${rest}</span>` : ""}</span>`;
 }
 
 function renderMyGroups() {
@@ -350,7 +345,7 @@ function renderMyGroups() {
   if (searchTerm) list = list.filter(g => (g.name || "").toLowerCase().includes(searchTerm));
 
   if (list.length === 0) {
-    box.innerHTML = `<p class="hub-empty">Nenhum grupo encontrado.</p>`;
+    box.innerHTML = emptyState("", "Nenhum grupo encontrado.", { compact: true });
     return;
   }
 
@@ -366,7 +361,7 @@ function renderMyGroups() {
               style="--gc:${escapeHtml(color)}">
         <span class="gcard__accent"></span>
         <span class="gcard__top">
-          <span class="gcard__avatar">${escapeHtml((g.name || "G").charAt(0).toUpperCase())}</span>
+          <span class="avatar avatar--sm avatar--square gcard__avatar">${escapeHtml((g.name || "G").charAt(0).toUpperCase())}</span>
           <span class="gcard__fav ${isFav(g.id) ? "gcard__fav--on" : ""}" data-fav-group="${escapeHtml(g.id)}" role="button" aria-label="Favoritar">★</span>
         </span>
         <span class="gcard__name">${escapeHtml(g.name || "Grupo")}</span>
@@ -376,7 +371,7 @@ function renderMyGroups() {
           <span class="hub-dot">•</span>
           <span>${value != null ? formatCurrency(value) : "—"}</span>
         </span>
-        ${active ? `<span class="gcard__badge">● ativo</span>` : ""}
+        ${active ? `<span class="badge badge--accent gcard__badge">● ativo</span>` : ""}
       </button>
     `;
   }).join("");
@@ -639,7 +634,7 @@ async function renderGroupInvites() {
     const open = invites.filter(i => i.status === "pending" && toMillis(i.expiresAt) > now);
 
     if (open.length === 0) {
-      box.innerHTML = `<p class="empty-msg">Nenhum convite em aberto.</p>`;
+      box.innerHTML = emptyState("", "Nenhum convite em aberto.", { compact: true });
       return;
     }
 
@@ -650,7 +645,7 @@ async function renderGroupInvites() {
           <span class="invite-row__to">${i.invitedEmail ? escapeHtml(i.invitedEmail) : "código aberto"}</span>
           <span class="invite-row__exp">expira ${formatDateTime(i.expiresAt)}</span>
         </div>
-        <button class="btn-icon btn-icon--delete" title="Cancelar convite"
+        <button class="btn-icon btn-icon--danger" title="Cancelar convite"
                 data-revoke-invite="${escapeHtml(i.code)}">${icon("trash")}</button>
       </div>
     `).join("");

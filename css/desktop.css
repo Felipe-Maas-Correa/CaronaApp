@@ -200,7 +200,6 @@
     min-width: 0;
   }
   .adm2-col .danger2 { margin-top: 0; }
-  .kpi-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 
   /* ── ADMIN DO SISTEMA: grupos e contas em grade ────────────── */
   .sys2 {
@@ -249,4 +248,10 @@
     padding-bottom: 1.4rem;
   }
   .hub-sheet__handle { display: none; }
+}
+
+/* Os 4 KPIs do Admin numa linha só quando a coluna é larga o bastante
+   para "R$ 1.234,00" caber sem quebrar. */
+@media (min-width: 1280px) {
+  .adm2-kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }

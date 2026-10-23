@@ -1,7 +1,15 @@
 # Design system do CaronaApp
 
-Regras para **tipografia, ícones, cores e camadas**. Valem para todo componente
-novo. Antes de commitar, rode:
+Regras para **componentes, tipografia, ícones, cores e camadas**. Valem para
+todo código de interface. O catálogo visual, com cada componente funcionando e
+o código pronto para copiar, é o **guia de estilo**:
+
+```bash
+py -m http.server 5173
+```
+
+e abra `http://localhost:5173/guia/` (só existe no desenvolvimento; não vai
+para o Firebase Hosting). Antes de commitar, rode:
 
 ```bash
 node tools/audit-ui.js
@@ -18,10 +26,66 @@ Ele reprova (código de saída 1) qualquer coisa fora do padrão abaixo.
 | Cores, raios, sombras, fontes (`--font-*`) | `css/base.css` (`:root`) |
 | Escala tipográfica, tamanhos de ícone, camadas, cor-sobre-cor | `css/design-system.css` |
 | Desenhos dos ícones | `js/icons.js` |
-| Estilo de um componente | o CSS da pasta dele (`admin/admin.css`, …) |
+| **Componentes** (botão, selo, campo, card, número, avatar, lista…) | `css/components.css` |
+| Montadores de componente no JS (`avatar()`, `emptyState()`, `badge()`) | `js/ui.js` |
+| Catálogo visual dos componentes | `guia/index.html` |
+| Classes aposentadas (antes → agora) | `guia/aposentadas.json` |
+| Layout de uma tela e peças só dela | o CSS da pasta dela (`admin/admin.css`, …) |
+| Layout de computador (≥ 1024px) | `css/desktop.css` |
 
-`design-system.css` é carregado **por último** no `index.html`. Não crie
-`<style>` embutido no HTML.
+`design-system.css` é carregado depois dos CSS de tela e `desktop.css` por
+último no `index.html`. Não crie `<style>` embutido no HTML.
+
+---
+
+## Componentes — puxe do guia
+
+Botão, selo, campo, card, número, avatar, lista e afins **só existem em
+`css/components.css`**. Tela nova monta a interface com essas classes; o CSS
+da pasta dela cuida só de **layout** (posição, `margin`, `grid`) e das peças
+que só existem nela (o dia do calendário, o gráfico do Admin).
+
+| Componente | Classe base | Variantes principais |
+|---|---|---|
+| Card | `.card` | `--accent` `--debt` `--elevated` `--dashed` `--interactive` `--flush`, `.card__title` |
+| Botão | `.btn` | tom `--primary` `--secondary` `--ghost` `--soft` `--danger` `--link` · tamanho `--xs` `--sm` `--lg` · `--full` `--pill` · `.is-active` |
+| Botão-ícone | `.btn-icon` | `--sm` `--lg` `--round` `--accent` `--danger` `--danger-solid` |
+| Linha de botões | `.btn-row` | botões dividem a largura (no lugar de `style="flex:1"`) |
+| Segmentado | `.seg` › `.seg__btn` | `.seg__btn--active`, `.seg--soft` |
+| Título de seção | `.section-title` | `.section-head` (com ação), `.section-hint`, `.section-count` |
+| Selo | `.badge` | `--muted` `--accent` `--outline` `--solid` `--debt` `--debt-outline` `--lg` |
+| Formulário | `.form-group` › `.form-label` + `.form-input` | `.form-select`, `.form-input--code`, `.input-wrap` + `.input-eye`, `.input-group` (`__affix`, `__input`, `--lg`) |
+| Número (KPI) | `.stat` › `.stat__value` + `.stat__label` | `--paid` `--debt` `--accent` `--highlight` `--sm` `--center` `--elevated`; grade `.stat-grid` (`--3`) |
+| Avatar | `.avatar` | `--xs` `--sm` `--lg` `--square` `--accent` `--ring` `--photo` |
+| Lista | `.list` › `.list-item` | `.list--elevated` |
+| Estado vazio | `.empty-state` | `--compact` |
+| Toast / carregando | `showToast()` / `.loading-spinner` | `success` `error` `info` |
+
+**Compor, não copiar.** Quem tem layout próprio soma a classe do guia:
+`class="card payment-card"` — o `.card` dá fundo, borda e raio; a
+`.payment-card` só o espaçamento e o conteúdo.
+
+**No JS**, use os montadores em vez de escrever o markup na mão:
+
+```js
+import { avatar, emptyState, badge } from "../js/ui.js";
+
+avatar({ name: u.name, photo: u.photo })            // foto validada ou inicial, cor pelo nome
+avatar({ name, photo, size: "sm", tint: false })
+emptyState("wallet", "Nenhum pagamento registrado ainda.")
+emptyState("", "Nenhum convite em aberto.", { compact: true })
+badge("Em análise", "accent", "clock")
+```
+
+**Falta um componente?** Crie em `css/components.css` (com o comentário de
+variantes), mostre em `guia/index.html` e só então use na tela. Não crie
+variação local na pasta da tela.
+
+O linter reprova:
+
+- classe de `guia/aposentadas.json` em qualquer CSS, HTML ou JS;
+- componente do guia redefinido na raiz fora de `components.css` (ex.:
+  `.btn--meu { … }` em `admin.css`). Por contexto pode: `.hub-hero .btn { position: relative; }`.
 
 ---
 
@@ -188,6 +252,10 @@ Ordem fixa — use o token, nunca um número:
 
 ## Checklist de componente novo
 
+- [ ] Botões, selos, campos, cards, números, avatares e listas do guia
+      (`css/components.css`); o CSS da tela só faz layout
+- [ ] Avatar e estado vazio no JS por `avatar()` / `emptyState()` de `js/ui.js`
+- [ ] Componente novo também aparece em `guia/index.html`
 - [ ] Fontes por `--font-*` e tamanhos por `--fs-*` (ou classe `.t-*`)
 - [ ] Ícones por `icon()` / `data-icon`, tamanho por `.ic-*` ou `--ic-*`
 - [ ] Cores e camadas por token

@@ -77,9 +77,9 @@
 
         <!-- Entrar / Criar conta: o cadastro é aberto. Quem se cadastra
              entra sem grupo nenhum e escolhe criar o seu ou usar um convite. -->
-        <div class="auth-tabs" role="tablist">
-          <button type="button" id="tab-login"  class="auth-tab auth-tab--active" role="tab">Entrar</button>
-          <button type="button" id="tab-signup" class="auth-tab" role="tab">Criar conta</button>
+        <div class="seg seg--soft" role="tablist">
+          <button type="button" id="tab-login"  class="seg__btn seg__btn--active" role="tab">Entrar</button>
+          <button type="button" id="tab-signup" class="seg__btn" role="tab">Criar conta</button>
         </div>
 
         <form id="form-login" class="auth-form" novalidate>
@@ -100,7 +100,7 @@
 
           <p id="login-error" class="auth-error"></p>
 
-          <button id="btn-login" type="submit" class="btn btn--primary btn--full auth-btn">
+          <button id="btn-login" type="submit" class="btn btn--primary btn--full btn--lg">
             Entrar
           </button>
         </form>
@@ -129,7 +129,7 @@
 
           <p id="signup-error" class="auth-error"></p>
 
-          <button id="btn-signup" type="submit" class="btn btn--primary btn--full auth-btn">
+          <button id="btn-signup" type="submit" class="btn btn--primary btn--full btn--lg">
             Criar minha conta
           </button>
         </form>
@@ -155,16 +155,16 @@
              isto, quem reabre o app cai aqui sem entender por que não viu o
              login. -->
         <div class="hub-identity">
-          <div class="hub-identity__avatar" id="group-account-avatar">?</div>
+          <div class="avatar avatar--accent" id="group-account-avatar">?</div>
           <div class="hub-identity__who">
             <span class="hub-identity__name" id="group-account-name">—</span>
             <span class="hub-identity__mail" id="group-account-who">—</span>
           </div>
           <div class="hub-identity__actions">
-            <button id="btn-group-profile" class="hub-iconbtn" title="Meu perfil" aria-label="Meu perfil">
+            <button id="btn-group-profile" class="btn-icon" title="Meu perfil" aria-label="Meu perfil">
               <i data-icon="user"></i>
             </button>
-            <button id="btn-group-logout" class="hub-iconbtn" title="Sair da conta" aria-label="Sair da conta">
+            <button id="btn-group-logout" class="btn-icon" title="Sair da conta" aria-label="Sair da conta">
               <i data-icon="log-out"></i>
             </button>
           </div>
@@ -181,7 +181,7 @@
         <section class="hub-hero hidden" id="group-hero" data-color="">
           <div class="hub-hero__glow"></div>
           <div class="hub-hero__top">
-            <span class="hub-hero__badge" id="hero-role">—</span>
+            <span class="badge badge--lg" id="hero-role">—</span>
             <button class="hub-hero__fav" id="hero-fav" title="Favoritar" aria-label="Favoritar" hidden>★</button>
           </div>
           <h2 class="hub-hero__name" id="hero-name">—</h2>
@@ -193,22 +193,22 @@
           <div class="hub-hero__status" id="hero-status">
             <span class="hub-status-pill" id="hero-status-pill">—</span>
           </div>
-          <button class="btn btn--primary btn--full auth-btn" id="btn-hero-enter">Continuar no grupo</button>
+          <button class="btn btn--primary btn--full btn--lg" id="btn-hero-enter">Continuar no grupo</button>
         </section>
 
         <!-- ═══ MEUS GRUPOS ═══ grid de cards. Some inteiro quando não há
              nenhum, para a tela de quem chega ficar limpa (só título + ações). -->
         <section class="hub-section hidden" id="group-list-card">
-          <div class="hub-section__head">
-            <span class="hub-section__title">Meus grupos</span>
-            <button class="hub-sort" id="group-sort" data-sort="recent">
+          <div class="section-head">
+            <span class="section-title">Meus grupos</span>
+            <button class="btn btn--link" id="group-sort" data-sort="recent">
               <i data-icon="sort"></i>
               <span id="group-sort-label">Recentes</span>
             </button>
           </div>
-          <div class="hub-search hidden" id="group-search-wrap">
-            <i data-icon="search"></i>
-            <input type="text" id="group-search" class="hub-search__input" placeholder="Buscar grupo…" autocomplete="off" />
+          <div class="input-group hidden" id="group-search-wrap">
+            <i data-icon="search" class="input-group__affix"></i>
+            <input type="text" id="group-search" class="input-group__input" placeholder="Buscar grupo…" autocomplete="off" />
           </div>
           <div class="hub-grid" id="group-list"></div>
         </section>
@@ -227,9 +227,9 @@
 
         <!-- Convites recebidos (some quando não há nenhum). -->
         <section class="hub-section hidden" id="group-invites-card">
-          <div class="hub-section__head">
-            <span class="hub-section__title">Convites</span>
-            <span class="hub-section__count" id="group-invites-count"></span>
+          <div class="section-head">
+            <span class="section-title">Convites</span>
+            <span class="badge badge--solid" id="group-invites-count"></span>
           </div>
           <div class="hub-invites" id="group-invites"></div>
         </section>
@@ -245,7 +245,7 @@
           <div class="hub-sheet__handle"></div>
           <div class="hub-sheet__head">
             <h3>Novo grupo</h3>
-            <button class="hub-iconbtn" data-close-sheet="sheet-create" aria-label="Fechar">
+            <button class="btn-icon" data-close-sheet="sheet-create" aria-label="Fechar">
               <i data-icon="x"></i>
             </button>
           </div>
@@ -278,7 +278,7 @@
             </div>
 
             <p id="create-group-error" class="auth-error"></p>
-            <button id="btn-create-group" type="submit" class="btn btn--primary btn--full auth-btn">
+            <button id="btn-create-group" type="submit" class="btn btn--primary btn--full btn--lg">
               Criar grupo
             </button>
             <p class="hub-sheet__hint">Quem cria o grupo vira o administrador dele.</p>
@@ -293,19 +293,19 @@
           <div class="hub-sheet__handle"></div>
           <div class="hub-sheet__head">
             <h3>Entrar em um grupo</h3>
-            <button class="hub-iconbtn" data-close-sheet="sheet-join" aria-label="Fechar">
+            <button class="btn-icon" data-close-sheet="sheet-join" aria-label="Fechar">
               <i data-icon="x"></i>
             </button>
           </div>
           <form id="form-join-group" novalidate>
             <div class="form-group">
               <label class="form-label" for="join-code">Código do convite</label>
-              <input id="join-code" type="text" class="form-input group-code-input"
+              <input id="join-code" type="text" class="form-input form-input--code"
                      placeholder="ABCD2345" maxlength="12" autocomplete="off"
                      autocapitalize="characters" spellcheck="false" />
             </div>
             <p id="join-error" class="auth-error"></p>
-            <button id="btn-join-group" type="submit" class="btn btn--primary btn--full auth-btn">
+            <button id="btn-join-group" type="submit" class="btn btn--primary btn--full btn--lg">
               Entrar no grupo
             </button>
             <p class="hub-sheet__hint">Recebeu um convite? Use o código que te mandaram.</p>
@@ -333,10 +333,10 @@
               <span id="header-user-name" class="header-user-name">—</span>
               <span id="header-user-role" class="header-role">—</span>
             </div>
-            <button id="btn-profile" class="header-avatar" title="Meu perfil">
+            <button id="btn-profile" class="avatar avatar--ring header-avatar" title="Meu perfil">
               <span id="header-avatar-content">?</span>
             </button>
-            <button id="btn-logout" class="btn-logout" title="Sair">
+            <button id="btn-logout" class="btn-icon btn-icon--round" title="Sair" aria-label="Sair">
               <i data-icon="log-out"></i>
             </button>
           </div>
@@ -350,10 +350,10 @@
         <!-- ══ TAB: RESUMO ══ -->
         <div id="tab-summary" class="tab-panel tab-panel--active">
           <div style="padding-top:1rem">
-            <div class="adm-seg sum-seg" id="sum-period">
-              <button class="adm-seg__btn" data-period="week">Semana</button>
-              <button class="adm-seg__btn" data-period="semester">Semestre</button>
-              <button class="adm-seg__btn adm-seg__btn--active" data-period="total">Total</button>
+            <div class="seg sum-seg" id="sum-period">
+              <button class="seg__btn" data-period="week">Semana</button>
+              <button class="seg__btn" data-period="semester">Semestre</button>
+              <button class="seg__btn seg__btn--active" data-period="total">Total</button>
             </div>
             <div class="summary-hero">
               <div class="summary-hero__label">Total em aberto</div>
@@ -363,18 +363,18 @@
               </div>
               <div id="sum-progress-label" class="progress-label">0% das viagens pagas</div>
             </div>
-            <div class="stats-grid">
-              <div class="stat-card">
-                <span id="sum-total-trips" class="stat-card__value">0</span>
-                <span class="stat-card__label">Viagens</span>
+            <div class="stat-grid stat-grid--3 stats-grid">
+              <div class="stat stat--center">
+                <span id="sum-total-trips" class="stat__value">0</span>
+                <span class="stat__label">Viagens</span>
               </div>
-              <div class="stat-card">
-                <span id="sum-paid-trips" class="stat-card__value" style="color:var(--paid)">0</span>
-                <span class="stat-card__label">Pagas</span>
+              <div class="stat stat--center stat--paid">
+                <span id="sum-paid-trips" class="stat__value">0</span>
+                <span class="stat__label">Pagas</span>
               </div>
-              <div class="stat-card">
-                <span id="sum-unpaid-trips" class="stat-card__value" style="color:var(--debt)">0</span>
-                <span class="stat-card__label">Em aberto</span>
+              <div class="stat stat--center stat--debt">
+                <span id="sum-unpaid-trips" class="stat__value">0</span>
+                <span class="stat__label">Em aberto</span>
               </div>
             </div>
             <div class="received-card">
@@ -399,10 +399,10 @@
           <div class="calendar-header">
             <span id="calendar-month-label" class="calendar-month-label">—</span>
             <div class="calendar-nav-btns">
-              <button id="btn-multi-toggle" class="btn-nav btn-multi hidden">Vários dias</button>
-              <button id="btn-today" class="btn-nav btn-today">Hoje</button>
-              <button id="btn-prev-month" class="btn-nav">‹</button>
-              <button id="btn-next-month" class="btn-nav">›</button>
+              <button id="btn-multi-toggle" class="btn btn--xs btn--ghost hidden">Vários dias</button>
+              <button id="btn-today" class="btn btn--xs btn--soft">Hoje</button>
+              <button id="btn-prev-month" class="btn-icon" aria-label="Mês anterior">‹</button>
+              <button id="btn-next-month" class="btn-icon" aria-label="Próximo mês">›</button>
             </div>
           </div>
           <div id="multi-bar" class="multi-bar hidden">
@@ -423,22 +423,22 @@
             <div class="legend-item"><div class="legend-dot legend-dot--unpaid"></div><span>Em aberto</span></div>
             <div class="legend-item"><div class="legend-dot legend-dot--none"></div><span>Sem viagem</span></div>
           </div>
-          <div class="month-stats">
-            <div class="month-stat">
-              <div class="month-stat__label">Viagens</div>
-              <div id="month-total-trips" class="month-stat__value">0</div>
+          <div class="stat-grid month-stats">
+            <div class="stat stat--sm">
+              <div id="month-total-trips" class="stat__value">0</div>
+              <div class="stat__label">Viagens</div>
             </div>
-            <div class="month-stat">
-              <div class="month-stat__label">Pagas</div>
-              <div id="month-paid-trips" class="month-stat__value" style="color:var(--paid)">0</div>
+            <div class="stat stat--sm stat--paid">
+              <div id="month-paid-trips" class="stat__value">0</div>
+              <div class="stat__label">Pagas</div>
             </div>
-            <div class="month-stat">
-              <div class="month-stat__label">Em aberto</div>
-              <div id="month-unpaid-trips" class="month-stat__value" style="color:var(--debt)">0</div>
+            <div class="stat stat--sm stat--debt">
+              <div id="month-unpaid-trips" class="stat__value">0</div>
+              <div class="stat__label">Em aberto</div>
             </div>
-            <div class="month-stat month-stat--debt">
-              <div class="month-stat__label">Dívida do mês</div>
-              <div id="month-debt" class="month-stat__value">R$ 0,00</div>
+            <div class="stat stat--sm stat--debt">
+              <div id="month-debt" class="stat__value">R$ 0,00</div>
+              <div class="stat__label">Dívida do mês</div>
             </div>
           </div>
           <p class="cal-hint">
@@ -451,7 +451,7 @@
         <div id="tab-payments" class="tab-panel">
           <div class="payments-header">
             <h2>Pagamentos</h2>
-            <button id="btn-new-payment" class="btn-new-payment">
+            <button id="btn-new-payment" class="btn btn--primary btn--sm">
               <i data-icon="plus"></i>
               Registrar
             </button>
@@ -471,7 +471,7 @@
                 <div class="adm2-head__name" id="adm-group-name">—</div>
                 <div class="adm2-head__sub"  id="adm-group-sub">—</div>
               </div>
-              <button id="btn-adm-settings" class="adm2-gear" title="Configurações do grupo" aria-label="Configurações">
+              <button id="btn-adm-settings" class="btn-icon btn-icon--lg" title="Configurações do grupo" aria-label="Configurações">
                 <i data-icon="settings"></i>
               </button>
             </div>
@@ -483,36 +483,36 @@
             <div class="adm2-grp adm2-grp--overview">
 
             <!-- ═══ PRECISA DA SUA ATENÇÃO ═══ pendências dinâmicas. -->
-            <div class="adm2-sectitle"><span>Precisa da sua atenção</span></div>
+            <div class="section-head"><span class="section-title">Precisa da sua atenção</span></div>
             <div id="adm-attention"></div>
 
             <!-- ═══ RESUMO ═══ 4 KPIs + seletor de período. -->
-            <div class="adm2-sectitle"><span>Resumo</span></div>
-            <div class="adm-seg adm2-period" id="adm-period">
-              <button class="adm-seg__btn" data-period="week">Semana</button>
-              <button class="adm-seg__btn adm-seg__btn--active" data-period="month">Mês</button>
-              <button class="adm-seg__btn" data-period="semester">Semestre</button>
-              <button class="adm-seg__btn" data-period="year">Ano</button>
-              <button class="adm-seg__btn" data-period="all">Tudo</button>
+            <div class="section-head"><span class="section-title">Resumo</span></div>
+            <div class="seg adm2-period" id="adm-period">
+              <button class="seg__btn" data-period="week">Semana</button>
+              <button class="seg__btn seg__btn--active" data-period="month">Mês</button>
+              <button class="seg__btn" data-period="semester">Semestre</button>
+              <button class="seg__btn" data-period="year">Ano</button>
+              <button class="seg__btn" data-period="all">Tudo</button>
             </div>
             <div class="adm2-period-label" id="adm-period-label">—</div>
 
-            <div class="kpi-grid">
-              <div class="kpi kpi--paid">
-                <div class="kpi__val" id="adm-received">R$ 0,00</div>
-                <div class="kpi__label">Recebido</div>
+            <div class="stat-grid adm2-kpis">
+              <div class="stat stat--paid stat--highlight">
+                <div class="stat__value" id="adm-received">R$ 0,00</div>
+                <div class="stat__label">Recebido</div>
               </div>
-              <div class="kpi kpi--debt">
-                <div class="kpi__val" id="adm-open">R$ 0,00</div>
-                <div class="kpi__label">Em aberto</div>
+              <div class="stat stat--debt">
+                <div class="stat__value" id="adm-open">R$ 0,00</div>
+                <div class="stat__label">Em aberto</div>
               </div>
-              <div class="kpi">
-                <div class="kpi__val" id="adm-trips">0</div>
-                <div class="kpi__label">Viagens</div>
+              <div class="stat">
+                <div class="stat__value" id="adm-trips">0</div>
+                <div class="stat__label">Viagens</div>
               </div>
-              <div class="kpi">
-                <div class="kpi__val" id="adm-pax">0</div>
-                <div class="kpi__label">Passageiros</div>
+              <div class="stat">
+                <div class="stat__value" id="adm-pax">0</div>
+                <div class="stat__label">Passageiros</div>
               </div>
             </div>
 
@@ -520,7 +520,7 @@
 
             <div class="adm2-grp adm2-grp--stats">
             <!-- ═══ ESTATÍSTICAS ═══ gráfico SVG simples. -->
-            <div class="adm2-sectitle"><span>Estatísticas</span></div>
+            <div class="section-head"><span class="section-title">Estatísticas</span></div>
             <div id="adm-stats">
               <div class="loading-spinner"></div>
             </div>
@@ -532,19 +532,19 @@
 
             <!-- ═══ PASSAGEIROS ═══ linha enxuta; toque abre o drawer. O "+"
                  é a única entrada de convite (sem botão gigante no topo). -->
-            <div class="adm2-sectitle">
-              <span>Passageiros <span class="adm2-sectitle__num" id="adm-pax-count"></span></span>
-              <button id="btn-invite" class="adm2-add" title="Convidar passageiro" aria-label="Convidar passageiro">
+            <div class="section-head">
+              <span class="section-title">Passageiros <span class="section-count" id="adm-pax-count"></span></span>
+              <button id="btn-invite" class="btn-icon btn-icon--accent" title="Convidar passageiro" aria-label="Convidar passageiro">
                 <i data-icon="plus"></i>
               </button>
             </div>
             <div id="users-list">
               <div class="loading-spinner"></div>
             </div>
-            <button id="btn-pax-all" class="adm2-seeall hidden">Ver todos</button>
+            <button id="btn-pax-all" class="btn btn--ghost btn--full hidden">Ver todos</button>
 
             <!-- ═══ ATIVIDADE ═══ viagens por dia (derivado das viagens). -->
-            <div class="adm2-sectitle"><span>Atividade</span></div>
+            <div class="section-head"><span class="section-title">Atividade</span></div>
             <div id="adm-activity">
               <div class="loading-spinner"></div>
             </div>
@@ -553,7 +553,7 @@
             <!-- ═══ ZONA DE PERIGO ═══ discreta: lista sóbria, vermelho só
                  no texto das ações. -->
             <div class="danger2">
-              <div class="danger2__title">Zona de perigo</div>
+              <div class="section-title danger2__title">Zona de perigo</div>
               <button id="btn-clear-data" class="danger2__item">
                 <span class="danger2__txt">
                   <span class="danger2__name">Limpar histórico de viagens</span>
@@ -586,23 +586,23 @@
                 <div class="sys2-head__name">Admin do sistema</div>
                 <div class="sys2-head__sub">Visão de toda a plataforma</div>
               </div>
-              <span class="sys2-head__badge">
+              <span class="badge badge--accent badge--lg">
                 <i data-icon="crown"></i>
-                master
+                MASTER
               </span>
             </div>
 
-            <div class="adm2-sectitle">
-              <span>Grupos</span>
-              <span class="adm2-sectitle__hint">todos da plataforma</span>
+            <div class="section-head">
+              <span class="section-title">Grupos</span>
+              <span class="section-hint">todos da plataforma</span>
             </div>
             <div id="sys-groups">
               <div class="loading-spinner"></div>
             </div>
 
-            <div class="adm2-sectitle">
-              <span>Contas</span>
-              <span class="adm2-sectitle__hint">permissões &amp; acesso</span>
+            <div class="section-head">
+              <span class="section-title">Contas</span>
+              <span class="section-hint">permissões &amp; acesso</span>
             </div>
             <div id="sys-users">
               <div class="loading-spinner"></div>
@@ -669,21 +669,21 @@
             <h3 id="settings-group-name">Configurações</h3>
             <p class="set-subtitle">Configurações do grupo</p>
           </div>
-          <button class="hub-iconbtn" data-close-adm-sheet aria-label="Fechar">
+          <button class="btn-icon" data-close-adm-sheet aria-label="Fechar">
             <i data-icon="x"></i>
           </button>
         </div>
 
-        <div class="set-group-label">Cobrança</div>
-        <div class="set-list">
-          <button class="set-item" id="set-value">
+        <div class="section-title set-group-label">Cobrança</div>
+        <div class="list list--elevated">
+          <button class="list-item set-item" id="set-value">
             <span class="set-item__txt">
               <span class="set-item__label">Valor por viagem</span>
               <span class="set-item__value" id="set-value-cur">—</span>
             </span>
             <i data-icon="chevron-right" class="set-item__chev"></i>
           </button>
-          <button class="set-item" id="set-pix">
+          <button class="list-item set-item" id="set-pix">
             <span class="set-item__txt">
               <span class="set-item__label">Chave PIX</span>
               <span class="set-item__value" id="set-pix-cur">Não cadastrada</span>
@@ -692,9 +692,9 @@
           </button>
         </div>
 
-        <div class="set-group-label">Convites</div>
-        <div class="set-list">
-          <button class="set-item" id="btn-invite-2">
+        <div class="section-title set-group-label">Convites</div>
+        <div class="list list--elevated">
+          <button class="list-item set-item" id="btn-invite-2">
             <span class="set-item__txt">
               <span class="set-item__label">Link de convite</span>
               <span class="set-item__value">Gerencie quem pode entrar</span>
@@ -703,16 +703,16 @@
           </button>
         </div>
 
-        <div class="set-group-label">Grupo</div>
-        <div class="set-list">
-          <button class="set-item" id="set-name">
+        <div class="section-title set-group-label">Grupo</div>
+        <div class="list list--elevated">
+          <button class="list-item set-item" id="set-name">
             <span class="set-item__txt">
               <span class="set-item__label">Nome do grupo</span>
               <span class="set-item__value" id="set-name-cur">—</span>
             </span>
             <i data-icon="chevron-right" class="set-item__chev"></i>
           </button>
-          <button class="set-item" id="set-members">
+          <button class="list-item set-item" id="set-members">
             <span class="set-item__txt">
               <span class="set-item__label">Membros</span>
               <span class="set-item__value" id="set-members-cur">—</span>
@@ -730,17 +730,17 @@
       <div class="hub-sheet__panel" role="dialog" aria-modal="true" aria-label="Editar valor">
         <div class="hub-sheet__handle"></div>
         <div class="hub-sheet__head"><h3>Valor por viagem</h3></div>
-        <div class="set-field">
-          <span class="set-field__cur">R$</span>
-          <input type="number" id="adm-price-input" class="set-field__input" min="0" step="0.5" inputmode="decimal" />
+        <div class="input-group input-group--lg set-field">
+          <span class="input-group__affix">R$</span>
+          <input type="number" id="adm-price-input" class="input-group__input" min="0" step="0.5" inputmode="decimal" />
           <div class="qs-stepper">
             <button type="button" id="price-up" class="qs-step" aria-label="Aumentar"><i data-icon="chevron-up"></i></button>
             <button type="button" id="price-down" class="qs-step" aria-label="Diminuir"><i data-icon="chevron-down"></i></button>
           </div>
         </div>
-        <div class="set-actions">
-          <button class="set-btn set-btn--ghost" data-close-edit="sheet-edit-value">Cancelar</button>
-          <button id="btn-save-price" class="set-btn set-btn--primary">Salvar</button>
+        <div class="btn-row">
+          <button class="btn btn--ghost" data-close-edit="sheet-edit-value">Cancelar</button>
+          <button id="btn-save-price" class="btn btn--primary">Salvar</button>
         </div>
       </div>
     </div>
@@ -751,16 +751,16 @@
       <div class="hub-sheet__panel" role="dialog" aria-modal="true" aria-label="Editar chave PIX">
         <div class="hub-sheet__handle"></div>
         <div class="hub-sheet__head"><h3>Chave PIX</h3></div>
-        <div class="set-field">
-          <input id="adm-pix-input" type="text" class="set-field__input set-field__input--text"
+        <div class="input-group input-group--lg set-field">
+          <input id="adm-pix-input" type="text" class="input-group__input"
                  placeholder="e-mail, CPF, telefone ou chave" maxlength="140" />
-          <button id="btn-copy-pix-adm" class="qs-icon" title="Copiar chave" aria-label="Copiar">
+          <button id="btn-copy-pix-adm" class="btn-icon" title="Copiar chave" aria-label="Copiar">
             <i data-icon="copy"></i>
           </button>
         </div>
-        <div class="set-actions">
-          <button class="set-btn set-btn--ghost" data-close-edit="sheet-edit-pix">Cancelar</button>
-          <button id="btn-save-pix" class="set-btn set-btn--primary">Salvar</button>
+        <div class="btn-row">
+          <button class="btn btn--ghost" data-close-edit="sheet-edit-pix">Cancelar</button>
+          <button id="btn-save-pix" class="btn btn--primary">Salvar</button>
         </div>
       </div>
     </div>
@@ -771,14 +771,14 @@
       <div class="hub-sheet__panel" role="dialog" aria-modal="true" aria-label="Editar nome do grupo">
         <div class="hub-sheet__handle"></div>
         <div class="hub-sheet__head"><h3>Nome do grupo</h3></div>
-        <div class="set-field">
-          <input id="adm-name-input" type="text" class="set-field__input set-field__input--text"
+        <div class="input-group input-group--lg set-field">
+          <input id="adm-name-input" type="text" class="input-group__input"
                  placeholder="Ex.: Carona do trabalho" maxlength="60" />
         </div>
         <p id="adm-name-error" class="auth-error"></p>
-        <div class="set-actions">
-          <button class="set-btn set-btn--ghost" data-close-edit="sheet-edit-name">Cancelar</button>
-          <button id="btn-save-name" class="set-btn set-btn--primary">Salvar</button>
+        <div class="btn-row">
+          <button class="btn btn--ghost" data-close-edit="sheet-edit-name">Cancelar</button>
+          <button id="btn-save-name" class="btn btn--primary">Salvar</button>
         </div>
       </div>
     </div>
@@ -790,13 +790,13 @@
       <aside class="drawer__panel" role="dialog" aria-modal="true" aria-label="Detalhe do passageiro">
         <div class="drawer__head">
           <div class="drawer__id">
-            <div class="drawer__avatar" id="drawer-avatar">?</div>
+            <div class="avatar avatar--lg" id="drawer-avatar">?</div>
             <div>
               <div class="drawer__name" id="drawer-name">—</div>
               <div class="drawer__mail" id="drawer-mail">—</div>
             </div>
           </div>
-          <button class="hub-iconbtn" data-close-drawer aria-label="Fechar">
+          <button class="btn-icon" data-close-drawer aria-label="Fechar">
             <i data-icon="x"></i>
           </button>
         </div>
@@ -815,7 +815,7 @@
     <div id="modal-day" class="modal">
       <div class="modal-sheet" style="position:relative">
         <div class="modal-handle"></div>
-        <button class="modal-close-btn" data-close-modal="modal-day">
+        <button class="btn-icon btn-icon--sm btn-icon--round modal-close-btn" aria-label="Fechar" data-close-modal="modal-day">
           <i data-icon="x"></i>
         </button>
         <div id="modal-day-title" class="modal-title">Dia</div>
@@ -827,7 +827,7 @@
     <div id="modal-payment" class="modal">
       <div class="modal-sheet" style="position:relative">
         <div class="modal-handle"></div>
-        <button id="btn-close-payment-modal" class="modal-close-btn">
+        <button id="btn-close-payment-modal" class="btn-icon btn-icon--sm btn-icon--round modal-close-btn" aria-label="Fechar">
           <i data-icon="x"></i>
         </button>
         <div class="modal-title">Registrar Pagamento</div>
@@ -836,7 +836,7 @@
         <div class="pix-box">
           <div class="pix-box__head">
             <span class="pix-box__label">Chave PIX (aleatória)</span>
-            <button type="button" id="btn-copy-pix" class="pix-copy-btn">Copiar</button>
+            <button type="button" id="btn-copy-pix" class="btn btn--primary btn--sm btn--pill">Copiar</button>
           </div>
           <code id="pix-key" class="pix-box__key">—</code>
           <div class="pix-box__hint">Copie a chave, pague no app do seu banco e depois registre o pagamento abaixo.</div>
@@ -844,9 +844,9 @@
 
         <!-- Cabeçalho do calendário de seleção -->
         <div class="pay-cal-header">
-          <button id="pay-cal-prev" class="pay-cal-nav">&#8249;</button>
+          <button id="pay-cal-prev" class="btn-icon btn-icon--sm btn-icon--round" aria-label="Mês anterior">&#8249;</button>
           <span id="pay-cal-label" class="pay-cal-label">—</span>
-          <button id="pay-cal-next" class="pay-cal-nav">&#8250;</button>
+          <button id="pay-cal-next" class="btn-icon btn-icon--sm btn-icon--round" aria-label="Próximo mês">&#8250;</button>
           <button id="btn-select-all-trips" class="btn btn--sm btn--secondary">Todas</button>
         </div>
 
@@ -886,7 +886,7 @@
     <div id="modal-receipt" class="modal">
       <div class="modal-sheet" style="position:relative">
         <div class="modal-handle"></div>
-        <button id="btn-close-receipt-modal" class="modal-close-btn">
+        <button id="btn-close-receipt-modal" class="btn-icon btn-icon--sm btn-icon--round modal-close-btn" aria-label="Fechar">
           <i data-icon="x"></i>
         </button>
         <div class="modal-title">Comprovante</div>
@@ -903,10 +903,10 @@
       <div class="modal-sheet" style="position:relative">
         <div class="modal-handle"></div>
         <div class="modal-title">Confirmação</div>
-        <p id="confirm-message" style="font-size:var(--fs-md);color:var(--text-muted);margin-bottom:1rem"></p>
-        <div class="confirm-actions">
-          <button id="btn-confirm-no"  class="btn btn--secondary" style="flex:1">Cancelar</button>
-          <button id="btn-confirm-yes" class="btn btn--danger"    style="flex:1">Confirmar</button>
+        <p id="confirm-message" class="modal-info"></p>
+        <div class="btn-row confirm-actions">
+          <button id="btn-confirm-no"  class="btn btn--secondary">Cancelar</button>
+          <button id="btn-confirm-yes" class="btn btn--danger">Confirmar</button>
         </div>
       </div>
     </div>
@@ -918,8 +918,7 @@
       <div class="modal-sheet" style="position:relative">
         <div class="modal-handle"></div>
         <div id="password-confirm-title" class="modal-title">Confirmar com senha</div>
-        <p id="password-confirm-message"
-           style="font-size:var(--fs-md);color:var(--text-muted);margin-bottom:1rem"></p>
+        <p id="password-confirm-message" class="modal-info"></p>
 
         <div class="form-group">
           <label class="form-label" for="password-confirm-input">Sua senha de administrador</label>
@@ -929,9 +928,9 @@
 
         <p id="password-confirm-error" class="auth-error"></p>
 
-        <div class="confirm-actions">
-          <button id="btn-password-cancel"  class="btn btn--secondary" style="flex:1">Cancelar</button>
-          <button id="btn-password-confirm" class="btn btn--primary"   style="flex:1">Confirmar</button>
+        <div class="btn-row confirm-actions">
+          <button id="btn-password-cancel"  class="btn btn--secondary">Cancelar</button>
+          <button id="btn-password-confirm" class="btn btn--primary">Confirmar</button>
         </div>
       </div>
     </div>
@@ -940,7 +939,7 @@
     <div id="modal-profile" class="modal">
       <div class="modal-sheet" style="position:relative">
         <div class="modal-handle"></div>
-        <button class="modal-close-btn" data-close-modal="modal-profile">
+        <button class="btn-icon btn-icon--sm btn-icon--round modal-close-btn" aria-label="Fechar" data-close-modal="modal-profile">
           <i data-icon="x"></i>
         </button>
         <div class="modal-title">Meu Perfil</div>
@@ -949,7 +948,7 @@
         <div class="profile-photo-wrap">
           <div id="profile-photo" class="profile-photo">?</div>
           <input type="file" id="profile-photo-input" accept="image/*" style="display:none" />
-          <label for="profile-photo-input" class="profile-photo-edit">Alterar foto</label>
+          <label for="profile-photo-input" class="btn btn--soft btn--sm btn--pill">Alterar foto</label>
           <div id="profile-registered" class="profile-registered"></div>
         </div>
 
@@ -970,18 +969,18 @@
 
         <!-- Estatísticas -->
         <div class="section-title" style="margin-top:1.4rem">Estatísticas</div>
-        <div class="profile-stats">
-          <div class="profile-stat">
-            <span class="profile-stat__value" id="stat-days">—</span>
-            <span class="profile-stat__label">dias na plataforma</span>
+        <div class="stat-grid stat-grid--3">
+          <div class="stat stat--sm stat--center stat--accent stat--elevated">
+            <span class="stat__value" id="stat-days">—</span>
+            <span class="stat__label">dias na plataforma</span>
           </div>
-          <div class="profile-stat">
-            <span class="profile-stat__value" id="stat-max-payment">—</span>
-            <span class="profile-stat__label">maior pagamento</span>
+          <div class="stat stat--sm stat--center stat--accent stat--elevated">
+            <span class="stat__value" id="stat-max-payment">—</span>
+            <span class="stat__label">maior pagamento</span>
           </div>
-          <div class="profile-stat">
-            <span class="profile-stat__value" id="stat-max-unpaid">—</span>
-            <span class="profile-stat__label">dias sem pagar (recorde)</span>
+          <div class="stat stat--sm stat--center stat--accent stat--elevated">
+            <span class="stat__value" id="stat-max-unpaid">—</span>
+            <span class="stat__label">dias sem pagar (recorde)</span>
           </div>
         </div>
 
@@ -1002,7 +1001,7 @@
     <div id="modal-new-user" class="modal">
       <div class="modal-sheet" style="position:relative">
         <div class="modal-handle"></div>
-        <button id="btn-close-user-modal" class="modal-close-btn">
+        <button id="btn-close-user-modal" class="btn-icon btn-icon--sm btn-icon--round modal-close-btn" aria-label="Fechar">
           <i data-icon="x"></i>
         </button>
         <div class="modal-title">Cadastrar Usuário</div>
@@ -1041,7 +1040,7 @@
     <div id="modal-invite" class="modal">
       <div class="modal-sheet" style="position:relative">
         <div class="modal-handle"></div>
-        <button class="modal-close-btn" data-close-modal="modal-invite">
+        <button class="btn-icon btn-icon--sm btn-icon--round modal-close-btn" aria-label="Fechar" data-close-modal="modal-invite">
           <i data-icon="x"></i>
         </button>
         <div class="modal-title">Convidar para o grupo</div>

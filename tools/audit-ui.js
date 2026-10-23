@@ -181,7 +181,69 @@ for (const f of JS) {
   }
 }
 
-// ── 5. Avisos: dívida conhecida ───────────────────────────────
+// ── 5. Guia de estilo: componente só em css/components.css ────
+// a) Classe aposentada (guia/aposentadas.json) não volta ao código.
+const RETIRED = JSON.parse(read("guia/aposentadas.json")).classes;
+const isRetired = (c) => Object.prototype.hasOwnProperty.call(RETIRED, c);
+const retiredMsg = (c) => `classe aposentada ".${c}" — use "${RETIRED[c]}" (guia de estilo)`;
+const stripCssComments = (s) => s.replace(/\/\*[\s\S]*?\*\//g, (c) => c.replace(/[^\n]/g, " "));
+const lineAt = (src, idx) => src.slice(0, idx).split("\n").length;
+
+for (const f of CSS) {
+  const src = stripCssComments(read(f));
+  for (const m of src.matchAll(/\.([a-zA-Z][\w-]*)/g)) {
+    // só em seletor: ignora o que estiver depois de ":" dentro de um bloco
+    const before = src.slice(0, m.index);
+    if (before.lastIndexOf("{") > before.lastIndexOf("}")) continue;
+    if (isRetired(m[1])) err(`${f}:${lineAt(src, m.index)}`, retiredMsg(m[1]));
+  }
+}
+for (const f of [...HTML, ...JS]) {
+  if (f.startsWith("guia/")) continue; // o guia cita as antigas de propósito
+  lines(read(f)).forEach((line, i) => {
+    if (allowed(line)) return;
+    const found = new Set();
+    // class="a b c" (inclui templates: ${...} é ignorado)
+    for (const m of line.matchAll(/class(?:Name)?\s*=\s*["'`]([^"'`]*)/g)) m[1].split(/\s+/).forEach(c => found.add(c));
+    // "nome" solto em string (classList.add("x"), cls: "x") e ".nome" em
+    // seletor. Valor de id/for e getElementById("x") é ID, não classe.
+    for (const m of line.matchAll(/["'`]\.?([a-z][\w-]*)["'`]/g)) {
+      if (/(\b(id|for)\s*=\s*|getElementById\(\s*)$/.test(line.slice(0, m.index))) continue;
+      found.add(m[1]);
+    }
+    for (const m of line.matchAll(/["'`][^"'`]*\.([a-z][\w-]*)[^"'`]*["'`]/g)) found.add(m[1]);
+    for (const c of found) if (isRetired(c)) err(`${f}:${i + 1}`, retiredMsg(c));
+  });
+}
+
+// b) Os blocos do guia só são DEFINIDOS em components.css. A tela pode
+//    posicionar um componente por contexto (".hub-hero .btn"), mas não
+//    redesenhá-lo na raiz (".btn--meu" em admin.css).
+const CANON = new Set([
+  "btn", "btn-icon", "btn-row", "seg", "section-head", "section-title", "section-hint", "section-count",
+  "badge", "form-group", "form-label", "form-input", "form-select", "form-opt", "input-group", "input-wrap",
+  "input-eye", "card", "stat", "stat-grid", "avatar", "avatar-img", "list", "list-item", "empty-state",
+  "error-msg", "toast", "loading-spinner",
+]);
+for (const f of CSS) {
+  if (f === "css/components.css") continue;
+  const src = stripCssComments(read(f));
+  for (const m of src.matchAll(/([^{}]+)\{/g)) {
+    const prelude = m[1].trim();
+    if (prelude.startsWith("@")) continue;
+    for (const sel of prelude.split(",")) {
+      const first = sel.trim().match(/^\.([a-zA-Z][\w-]*)/);
+      if (!first) continue;
+      const base = first[1].split("--")[0].split("__")[0];
+      if (CANON.has(base)) {
+        err(`${f}:${lineAt(src, m.index + m[1].indexOf(sel.trim()))}`,
+          `".${first[1]}" redefine um componente do guia — mude em css/components.css (ou use contexto: ".minha-tela .${base}")`);
+      }
+    }
+  }
+}
+
+// ── 6. Avisos: dívida conhecida ───────────────────────────────
 const styleAttrs = (html.match(/style="/g) || []).length;
 if (styleAttrs) warn("index.html", `${styleAttrs} atributos style="" — prefira classes (não aumente este número)`);
 

@@ -7,7 +7,8 @@
 // ============================================================
 
 import { setTrip, deleteTrip, getUserTrips, getGroupTrips, getGroupUsers, getTripValue, tripAmount, rateTrip } from "../js/db.js";
-import { showToast, formatCurrency, formatDate, icon, todayISO, escapeHtml, safeImageSrc } from "../js/utils.js";
+import { showToast, formatCurrency, formatDate, icon, todayISO, escapeHtml } from "../js/utils.js";
+import { avatar } from "../js/ui.js";
 import { refreshSummary } from "../summary/summary.js";
 import { currentProfile, isAdmin, myGroupId } from "../auth/auth.js";
 
@@ -32,15 +33,6 @@ const selectedDays = new Set();
 let tripsMap  = {};   // usuário: { "YYYY-MM-DD": trip }
 let dayTrips  = {};   // admin:   { "YYYY-MM-DD": [trip, ...] }
 let allUsers  = [];   // admin: lista de usuários (passageiros)
-
-// Avatar do passageiro: foto (só se for data URL de imagem válida) ou inicial.
-// safeImageSrc fecha o XSS do campo `photo`, editável pelo próprio usuário.
-function paxAvatar(u) {
-  const safe = safeImageSrc(u.photo);
-  return safe
-    ? `<img src="${safe}" alt="" class="avatar-img">`
-    : escapeHtml((u.name || "?").charAt(0).toUpperCase());
-}
 
 const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 const MONTHS   = [
@@ -85,7 +77,7 @@ function toggleMultiMode(force) {
   selectedDays.clear();
   const toggleBtn = document.getElementById("btn-multi-toggle");
   const bar       = document.getElementById("multi-bar");
-  toggleBtn?.classList.toggle("btn-multi--on", multiMode);
+  toggleBtn?.classList.toggle("is-active", multiMode);
   if (toggleBtn) toggleBtn.textContent = multiMode ? "Sair" : "Vários dias";
   bar?.classList.toggle("hidden", !multiMode);
   updateMultiCount();
@@ -386,7 +378,7 @@ function openDayModalAdmin(dateStr, isWeekend) {
     const checked = !!trip;
     // Só admin, e só quando o passageiro JÁ tem viagem no dia, mostra a lixeira.
     const removeBtn = checked
-      ? `<button type="button" class="pax-item__remove" title="Remover viagem"
+      ? `<button type="button" class="btn-icon btn-icon--danger-solid" title="Remover viagem" aria-label="Remover viagem"
            data-remove-uid="${u.uid}" data-remove-name="${escapeHtml(u.name || "")}" data-remove-paid="${paid}">
            ${icon("trash")}
          </button>`
@@ -395,7 +387,7 @@ function openDayModalAdmin(dateStr, isWeekend) {
       <label class="pax-item ${paid ? "pax-item--locked" : ""}">
         <input type="checkbox" class="pax-check" data-uid="${u.uid}" data-name="${escapeHtml(u.name || "")}"
           ${checked ? "checked" : ""} ${paid ? "disabled" : ""}>
-        <span class="pax-item__avatar">${paxAvatar(u)}</span>
+        ${avatar({ name: u.name, photo: u.photo, size: "sm", tint: false })}
         <span class="pax-item__name">${escapeHtml(u.name || "—")}</span>
         <span class="pax-item__tag">${paid ? "pago" : (checked ? "em aberto" : "")}</span>
         ${removeBtn}
@@ -419,7 +411,7 @@ function openDayModalAdmin(dateStr, isWeekend) {
   });
 
   // Remover viagem individual (admin) — inclusive se já estiver paga.
-  content.querySelectorAll(".pax-item__remove").forEach(btn => {
+  content.querySelectorAll("[data-remove-uid]").forEach(btn => {
     btn.addEventListener("click", (e) => {
       // Não deixa o clique marcar/desmarcar o checkbox do label.
       e.preventDefault();
@@ -475,7 +467,7 @@ function openMultiPassengerModal() {
   const itemsHtml = selectable.map(u => `
     <label class="pax-item">
       <input type="checkbox" class="pax-check-multi" data-uid="${u.uid}" data-name="${escapeHtml(u.name || "")}">
-      <span class="pax-item__avatar">${paxAvatar(u)}</span>
+      ${avatar({ name: u.name, photo: u.photo, size: "sm", tint: false })}
       <span class="pax-item__name">${escapeHtml(u.name || "—")}</span>
     </label>
   `).join("");

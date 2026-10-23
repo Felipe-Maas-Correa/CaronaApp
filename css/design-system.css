@@ -109,26 +109,12 @@
    NOVO não acrescenta regra aqui: usa .ic-* ou define no próprio CSS. */
 .modal-hint .lucide                        { width: var(--ic-sm); height: var(--ic-sm); vertical-align: -2px; margin-right: 2px; }
 .nav-btn__icon .lucide                     { width: var(--ic-xl); height: var(--ic-xl); stroke-width: var(--ic-stroke-thin); }
-.btn-icon .lucide,
-.btn-logout .lucide,
-.modal-close-btn .lucide                   { width: var(--ic-md); height: var(--ic-md); }
 .app-header__title .lucide                 { width: var(--ic-lg); height: var(--ic-lg); stroke: var(--accent); stroke-width: var(--ic-stroke-light); margin-right: 4px; }
 .loading-screen__logo .lucide,
 .auth-logo__icon .lucide                   { width: var(--ic-hero); height: var(--ic-hero); stroke: var(--accent); stroke-width: var(--ic-stroke-thin); }
-.input-eye .lucide                         { width: var(--ic-md); height: var(--ic-md); stroke-width: var(--ic-stroke-light); }
 .receipt-upload-icon .lucide               { width: var(--ic-2xl); height: var(--ic-2xl); stroke: var(--text-muted); stroke-width: var(--ic-stroke-thin); }
-.btn-new-payment .lucide                   { width: var(--ic-md); height: var(--ic-md); }
-.btn-icon--delete .lucide                  { stroke: var(--debt); }
-.btn-icon--receipt .lucide                 { stroke: var(--text-muted); }
 .activity-item__icon .lucide               { width: var(--ic-md); height: var(--ic-md); stroke-width: var(--ic-stroke-light); }
-.empty-state__icon .lucide                 { width: var(--ic-3xl); height: var(--ic-3xl); stroke-width: var(--ic-stroke-thin); stroke: var(--text-muted); }
-.badge .lucide                             { width: var(--ic-xs); height: var(--ic-xs); margin-right: 3px; }
 .header-role .lucide                       { width: var(--ic-xs); height: var(--ic-xs); margin-right: 3px; vertical-align: -1px; }
-.btn .lucide                               { width: var(--ic-md); height: var(--ic-md); vertical-align: -3px; margin-right: 2px; }
-/* Ícone DEPOIS do texto (ex.: "Abrir em nova aba ↗"): margem do outro lado. */
-.btn .lucide:last-child:not(:first-child)  { margin: 0 0 0 4px; }
 .receipt-file-icon .lucide                 { width: var(--ic-md); height: var(--ic-md); stroke-width: var(--ic-stroke-light); vertical-align: -3px; margin-right: 3px; }
 .no-receipt .lucide                        { width: var(--ic-md); height: var(--ic-md); stroke-width: var(--ic-stroke-light); stroke: var(--text-muted); }
 
-/* Foto de perfil dentro de qualquer avatar circular */
-.avatar-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }

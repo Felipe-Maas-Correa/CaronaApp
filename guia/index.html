@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guia de Estilo · CaronaApp</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg" />
+
+  <!-- Os MESMOS arquivos do app, na mesma ordem: o que aparece aqui é
+       exatamente o que a tela vai mostrar. -->
+  <link rel="stylesheet" href="../css/base.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/design-system.css" />
+  <link rel="stylesheet" href="guia.css" />
+</head>
+<body class="gs">
+
+  <!-- ═══ NAVEGAÇÃO ═══════════════════════════════════════════ -->
+  <nav class="gs-nav" aria-label="Seções do guia">
+    <div class="gs-nav__brand">
+      <i data-icon="logo"></i>
+      <span>CaronaApp</span>
+    </div>
+    <div class="gs-nav__sub">Guia de estilo</div>
+
+    <div class="gs-nav__group">Começo</div>
+    <a href="#gs-uso">Como usar</a>
+
+    <div class="gs-nav__group">Fundamentos</div>
+    <a href="#gs-cores">Cores</a>
+    <a href="#gs-tipografia">Tipografia</a>
+    <a href="#gs-icones">Ícones</a>
+    <a href="#gs-forma">Raios, sombras e camadas</a>
+
+    <div class="gs-nav__group">Componentes</div>
+    <a href="#gs-botao">Botão</a>
+    <a href="#gs-botao-icone">Botão-ícone</a>
+    <a href="#gs-segmentado">Segmentado</a>
+    <a href="#gs-secao">Título de seção</a>
+    <a href="#gs-selo">Selo</a>
+    <a href="#gs-formulario">Formulário</a>
+    <a href="#gs-card">Card</a>
+    <a href="#gs-numero">Número (KPI)</a>
+    <a href="#gs-avatar">Avatar</a>
+    <a href="#gs-lista">Lista</a>
+    <a href="#gs-vazio">Estado vazio</a>
+    <a href="#gs-aviso">Toast e carregando</a>
+    <a href="#gs-camadas">Sheet, modal e drawer</a>
+
+    <div class="gs-nav__group">Referência</div>
+    <a href="#gs-trocas">Classes aposentadas</a>
+  </nav>
+
+  <main class="gs-main">
+
+    <!-- ═══ COMO USAR ═══════════════════════════════════════════ -->
+    <header class="gs-hero" id="gs-uso">
+      <div class="t-label">CaronaApp · desenvolvimento</div>
+      <h1 class="t-display">Guia de estilo</h1>
+      <p class="gs-lead">
+        Tudo o que aparece na tela sai daqui. Antes de criar um botão, um selo
+        ou um card, procure nesta página: se existe, use a classe dela; se não
+        existe, crie o componente em <code>css/components.css</code>, documente
+        aqui e só então use na tela.
+      </p>
+      <div class="gs-rules">
+        <div class="card">
+          <div class="card__title">1 · Puxe do guia</div>
+          <p class="t-small">Botões, selos, campos, números, avatares e listas
+          usam as classes desta página. A tela nunca redesenha um componente.</p>
+        </div>
+        <div class="card">
+          <div class="card__title">2 · A tela só faz layout</div>
+          <p class="t-small">O CSS da pasta de cada tela cuida de posição,
+          espaço e grade (<code>margin</code>, <code>grid</code>), mais as peças
+          que só existem nela (ex.: o dia do calendário).</p>
+        </div>
+        <div class="card">
+          <div class="card__title">3 · No JS, os montadores</div>
+          <p class="t-small"><code>icon()</code> de <code>js/icons.js</code> e
+          <code>avatar()</code>, <code>emptyState()</code>, <code>badge()</code>
+          de <code>js/ui.js</code>. Nada de copiar função de outra tela.</p>
+        </div>
+        <div class="card">
+          <div class="card__title">4 · Rode o linter</div>
+          <p class="t-small"><code>node tools/audit-ui.js</code> reprova token
+          fora do padrão e classe aposentada. Regras completas em
+          <code>DESIGN-SYSTEM.md</code>.</p>
+        </div>
+      </div>
+    </header>
+
+    <!-- ═══ CORES ═══════════════════════════════════════════════ -->
+    <section class="gs-section" id="gs-cores">
+      <h2 class="t-title">Cores</h2>
+      <p class="gs-desc">Só por token (<code>var(--nome)</code>). Hex solto fora de
+      <code>base.css</code>/<code>design-system.css</code> reprova no linter.
+      Vermelho (<code>--debt</code>) só para dívida ou ação destrutiva.</p>
+      <div class="gs-swatches" data-gs-swatches="--bg --bg-subtle --bg-card --bg-elevated --bg-hover"></div>
+      <div class="gs-swatches" data-gs-swatches="--accent --accent-soft --accent-dim --accent-border --border-gold"></div>
+      <div class="gs-swatches" data-gs-swatches="--debt --debt-dim --paid --text --text-muted --text-dim"></div>
+      <div class="gs-swatches" data-gs-swatches="--border --border-light --on-accent --on-debt"></div>
+    </section>
+
+    <!-- ═══ TIPOGRAFIA ══════════════════════════════════════════ -->
+    <section class="gs-section" id="gs-tipografia">
+      <h2 class="t-title">Tipografia</h2>
+      <p class="gs-desc">Três famílias (<code>--font-serif</code> Playfair para
+      títulos e dinheiro, <code>--font-display</code> DM Sans para texto,
+      <code>--font-mono</code> DM Mono para rótulos e códigos) e 12 degraus de
+      tamanho. Prefira os papéis prontos.</p>
+
+      <div class="gs-example">
+        <div class="gs-demo gs-demo--stack">
+          <div class="t-display">Título de página</div>
+          <div class="t-title">Título de tela</div>
+          <div class="t-value">R$ 345,00</div>
+          <div class="t-heading">Título de card</div>
+          <div class="t-body">Texto corrido do app, no tamanho padrão.</div>
+          <div class="t-small">Texto secundário, mais apagado.</div>
+          <div class="t-label">Rótulo em caixa-alta</div>
+          <div class="t-mono">ABCD-2345</div>
+        </div>
+      </div>
+
+      <h3 class="gs-h3">Escala</h3>
+      <div class="gs-scale" data-gs-scale="--fs-3xs --fs-2xs --fs-xs --fs-sm --fs-md --fs-base --fs-lg --fs-xl --fs-2xl --fs-3xl --fs-4xl --fs-5xl"></div>
+    </section>
+
+    <!-- ═══ ÍCONES ══════════════════════════════════════════════ -->
+    <section class="gs-section" id="gs-icones">
+      <h2 class="t-title">Ícones</h2>
+      <p class="gs-desc">Desenhos do Lucide em <code>js/icons.js</code>. No HTML
+      <code>&lt;i data-icon=&quot;nome&quot;&gt;&lt;/i&gt;</code>, no JS
+      <code>icon("nome")</code>. Tamanho por <code>.ic-xs</code> … <code>.ic-3xl</code>.
+      Toque num ícone para copiar o código.</p>
+      <div class="gs-icons" id="gs-icon-grid"></div>
+    </section>
+
+    <!-- ═══ FORMA ═══════════════════════════════════════════════ -->
+    <section class="gs-section" id="gs-forma">
+      <h2 class="t-title">Raios, sombras e camadas</h2>
+      <div class="gs-example">
+        <div class="gs-demo">
+          <div class="gs-shape gs-shape--sm">--radius-sm</div>
+          <div class="gs-shape gs-shape--md">--radius</div>
+          <div class="gs-shape gs-shape--lg">--radius-lg</div>
+          <div class="gs-shape gs-shape--xl">--radius-xl</div>
+        </div>
+      </div>
+      <table class="gs-table">
+        <thead><tr><th>Camada (z-index)</th><th>Valor</th><th>O quê</th></tr></thead>
+        <tbody>
+          <tr><td><code>--z-raised</code></td><td>10</td><td>overlay local dentro de um card</td></tr>
+          <tr><td><code>--z-nav</code></td><td>100</td><td>navegação (inferior / lateral)</td></tr>
+          <tr><td><code>--z-screen</code></td><td>190</td><td>tela de grupos sobre o app</td></tr>
+          <tr><td><code>--z-sheet</code></td><td>200</td><td>sheets que sobem de baixo</td></tr>
+          <tr><td><code>--z-drawer</code></td><td>210</td><td>drawer lateral</td></tr>
+          <tr><td><code>--z-modal</code></td><td>220</td><td>modais e confirmações (acima de tudo acima)</td></tr>
+          <tr><td><code>--z-toast</code></td><td>9000</td><td>avisos</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ═══ BOTÃO ═══════════════════════════════════════════════ -->
+    <section class="gs-section" id="gs-botao">
+      <h2 class="t-title">Botão</h2>
+      <p class="gs-desc">Sempre <code>.btn</code> + um tom. Um único
+      <code>--primary</code> por tela ou sheet: é a ação que a pessoa veio fazer.</p>
+
+      <h3 class="gs-h3">Tons</h3>
+      <div class="gs-example">
+        <div class="gs-demo">
+          <button class="btn btn--primary">Confirmar</button>
+          <button class="btn btn--secondary">Meus grupos</button>
+          <button class="btn btn--ghost">Cancelar</button>
+          <button class="btn btn--soft">Aprovar</button>
+          <button class="btn btn--danger">Excluir</button>
+          <button class="btn btn--link"><i data-icon="sort"></i> Recentes</button>
+        </div>
+      </div>
+
+      <h3 class="gs-h3">Tamanhos, forma e estado</h3>
+      <div class="gs-example">
+        <div class="gs-demo">
+          <button class="btn btn--soft btn--xs">Hoje</button>
+          <button class="btn btn--ghost btn--xs is-active">Vários dias</button>
+          <button class="btn btn--primary btn--sm"><i data-icon="plus"></i> Registrar</button>
+          <button class="btn btn--primary">Padrão</button>
+          <button class="btn btn--primary btn--lg">Entrar</button>
+          <button class="btn btn--primary btn--sm btn--pill">Copiar</button>
+          <button class="btn btn--primary" disabled>Desabilitado</button>
+        </div>
+      </div>
+      <div class="gs-example">
+        <div class="gs-demo gs-demo--stack">
+          <button class="btn btn--primary btn--full btn--lg">Largura toda (formulário)</button>
+        </div>
+      </div>
+
+      <table class="gs-table">
+        <thead><tr><th>Classe</th><th>Quando usar</th></tr></thead>
+        <tbody>
+          <tr><td><code>btn--primary</code></td><td>A ação principal: salvar, confirmar, entrar.</td></tr>
+          <tr><td><code>btn--secondary</code></td><td>Ação neutra ao lado da principal.</td></tr>
+          <tr><td><code>btn--ghost</code></td><td>Cancelar, voltar, "ver todos".</td></tr>
+          <tr><td><code>btn--soft</code></td><td>Ação positiva discreta (aprovar, "Hoje").</td></tr>
+          <tr><td><code>btn--danger</code></td><td>Destrutiva: excluir, rejeitar, remover.</td></tr>
+          <tr><td><code>btn--link</code></td><td>Ação de texto, sem caixa (ordenar).</td></tr>
+          <tr><td><code>btn--xs</code> · <code>--sm</code> · <code>--lg</code></td><td>34px de cabeçalho · compacto · formulário.</td></tr>
+          <tr><td><code>btn--full</code> · <code>btn--pill</code></td><td>Largura toda · cantos redondos.</td></tr>
+          <tr><td><code>is-active</code></td><td>Alternância ligada (ex.: modo "Vários dias").</td></tr>
+        </tbody>
+      </table>
+
+      <h3 class="gs-h3" id="gs-linha-botoes">Linha de botões</h3>
+      <p class="gs-desc">Dois ou mais botões dividindo a largura. Nada de
+      <code>style=&quot;flex:1&quot;</code>.</p>
+      <div class="gs-example">
+        <div class="gs-demo gs-demo--stack">
+          <div class="btn-row">
+            <button class="btn btn--ghost">Cancelar</button>
+            <button class="btn btn--primary">Salvar</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ BOTÃO-ÍCONE ═════════════════════════════════════════ -->
+    <section class="gs-section" id="gs-botao-icone">
+      <h2 class="t-title">Botão-ícone</h2>
+      <p class="gs-desc">Um ícone e nada mais. Sempre com <code>aria-label</code>
+      (e <code>title</code> quando ajudar no computador).</p>
+      <div class="gs-example">
+        <div class="gs-demo">
+          <button class="btn-icon btn-icon--sm btn-icon--round" aria-label="Fechar"><i data-icon="x"></i></button>
+          <button class="btn-icon" aria-label="Copiar"><i data-icon="copy"></i></button>
+          <button class="btn-icon btn-icon--lg" aria-label="Configurações"><i data-icon="settings"></i></button>
+          <button class="btn-icon btn-icon--round" aria-label="Sair"><i data-icon="log-out"></i></button>
+          <button class="btn-icon btn-icon--accent" aria-label="Convidar"><i data-icon="plus"></i></button>
+          <button class="btn-icon btn-icon--danger" aria-label="Excluir"><i data-icon="trash"></i></button>
+          <button class="btn-icon btn-icon--danger-solid" aria-label="Remover viagem"><i data-icon="trash"></i></button>
+        </div>
+      </div>
+      <table class="gs-table">
+        <thead><tr><th>Classe</th><th>Quando usar</th></tr></thead>
+        <tbody>
+          <tr><td><code>btn-icon--sm</code> · padrão · <code>--lg</code></td><td>28px (fechar sheet) · 34px · 40px (engrenagem do cabeçalho).</td></tr>
+          <tr><td><code>btn-icon--round</code></td><td>Fechar modal, sair.</td></tr>
+          <tr><td><code>btn-icon--accent</code></td><td>Adicionar ("+") ao lado de um título de seção.</td></tr>
+          <tr><td><code>btn-icon--danger</code></td><td>Excluir dentro de um card.</td></tr>
+          <tr><td><code>btn-icon--danger-solid</code></td><td>Remover com destaque dentro de uma lista de escolha.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ═══ SEGMENTADO ══════════════════════════════════════════ -->
+    <section class="gs-section" id="gs-segmentado">
+      <h2 class="t-title">Segmentado</h2>
+      <p class="gs-desc">Escolha exclusiva entre poucas opções. O JS da tela
+      troca <code>seg__btn--active</code>. Toque para testar.</p>
+      <div class="gs-example">
+        <div class="gs-demo gs-demo--stack">
+          <div class="seg" data-gs-seg>
+            <button class="seg__btn">Semana</button>
+            <button class="seg__btn seg__btn--active">Mês</button>
+            <button class="seg__btn">Semestre</button>
+            <button class="seg__btn">Tudo</button>
+          </div>
+          <div class="seg seg--soft" data-gs-seg>
+            <button class="seg__btn seg__btn--active">Entrar</button>
+            <button class="seg__btn">Criar conta</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ TÍTULO DE SEÇÃO ═════════════════════════════════════ -->
+    <section class="gs-section" id="gs-secao">
+      <h2 class="t-title">Título de seção</h2>
+      <p class="gs-desc">Rótulo acima de um bloco. Sem margem própria: quem dá o
+      espaço é o layout da tela. Com ação ou contagem ao lado, envolva em
+      <code>.section-head</code>.</p>
+      <div class="gs-example">
+        <div class="gs-demo gs-demo--stack">
+          <div class="section-title">Atividade recente</div>
+          <div class="section-head">
+            <span class="section-title">Passageiros <span class="section-count">· 2</span></span>
+            <button class="btn-icon btn-icon--accent" aria-label="Convidar"><i data-icon="plus"></i></button>
+          </div>
+          <div class="section-head">
+            <span class="section-title">Contas</span>
+            <span class="section-hint">permissões &amp; acesso</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ SELO ════════════════════════════════════════════════ -->
+    <section class="gs-section" id="gs-selo">
+      <h2 class="t-title">Selo</h2>
+      <p class="gs-desc">Etiqueta curta: status, cargo, data. Não é clicável — se
+      for, é um botão. No JS: <code>badge(texto, tom, ícone)</code>.</p>
+      <div class="gs-example">
+        <div class="gs-demo">
+          <span class="badge">23/09</span>
+          <span class="badge badge--accent"><i data-icon="clock"></i> Em análise</span>
+          <span class="badge badge--outline"><i data-icon="check"></i> Aprovado</span>
+          <span class="badge badge--debt"><i data-icon="alert"></i> Rejeitado</span>
+          <span class="badge badge--debt-outline">Inativo</span>
+          <span class="badge badge--solid">3</span>
+          <span class="badge badge--accent badge--lg"><i data-icon="crown"></i> MASTER</span>
+        </div>
+      </div>
+      <div class="gs-example">
+        <div class="gs-demo" data-gs-js="badge"></div>
+      </div>
+    </section>
+
+    <!-- ═══ FORMULÁRIO ══════════════════════════════════════════ -->
+    <section class="gs-section" id="gs-formulario">
+      <h2 class="t-title">Formulário</h2>
+      <p class="gs-desc">Campo comum em <code>.form-group</code>. Campo com
+      prefixo, ícone ou botão embutido em <code>.input-group</code>
+      (<code>--lg</code> para valor grande nos editores).</p>
+      <div class="gs-example">
+        <div class="gs-demo gs-demo--stack gs-demo--narrow">
+          <div class="form-group">
+            <label class="form-label" for="gs-f-name">Nome do grupo</label>
+            <input id="gs-f-name" type="text" class="form-input" placeholder="Ex.: Carona do trabalho" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="gs-f-pass">Senha</label>
+            <div class="input-wrap">
+              <input id="gs-f-pass" type="password" class="form-input" placeholder="••••••••" />
+              <button type="button" class="input-eye" aria-label="Mostrar senha"><i data-icon="eye"></i></button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="gs-f-role">Papel <span class="form-opt">(opcional)</span></label>
+            <select id="gs-f-role" class="form-input form-select">
+              <option>Usuário</option>
+              <option>Administrador</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="gs-f-code">Código do convite</label>
+            <input id="gs-f-code" type="text" class="form-input form-input--code" placeholder="ABCD2345" />
+          </div>
+          <div class="input-group">
+            <i data-icon="search" class="input-group__affix"></i>
+            <input type="text" class="input-group__input" placeholder="Buscar grupo…" />
+          </div>
+          <div class="input-group input-group--lg">
+            <span class="input-group__affix">R$</span>
+            <input type="number" class="input-group__input" value="15" />
+            <button class="btn-icon" aria-label="Copiar"><i data-icon="copy"></i></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ CARD ════════════════════════════════════════════════ -->
+    <section class="gs-section" id="gs-card">
+      <h2 class="t-title">Card</h2>
+      <p class="gs-desc">A superfície padrão. Quem tem layout interno compõe:
+      <code>class="card payment-card"</code> — o <code>.card</code> dá fundo,
+      borda e raio; a classe da tela, o espaçamento e o conteúdo.</p>
+      <div class="gs-example">
+        <div class="gs-demo gs-demo--grid">
+          <div class="card">
+            <div class="card__title">Card padrão</div>
+            <p class="t-small">Fundo, borda e raio do tema.</p>
+          </div>
+          <div class="card card--accent">
+            <div class="card__title">--accent</div>
+            <p class="t-small">Em destaque, aguardando algo.</p>
+          </div>
+          <div class="card card--debt">
+            <div class="card__title">--debt</div>
+            <p class="t-small">Pendência financeira.</p>
+          </div>
+          <div class="card card--elevated">
+            <div class="card__title">--elevated</div>
+            <p class="t-small">Dentro de sheet ou modal.</p>
+          </div>
+          <div class="card card--dashed">
+            <div class="card__title">--dashed</div>
+            <p class="t-small">Ação de criar algo novo.</p>
+          </div>
+          <div class="card card--interactive">
+            <div class="card__title">--interactive</div>
+            <p class="t-small">O card inteiro é clicável.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ NÚMERO ══════════════════════════════════════════════ -->
+    <section class="gs-section" id="gs-numero">
+      <h2 class="t-title">Número (KPI)</h2>
+      <p class="gs-desc">Valor em destaque (Playfair) e rótulo embaixo. Sempre
+      nesta ordem: valor primeiro. Grade em <code>.stat-grid</code>
+      (2 colunas) ou <code>.stat-grid--3</code>.</p>
+      <div class="gs-example">
+        <div class="gs-demo gs-demo--stack">
+          <div class="stat-grid">
+            <div class="stat stat--paid stat--highlight">
+              <div class="stat__value">R$ 600,00</div>
+              <div class="stat__label">Recebido</div>
+            </div>
+            <div class="stat stat--debt">
+              <div class="stat__value">R$ 15,00</div>
+              <div class="stat__label">Em aberto</div>
+            </div>
+          </div>
+          <div class="stat-grid stat-grid--3">
+            <div class="stat stat--sm stat--center">
+              <div class="stat__value">13</div>
+              <div class="stat__label">Viagens</div>
+            </div>
+            <div class="stat stat--sm stat--center stat--paid">
+              <div class="stat__value">7</div>
+              <div class="stat__label">Pagas</div>
+            </div>
+            <div class="stat stat--sm stat--center stat--debt">
+              <div class="stat__value">6</div>
+              <div class="stat__label">Em aberto</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <table class="gs-table">
+        <thead><tr><th>Classe</th><th>Quando usar</th></tr></thead>
+        <tbody>
+          <tr><td><code>stat--paid</code> · <code>--debt</code> · <code>--accent</code></td><td>Cor do valor: recebido · dívida · destaque neutro.</td></tr>
+          <tr><td><code>stat--highlight</code></td><td>Borda dourada no número mais importante.</td></tr>
+          <tr><td><code>stat--sm</code> · <code>--center</code></td><td>Valor menor · centralizado (grades de 3).</td></tr>
+          <tr><td><code>stat--elevated</code></td><td>Dentro de sheet, modal ou drawer.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ═══ AVATAR ══════════════════════════════════════════════ -->
+    <section class="gs-section" id="gs-avatar">
+      <h2 class="t-title">Avatar</h2>
+      <p class="gs-desc">Foto ou inicial. No JS, sempre <code>avatar()</code> de
+      <code>js/ui.js</code>: ele valida a foto (XSS), escolhe a inicial e a cor
+      de fundo pelo nome.</p>
+      <div class="gs-example">
+        <div class="gs-demo">
+          <span class="avatar avatar--xs">C</span>
+          <span class="avatar avatar--sm">C</span>
+          <span class="avatar">C</span>
+          <span class="avatar avatar--lg">C</span>
+          <span class="avatar avatar--accent">F</span>
+          <span class="avatar avatar--ring">F</span>
+          <span class="avatar avatar--sm avatar--square">G</span>
+        </div>
+      </div>
+      <div class="gs-example">
+        <div class="gs-demo" data-gs-js="avatar"></div>
+      </div>
+    </section>
+
+    <!-- ═══ LISTA ═══════════════════════════════════════════════ -->
+    <section class="gs-section" id="gs-lista">
+      <h2 class="t-title">Lista</h2>
+      <p class="gs-desc">Linhas numa caixa, separadas por fio. A linha é
+      <code>&lt;button&gt;</code> quando abre algo (ganha hover).
+      <code>--elevated</code> dentro de sheet.</p>
+      <div class="gs-example">
+        <div class="gs-demo gs-demo--stack gs-demo--narrow">
+          <div class="list">
+            <button class="list-item">
+              <span class="avatar">C</span>
+              <span class="t-heading gs-grow">Chico</span>
+              <span class="t-value">R$ 615</span>
+            </button>
+            <button class="list-item">
+              <span class="avatar">F</span>
+              <span class="t-heading gs-grow">Felipe Corrêa</span>
+              <span class="badge badge--accent">você</span>
+            </button>
+          </div>
+          <div class="list list--elevated">
+            <button class="list-item">
+              <span class="t-body gs-grow">Valor por viagem</span>
+              <i data-icon="chevron-right"></i>
+            </button>
+            <button class="list-item">
+              <span class="t-body gs-grow">Chave PIX</span>
+              <i data-icon="chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ ESTADO VAZIO ════════════════════════════════════════ -->
+    <section class="gs-section" id="gs-vazio">
+      <h2 class="t-title">Estado vazio</h2>
+      <p class="gs-desc">Quando uma lista não tem nada. No JS:
+      <code>emptyState("ícone", "texto")</code>; dentro de sheet ou grade,
+      <code>{ compact: true }</code>.</p>
+      <div class="gs-example">
+        <div class="gs-demo gs-demo--stack" data-gs-js="empty"></div>
+      </div>
+      <div class="gs-example">
+        <div class="gs-demo gs-demo--stack">
+          <p class="error-msg">Erro ao carregar pagamentos.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ TOAST E CARREGANDO ══════════════════════════════════ -->
+    <section class="gs-section" id="gs-aviso">
+      <h2 class="t-title">Toast e carregando</h2>
+      <p class="gs-desc">Toast pelo JS: <code>showToast("texto", "success" | "error" | "info")</code>
+      de <code>js/utils.js</code> — nunca monte o elemento na mão. Enquanto
+      carrega, <code>.loading-spinner</code> no lugar do conteúdo.</p>
+      <div class="gs-example">
+        <div class="gs-demo gs-demo--toasts">
+          <div class="toast toast--success">Chave PIX copiada!</div>
+          <div class="toast toast--error">Não foi possível copiar.</div>
+          <div class="toast toast--info">Salvando…</div>
+          <div class="loading-spinner"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ SHEET / MODAL / DRAWER ══════════════════════════════ -->
+    <section class="gs-section" id="gs-camadas">
+      <h2 class="t-title">Sheet, modal e drawer</h2>
+      <p class="gs-desc">Três jeitos de abrir algo por cima da tela. No celular
+      sobem de baixo; no computador (≥ 1024px) sheet e modal viram janelas
+      centralizadas (<code>css/desktop.css</code>).</p>
+      <table class="gs-table">
+        <thead><tr><th>Estrutura</th><th>Quando usar</th><th>Exemplo no app</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>.modal</code> &gt; <code>.modal-sheet</code></td>
+            <td>Formulário ou confirmação. Abre com <code>modal--open</code>.</td>
+            <td>Registrar pagamento, Confirmação, Meu perfil</td>
+          </tr>
+          <tr>
+            <td><code>.hub-sheet</code> &gt; <code>.hub-sheet__panel</code></td>
+            <td>Escolha ou edição curta, empilhável. Abre com <code>hub-sheet--open</code>.</td>
+            <td>Configurações do grupo e seus editores, Novo grupo</td>
+          </tr>
+          <tr>
+            <td><code>.drawer</code> &gt; <code>.drawer__panel</code></td>
+            <td>Detalhe que mantém a lista visível atrás. Abre com <code>drawer--open</code>.</td>
+            <td>Detalhe do passageiro</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="gs-example">
+        <div class="gs-demo gs-demo--stack">
+          <div class="modal-sheet gs-static-sheet">
+            <button class="btn-icon btn-icon--sm btn-icon--round modal-close-btn" aria-label="Fechar"><i data-icon="x"></i></button>
+            <div class="modal-title">Confirmação</div>
+            <p class="modal-info">Excluir este pagamento? Esta ação não pode ser desfeita.</p>
+            <div class="btn-row confirm-actions">
+              <button class="btn btn--secondary">Cancelar</button>
+              <button class="btn btn--danger">Confirmar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ CLASSES APOSENTADAS ═════════════════════════════════ -->
+    <section class="gs-section" id="gs-trocas">
+      <h2 class="t-title">Classes aposentadas</h2>
+      <p class="gs-desc">Viraram componentes do guia. O linter reprova se
+      alguma voltar ao código.</p>
+      <table class="gs-table" id="gs-retired"></table>
+    </section>
+
+  </main>
+
+  <script type="module" src="guia.js"></script>
+</body>
+</html>

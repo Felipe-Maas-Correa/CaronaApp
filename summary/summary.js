@@ -24,11 +24,11 @@ function bindPeriodFilter() {
   const seg = document.getElementById("sum-period");
   if (!seg || seg.dataset.bound) return;
   seg.dataset.bound = "1";
-  seg.querySelectorAll(".adm-seg__btn").forEach(btn => {
+  seg.querySelectorAll(".seg__btn").forEach(btn => {
     btn.addEventListener("click", () => {
       currentPeriod = btn.dataset.period;
-      seg.querySelectorAll(".adm-seg__btn")
-        .forEach(b => b.classList.toggle("adm-seg__btn--active", b === btn));
+      seg.querySelectorAll(".seg__btn")
+        .forEach(b => b.classList.toggle("seg__btn--active", b === btn));
       renderSummaryCards(cache.trips, cache.payments);
     });
   });
@@ -168,7 +168,7 @@ function renderRecentActivity(trips, payments) {
     .slice(0, 10);
 
   if (activities.length === 0) {
-    container.innerHTML = `<p class="empty-msg">Nenhuma atividade ainda.</p>`;
+    container.innerHTML = `<p class="empty-state empty-state--compact">Nenhuma atividade ainda.</p>`;
     return;
   }
 

@@ -20,6 +20,7 @@
       "js/config.example.js",
       "worker/**",
       "docs/**",
+      "guia/**",
       "**/*.log",
       "**/*.json.example",
       "package*.json"

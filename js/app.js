@@ -79,8 +79,8 @@ function initAuthTabs() {
   const footer     = document.getElementById("auth-footer-note");
 
   const show = (signup) => {
-    tabLogin?.classList.toggle("auth-tab--active", !signup);
-    tabSignup?.classList.toggle("auth-tab--active", signup);
+    tabLogin?.classList.toggle("seg__btn--active", !signup);
+    tabSignup?.classList.toggle("seg__btn--active", signup);
     formLogin?.classList.toggle("hidden", signup);
     formSignup?.classList.toggle("hidden", !signup);
     if (footer) {

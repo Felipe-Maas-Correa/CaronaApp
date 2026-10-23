@@ -5,7 +5,8 @@
 
 import { getUserPayments, getGroupPayments, getGroupUsers, getUserUnpaidTrips, getTripValue, tripAmount, toMillis } from "../js/db.js";
 import { createPayment, deletePayment, approvePayment, rejectPayment } from "../js/worker-api.js";
-import { showToast, formatCurrency, formatDate, formatDateTime, icon, todayISO, escapeHtml, safeImageSrc, safeReceiptSrc, copyToClipboard, readFileAsDataURL } from "../js/utils.js";
+import { showToast, formatCurrency, formatDate, formatDateTime, icon, todayISO, escapeHtml, safeReceiptSrc, copyToClipboard, readFileAsDataURL } from "../js/utils.js";
+import { avatar, emptyState } from "../js/ui.js";
 import { readPdfReceipt, valuesMatch } from "../js/receipt-parser.js";
 import { loadAndRender } from "../calendar/calendar.js";
 import { refreshSummary } from "../summary/summary.js";
@@ -77,11 +78,7 @@ export async function loadPaymentsList() {
     loadedPayments = payments; // cache p/ abrir o comprovante sem recarregar
 
     if (payments.length === 0) {
-      container.innerHTML = `
-        <div class="empty-state">
-          <div class="empty-state__icon">${icon("wallet")}</div>
-          <p>Nenhum pagamento registrado ainda.</p>
-        </div>`;
+      container.innerHTML = emptyState("wallet", "Nenhum pagamento registrado ainda.");
       return;
     }
 
@@ -108,15 +105,15 @@ export async function loadPaymentsList() {
 // Metadados de cada status. `status` ausente = pagamento antigo (legado),
 // já quitado antes do fluxo de aprovação — tratado como "aprovado".
 const STATUS_META = {
-  pending:  { label: "Em análise", cls: "payment-card__status--pending", ic: "clock" },
-  approved: { label: "Aprovado",   cls: "payment-card__status--approved", ic: "check" },
-  rejected: { label: "Rejeitado",  cls: "payment-card__status--rejected", ic: "alert" },
+  pending:  { label: "Em análise", cls: "badge--accent", ic: "clock" },
+  approved: { label: "Aprovado",   cls: "badge--outline", ic: "check" },
+  rejected: { label: "Rejeitado",  cls: "badge--debt", ic: "alert" },
 };
 
 function renderPaymentCard(payment, showUser = false, profile = null) {
   const datesList = payment.tripDates
     .slice(0, 4)
-    .map(d => `<span class="date-chip">${formatDate(d, "short")}</span>`)
+    .map(d => `<span class="badge badge--muted">${formatDate(d, "short")}</span>`)
     .join("");
   const moreCount = payment.tripDates.length - 4;
 
@@ -134,53 +131,39 @@ function renderPaymentCard(payment, showUser = false, profile = null) {
   const canReview = isAdmin();
 
   const adminActions = (canReview && status === "pending") ? `
-    <div class="payment-card__review">
-      <button class="btn-review btn-review--approve" data-approve-payment="${pid}">Aprovar</button>
-      <button class="btn-review btn-review--reject"  data-reject-payment="${pid}">Rejeitar</button>
+    <div class="btn-row payment-card__review">
+      <button class="btn btn--sm btn--soft" data-approve-payment="${pid}">Aprovar</button>
+      <button class="btn btn--sm btn--danger" data-reject-payment="${pid}">Rejeitar</button>
     </div>` : "";
 
   return `
-    <div class="payment-card payment-card--${status}" data-id="${pid}">
+    <div class="card payment-card payment-card--${status}" data-id="${pid}">
       <div class="payment-card__header">
         <div>
           ${showUser ? `
             <div class="payment-card__user">
-              <span class="payment-card__avatar" style="background:${avatarColor(name)}">${avatarInner(name, photo)}</span>
+              ${avatar({ name, photo, size: "sm" })}
               <span>${escapeHtml(name)}</span>
             </div>` : ""}
           <div class="payment-card__amount">${formatCurrency(payment.totalAmount)}</div>
           <div class="payment-card__meta">${payment.tripDates.length} viagem(ns) • ${formatDateTime(payment.createdAt)}</div>
-          <span class="payment-card__status ${meta.cls}">${icon(meta.ic)} ${meta.label}</span>
+          <span class="badge ${meta.cls} payment-card__status">${icon(meta.ic)} ${meta.label}</span>
         </div>
         <div class="payment-card__actions">
           ${(payment.receiptData || payment.receiptUrl)
-            ? `<button class="btn-icon btn-icon--receipt" data-view-receipt-id="${pid}" title="Ver comprovante">${icon("file-text")}</button>`
+            ? `<button class="btn-icon" data-view-receipt-id="${pid}" title="Ver comprovante">${icon("file-text")}</button>`
             : `<span class="no-receipt" title="Sem comprovante">${icon("file")}</span>`
           }
-          <button class="btn-icon btn-icon--delete" data-delete-payment="${pid}" title="Excluir pagamento">${icon("trash")}</button>
+          <button class="btn-icon btn-icon--danger" data-delete-payment="${pid}" title="Excluir pagamento">${icon("trash")}</button>
         </div>
       </div>
       <div class="payment-card__dates">
         ${datesList}
-        ${moreCount > 0 ? `<span class="date-chip date-chip--more">+${moreCount}</span>` : ""}
+        ${moreCount > 0 ? `<span class="badge badge--accent">+${moreCount}</span>` : ""}
       </div>
       ${adminActions}
     </div>
   `;
-}
-
-// ── AVATAR (foto do usuário ou inicial) ───────────────────────
-
-function avatarInner(name, photo) {
-  const safe = safeImageSrc(photo);
-  if (safe) return `<img src="${safe}" alt="" class="avatar-img">`;
-  return escapeHtml((name || "?").charAt(0).toUpperCase());
-}
-
-function avatarColor(name = "") {
-  const colors = ["#00e676","#ff6b6b","#ffd60a","#74b9ff","#a29bfe","#fd79a8","#00cec9"];
-  const code = name && name.length ? name.charCodeAt(0) : "?".charCodeAt(0);
-  return colors[code % colors.length] + "33";
 }
 
 // ── CHAVE PIX ─────────────────────────────────────────────────
@@ -211,11 +194,11 @@ function bindNewPaymentModal() {
     if (ok) {
       const original = btn.textContent;
       btn.textContent = "Copiado!";
-      btn.classList.add("pix-copy-btn--done");
+      btn.classList.replace("btn--primary", "btn--soft");
       showToast("Chave PIX copiada!", "success");
       setTimeout(() => {
         btn.textContent = original;
-        btn.classList.remove("pix-copy-btn--done");
+        btn.classList.replace("btn--soft", "btn--primary");
       }, 2000);
     } else {
       showToast("Não foi possível copiar. Copie manualmente.", "error");

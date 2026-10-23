@@ -34,17 +34,11 @@ import {
   deleteUserAccount, deletePayment, removeMember, transferGroup,
   deleteGroup
 } from "../js/worker-api.js";
-import { showToast, formatCurrency, icon, escapeHtml, safeImageSrc, todayISO, copyToClipboard } from "../js/utils.js";
+import { showToast, formatCurrency, icon, escapeHtml, todayISO, copyToClipboard } from "../js/utils.js";
+import { avatar, avatarInner, avatarColor, emptyState } from "../js/ui.js";
 
 // Valor de cada viagem (respeita preços diferentes ao longo do tempo)
 const amt = t => tripAmount(t);
-
-// Conteúdo de um avatar: foto (se houver) ou a inicial do nome.
-function avatarInner(name, photo) {
-  const safe = safeImageSrc(photo);
-  if (safe) return `<img src="${safe}" alt="" class="avatar-img">`;
-  return escapeHtml((name || "?").charAt(0).toUpperCase());
-}
 
 // Estado
 let currentPeriod = "month";
@@ -89,7 +83,7 @@ function bindAdminEvents() {
   document.getElementById("set-members")?.addEventListener("click", () => {
     // "Membros" leva à lista de passageiros do painel (onde se gerencia).
     closeAdmSettings();
-    document.querySelector('.adm2-sectitle .adm2-add')?.closest(".adm2-sectitle")
+    document.getElementById("btn-invite")?.closest(".section-head")
       ?.scrollIntoView({ behavior: "smooth", block: "start" });
   });
   document.getElementById("btn-save-name")?.addEventListener("click", handleSaveName);
@@ -136,11 +130,11 @@ function bindAdminEvents() {
   document.getElementById("form-new-user")?.addEventListener("submit", handleCreateUser);
 
   // Seletor de período
-  document.getElementById("adm-period")?.querySelectorAll(".adm-seg__btn").forEach(btn => {
+  document.getElementById("adm-period")?.querySelectorAll(".seg__btn").forEach(btn => {
     btn.addEventListener("click", () => {
       currentPeriod = btn.dataset.period;
-      document.querySelectorAll("#adm-period .adm-seg__btn")
-        .forEach(b => b.classList.toggle("adm-seg__btn--active", b === btn));
+      document.querySelectorAll("#adm-period .seg__btn")
+        .forEach(b => b.classList.toggle("seg__btn--active", b === btn));
       renderPeriodStats();
     });
   });
@@ -475,11 +469,11 @@ function openUserDrawer(uid) {
   }).join("");
 
   document.getElementById("drawer-body").innerHTML = `
-    <div class="drawer-kpis">
-      <div class="drawer-kpi"><span>${trips.length}</span><small>viagens</small></div>
-      <div class="drawer-kpi drawer-kpi--paid"><span>${formatCurrency(totalPaid)}</span><small>pago</small></div>
-      <div class="drawer-kpi drawer-kpi--debt"><span>${formatCurrency(totalOpen)}</span><small>em aberto</small></div>
-      <div class="drawer-kpi"><span>${rate}%</span><small>adimplência</small></div>
+    <div class="stat-grid">
+      <div class="stat stat--sm stat--center stat--elevated"><span class="stat__value">${trips.length}</span><span class="stat__label">viagens</span></div>
+      <div class="stat stat--sm stat--center stat--elevated stat--paid"><span class="stat__value">${formatCurrency(totalPaid)}</span><span class="stat__label">pago</span></div>
+      <div class="stat stat--sm stat--center stat--elevated stat--debt"><span class="stat__value">${formatCurrency(totalOpen)}</span><span class="stat__label">em aberto</span></div>
+      <div class="stat stat--sm stat--center stat--elevated"><span class="stat__value">${rate}%</span><span class="stat__label">adimplência</span></div>
     </div>
     <div class="drawer-table">
       <div class="drawer-row drawer-row--head"><span></span><span>Viagens</span><span>Pago</span><span>Aberto</span></div>
@@ -491,10 +485,10 @@ function openUserDrawer(uid) {
   const actions = document.getElementById("drawer-actions");
   if (canManage && !isCurrentUser && !isOwner) {
     actions.innerHTML = `
-      <button class="drawer-act" data-drawer-transfer="${uid}">
+      <button class="btn btn--secondary btn--full" data-drawer-transfer="${uid}">
         ${icon("crown")} Passar a posse do grupo
       </button>
-      <button class="drawer-act drawer-act--danger" data-drawer-remove="${uid}">
+      <button class="btn btn--danger btn--full" data-drawer-remove="${uid}">
         ${icon("trash")} Remover do grupo
       </button>`;
     actions.querySelector("[data-drawer-transfer]")
@@ -528,7 +522,7 @@ function renderManageUsers() {
   if (!container) return;
 
   if (cache.users.length === 0) {
-    container.innerHTML = `<div class="empty-state"><div class="empty-state__icon">${icon("users")}</div><p>Nenhum passageiro no grupo. Use "Convidar".</p></div>`;
+    container.innerHTML = emptyState("users", "Nenhum passageiro no grupo. Use o + para convidar.");
     return;
   }
 
@@ -557,17 +551,17 @@ function renderManageUsers() {
       ? `<span class="pax2__status pax2__status--debt">${icon("alert")} ${formatCurrency(s.open)} em aberto</span>`
       : `<span class="pax2__status pax2__status--ok"><span class="pax2__dot"></span> Em dia</span>`;
     return `
-      <button class="pax2 ${inactive ? "pax2--off" : ""} ${i >= PAX_PREVIEW ? "pax2--extra hidden" : ""}" data-open-pax="${u.uid}">
-        <span class="pax2__avatar" style="background:${avatarColor(u.name)}">${avatarInner(u.name, u.photo)}</span>
+      <button class="list-item pax2 ${inactive ? "pax2--off" : ""} ${i >= PAX_PREVIEW ? "pax2--extra hidden" : ""}" data-open-pax="${u.uid}">
+        ${avatar({ name: u.name, photo: u.photo })}
         <span class="pax2__id">
-          <span class="pax2__name">${escapeHtml(u.name || "—")}${isCurrentUser ? ' <span class="pax2__you">você</span>' : ""}</span>
+          <span class="pax2__name">${escapeHtml(u.name || "—")}${isCurrentUser ? ' <span class="badge badge--accent">você</span>' : ""}</span>
           ${status}
         </span>
         <span class="pax2__value">${formatCurrency(s.total)}</span>
       </button>`;
   };
 
-  container.innerHTML = `<div class="pax2-list">${rows.map(rowHtml).join("")}</div>`;
+  container.innerHTML = `<div class="list">${rows.map(rowHtml).join("")}</div>`;
 
   // "Ver todos": só aparece quando há mais passageiros que o preview.
   const seeAll = document.getElementById("btn-pax-all");
@@ -714,12 +708,12 @@ function renderStats() {
   const rate  = total ? Math.round((paid / total) * 100) : 0;
 
   box.innerHTML = `
-    <div class="stat-card">
-      <div class="stat-card__head">Viagens por mês</div>
+    <div class="card">
+      <div class="card__title">Viagens por mês</div>
       <div class="barchart">${bars}</div>
     </div>
-    <div class="stat-card">
-      <div class="stat-card__head">Adimplência</div>
+    <div class="card">
+      <div class="card__title">Adimplência</div>
       <div class="stat-rate">
         <span class="stat-rate__num">${rate}%</span>
         <span class="stat-rate__track"><span class="stat-rate__fill" style="width:${rate}%"></span></span>
@@ -739,16 +733,6 @@ function lastMonths(n) {
     });
   }
   return out;
-}
-
-function emptyState(ic, text) {
-  return `<div class="empty-state"><div class="empty-state__icon">${icon(ic)}</div><p>${escapeHtml(text)}</p></div>`;
-}
-
-function avatarColor(name = "") {
-  const colors = ["#00e676","#ff6b6b","#ffd60a","#74b9ff","#a29bfe","#fd79a8","#00cec9"];
-  const code = name && name.length ? name.charCodeAt(0) : "?".charCodeAt(0);
-  return colors[code % colors.length] + "33";
 }
 
 // ── AÇÕES DO DONO DO GRUPO ───────────────────────────────────
@@ -841,7 +825,7 @@ function renderSystemGroups() {
     const open  = trips.filter(t => !t.paid && t.date <= today).reduce((s, t) => s + amt(t), 0);
     const members = system.users.filter(u => (u.groupIds || []).includes(g.id)).length;
     return `
-      <div class="sys-group">
+      <div class="card sys-group">
         <div class="sys-group__info">
           <div class="sys-group__name">${escapeHtml(g.name || "Grupo")}</div>
           <div class="sys-group__meta">
@@ -858,7 +842,7 @@ function renderSystemGroups() {
 
   box.innerHTML = rows.length
     ? rows.join("")
-    : `<div class="empty-state"><div class="empty-state__icon">${icon("users")}</div><p>Nenhum grupo criado ainda.</p></div>`;
+    : emptyState("users", "Nenhum grupo criado ainda.");
 }
 
 function renderSystemUsers() {
@@ -866,7 +850,7 @@ function renderSystemUsers() {
   if (!box) return;
 
   if (system.users.length === 0) {
-    box.innerHTML = `<div class="empty-state"><div class="empty-state__icon">${icon("users")}</div><p>Nenhum usuário cadastrado.</p></div>`;
+    box.innerHTML = emptyState("users", "Nenhum usuário cadastrado.");
     return;
   }
 
@@ -894,22 +878,20 @@ function renderSystemUserCard(user, groupNameById) {
     : "sem grupo";
 
   return `
-    <div class="user-card ${!isActive ? "user-card--inactive" : ""}">
-      <div class="user-card__avatar" style="background:${avatarColor(user.name)}">
-        ${avatarInner(user.name, user.photo)}
-      </div>
+    <div class="card user-card ${!isActive ? "user-card--inactive" : ""}">
+      ${avatar({ name: user.name, photo: user.photo })}
       <div class="user-card__info">
         <div class="user-card__name">
           ${escapeHtml(user.name)}
-          ${isCurrentUser ? '<span class="badge badge--you">você</span>' : ""}
+          ${isCurrentUser ? '<span class="badge badge--muted">você</span>' : ""}
         </div>
         <div class="user-card__email">${escapeHtml(user.email)}</div>
         <div class="user-card__meta">
-          <span class="badge ${isSuper ? "badge--admin" : "badge--user"}">
+          <span class="badge ${isSuper ? "badge--accent" : "badge--muted"}">
             ${isSuper ? icon("crown") + " Admin do sistema" : icon("user") + " Usuário"}
           </span>
-          <span class="badge badge--user">${escapeHtml(groupLabel)}</span>
-          <span class="badge ${isActive ? "badge--active" : "badge--inactive"}">
+          <span class="badge badge--muted">${escapeHtml(groupLabel)}</span>
+          <span class="badge ${isActive ? "badge--outline" : "badge--debt-outline"}">
             ${isActive ? "Ativo" : "Inativo"}
           </span>
         </div>
@@ -924,7 +906,7 @@ function renderSystemUserCard(user, groupNameById) {
             data-toggle-active="${user.uid}" data-current-active="${isActive}">
             ${isActive ? icon("lock") : icon("unlock")}
           </button>
-          <button class="btn-icon btn-icon--delete" title="Excluir"
+          <button class="btn-icon btn-icon--danger" title="Excluir"
             data-delete-user="${user.uid}">
             ${icon("trash")}
           </button>

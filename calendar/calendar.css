@@ -26,33 +26,6 @@
   gap: .4rem;
 }
 
-.btn-today {
-  font-size: var(--fs-2xs);
-  font-family: var(--font-mono);
-  padding: 0 .65rem;
-  width: auto;
-  color: var(--accent);
-  border-color: var(--border-gold);
-  background: var(--accent-dim);
-  letter-spacing: 0.04em;
-}
-
-/* Botão "Vários dias" — largura automática, sem quebra de linha */
-.btn-multi {
-  font-size: var(--fs-2xs);
-  font-family: var(--font-mono);
-  padding: 0 .7rem;
-  width: auto;
-  white-space: nowrap;
-  letter-spacing: 0.04em;
-  color: var(--text-muted);
-}
-.btn-multi--on {
-  color: var(--on-accent);
-  background: var(--accent);
-  border-color: var(--accent);
-  font-weight: 700;
-}
 
 /* ── GRID ────────────────────────────────────────────────────── */
 .calendar-wrap {
@@ -161,13 +134,7 @@
   font-weight: 700;
 }
 
-/* Botão de alternância e barra de ação do modo lote */
-.btn-multi--on {
-  background: var(--accent);
-  color: var(--on-accent);
-  border-color: var(--accent);
-  font-weight: 700;
-}
+/* Barra de ação do modo lote */
 .multi-bar {
   display: flex;
   align-items: center;
@@ -284,15 +251,6 @@
 .pax-item:active { background: var(--bg-hover); }
 .pax-item input { width: 18px; height: 18px; accent-color: var(--accent); flex-shrink: 0; }
 .pax-item--locked { opacity: .7; cursor: default; }
-.pax-item__avatar {
-  width: 28px; height: 28px;
-  border-radius: 50%;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-light);
-  display: flex; align-items: center; justify-content: center;
-  font-size: var(--fs-sm); font-weight: 700; color: var(--text-muted);
-  flex-shrink: 0;
-}
 .pax-item__name {
   flex: 1;
   font-size: var(--fs-md);
@@ -307,54 +265,9 @@
   text-transform: uppercase;
 }
 .pax-item--locked .pax-item__tag { color: var(--accent); }
-.pax-item__remove {
-  flex-shrink: 0;
-  width: 34px; height: 34px;
-  display: flex; align-items: center; justify-content: center;
-  border: none;
-  border-radius: 9px;
-  background: var(--debt);
-  color: var(--on-debt);
-  cursor: pointer;
-  box-shadow: 0 1px 4px rgba(224, 92, 92, .35);
-}
-.pax-item__remove:active { filter: brightness(.88); transform: scale(.92); }
-.pax-item__remove svg { width: var(--ic-md); height: var(--ic-md); stroke: var(--on-debt); fill: none; }
 
-/* ── STATS DO MÊS ────────────────────────────────────────────── */
-.month-stats {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: .6rem;
-  margin: 0 1.25rem 1.25rem;
-}
-
-.month-stat {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: .85rem 1rem;
-}
-
-.month-stat__label {
-  font-size: var(--fs-2xs);
-  color: var(--text-muted);
-  font-family: var(--font-mono);
-  text-transform: uppercase;
-  letter-spacing: .1em;
-  margin-bottom: .3rem;
-}
-
-.month-stat__value {
-  font-family: var(--font-mono);
-  font-size: var(--fs-xl);
-  font-weight: 600;
-  color: var(--text);
-}
-
-.month-stat--debt .month-stat__value {
-  color: var(--debt);
-}
+/* ── STATS DO MÊS ── compõe .stat-grid / .stat ─────────────── */
+.month-stats { margin: 0 1.25rem 1.25rem; }
 
 /* ── LEGENDA ─────────────────────────────────────────────────── */
 .calendar-legend {

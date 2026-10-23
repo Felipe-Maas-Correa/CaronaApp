@@ -92,24 +92,6 @@
   color: var(--accent);
 }
 
-.btn-logout {
-  width: 34px;
-  height: 34px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-light);
-  border-radius: 50%;
-  color: var(--text-muted);
-  font-size: var(--fs-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color .25s, border-color .25s, background .25s;
-}
-.btn-logout:hover {
-  color: var(--debt);
-  border-color: var(--debt);
-  background: var(--debt-dim);
-}
 
 /* ── TAB PANELS ──────────────────────────────────────────────── */
 .tab-panels {

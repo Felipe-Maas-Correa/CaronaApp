@@ -91,7 +91,7 @@ function renderGroupBox() {
 
   if (!currentProfile?.groupId) {
     box.innerHTML = `
-      <p class="empty-msg" style="padding:.5rem 0">
+      <p class="empty-state empty-state--compact">
         Você ainda não está em um grupo de carona.
       </p>`;
     return;

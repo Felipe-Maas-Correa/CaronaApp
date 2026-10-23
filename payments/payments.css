@@ -19,40 +19,16 @@
   letter-spacing: .01em;
 }
 
-.btn-new-payment {
-  display: flex;
-  align-items: center;
-  gap: .4rem;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-soft) 100%);
-  color: var(--on-accent);
-  border: none;
-  border-radius: var(--radius);
-  padding: .55rem .95rem;
-  font-size: var(--fs-sm);
-  font-weight: 700;
-  letter-spacing: .02em;
-  transition: opacity .2s, transform .15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow .2s;
-  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.2);
-}
-
-.btn-new-payment:active {
-  transform: scale(.93);
-  opacity: .9;
-}
-
 /* ── LISTA ───────────────────────────────────────────────────── */
 .payments-list {
   padding: 0 1.25rem;
 }
 
+/* Card compõe .card; aqui só o espaçamento e o conteúdo */
 .payment-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
   padding: 1.1rem 1.25rem;
   margin-bottom: .75rem;
   transition: border-color .2s, box-shadow .2s;
-  box-shadow: var(--shadow-sm);
 }
 
 .payment-card:active {
@@ -87,94 +63,24 @@
   gap: .4rem;
 }
 
-/* ── STATUS DO PAGAMENTO (F-01: fluxo de aprovação) ──────────── */
-.payment-card__status {
-  display: inline-flex;
-  align-items: center;
-  gap: .3rem;
-  margin-top: .45rem;
-  padding: .15rem .55rem;
-  border-radius: 999px;
-  border: 1px solid transparent;
-  font-family: var(--font-mono);
-  font-size: var(--fs-2xs);
-  letter-spacing: .04em;
-  font-weight: 500;
-}
-.payment-card__status svg { width: var(--ic-xs); height: var(--ic-xs); }
-
-.payment-card__status--pending {
-  background: var(--accent-dim);
-  border-color: var(--accent-border);
-  color: var(--accent-soft);
-}
-.payment-card__status--approved {
-  background: transparent;
-  border-color: rgba(212, 175, 55, 0.3);
-  color: var(--accent);
-}
-.payment-card__status--rejected {
-  background: var(--debt-dim);
-  border-color: rgba(224, 92, 92, 0.35);
-  color: var(--debt);
-}
+/* ── STATUS DO PAGAMENTO ── compõe .badge (tom em payments.js) ── */
+.payment-card__status { margin-top: .45rem; }
 
 /* Destaque sutil no card enquanto aguarda conferência. */
 .payment-card--pending { border-color: var(--accent-border); }
 .payment-card--rejected { opacity: .82; }
 
+/* Aprovar | Rejeitar — botões em .btn-row */
 .payment-card__review {
-  display: flex;
-  gap: .5rem;
   margin-top: .8rem;
   padding-top: .7rem;
   border-top: 1px solid var(--border);
 }
-.btn-review {
-  flex: 1;
-  padding: .5rem .75rem;
-  border-radius: var(--radius);
-  border: 1px solid var(--border-light);
-  background: var(--bg-elevated);
-  color: var(--text);
-  font-size: var(--fs-md);
-  font-weight: 600;
-  cursor: pointer;
-  transition: border-color .15s, background .15s, opacity .15s;
-}
-.btn-review:active { opacity: .8; }
-.btn-review--approve {
-  border-color: var(--accent-border);
-  color: var(--accent);
-}
-.btn-review--approve:hover { background: var(--accent-dim); }
-.btn-review--reject {
-  border-color: rgba(224, 92, 92, 0.3);
-  color: var(--debt);
-}
-.btn-review--reject:hover { background: var(--debt-dim); }
 
 .payment-card__dates {
   display: flex;
   flex-wrap: wrap;
   gap: .3rem;
-}
-
-/* ── DATE CHIP ───────────────────────────────────────────────── */
-.date-chip {
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: .15rem .55rem;
-  font-family: var(--font-mono);
-  font-size: var(--fs-2xs);
-  color: var(--text-muted);
-}
-
-.date-chip--more {
-  border-color: var(--border-gold);
-  color: var(--accent);
-  background: var(--accent-dim);
 }
 
 /* ── MODAL DE NOVO PAGAMENTO ─────────────────────────────────── */
@@ -257,21 +163,6 @@
   color: var(--accent);
 }
 
-.pix-copy-btn {
-  background: var(--accent);
-  color: var(--on-accent);
-  border: none;
-  border-radius: 999px;
-  font-family: var(--font-display);
-  font-size: var(--fs-xs);
-  font-weight: 700;
-  letter-spacing: .03em;
-  padding: .3rem .8rem;
-  transition: background .2s, transform .1s;
-}
-.pix-copy-btn:active { transform: scale(.96); }
-.pix-copy-btn--done  { background: var(--accent-dim); color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent-border); }
-
 .pix-box__key {
   display: block;
   font-family: var(--font-mono);
@@ -314,25 +205,6 @@
   align-items: center;
   gap: .5rem;
   margin-bottom: .75rem;
-}
-
-.pay-cal-nav {
-  width: 30px;
-  height: 30px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  color: var(--text);
-  font-size: var(--fs-lg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background .15s, border-color .15s;
-  flex-shrink: 0;
-}
-.pay-cal-nav:active {
-  background: var(--bg-hover);
-  border-color: var(--border-gold);
 }
 
 .pay-cal-label {
@@ -522,22 +394,4 @@
   font-weight: 600;
   color: var(--accent);
   margin-bottom: .35rem;
-}
-.payment-card__avatar {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--fs-sm);
-  font-weight: 700;
-  color: var(--text);
-  overflow: hidden;
-  flex-shrink: 0;
-}
-.payment-card__avatar .avatar-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
