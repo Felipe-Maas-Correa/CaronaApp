@@ -12,6 +12,12 @@ com painel administrativo completo, avaliação de viagens e pagamento via PIX.
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black)
 ![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=flat&logo=firebase&logoColor=black)
 
+### [**→ Usar o CaronaApp: caronaapp.web.app**](https://caronaapp.web.app/)
+
+[![Abrir o CaronaApp](https://img.shields.io/badge/Abrir_o_app-caronaapp.web.app-D4AF37?style=for-the-badge&labelColor=1a1a1a)](https://caronaapp.web.app/)
+
+Grátis · funciona no celular e no computador · dá para instalar na tela inicial
+
 </div>
 
 ---
@@ -30,6 +36,16 @@ a sua chave PIX e o seu administrador.
 Foi construído com **JavaScript puro (ES Modules), sem frameworks nem build step** — o foco
 foi arquitetura limpa, componentização por módulos e uma identidade visual **premium dark gold**
 consistente. Todo o backend roda no plano **gratuito** do Firebase.
+
+## Comece a usar
+
+1. Abra **[caronaapp.web.app](https://caronaapp.web.app/)** e toque em **Criar conta**.
+2. **Crie o seu grupo** (você vira o administrador dele) ou entre com o **código de
+   convite** que alguém te mandou.
+3. Marque as viagens no **Calendário** e acompanhe quem pagou e quem está devendo.
+
+No celular, use "Adicionar à tela inicial" (iPhone) ou "Instalar app" (Android) para
+abrir como um aplicativo.
 
 ## Grupos de carona
 
