@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="../css/base.css" />
   <link rel="stylesheet" href="../css/components.css" />
   <link rel="stylesheet" href="../css/design-system.css" />
+  <link rel="stylesheet" href="../css/motion.css" />
   <link rel="stylesheet" href="guia.css" />
 </head>
 <body class="gs">
@@ -46,6 +47,7 @@
     <a href="#gs-vazio">Estado vazio</a>
     <a href="#gs-aviso">Toast e carregando</a>
     <a href="#gs-camadas">Sheet, modal e drawer</a>
+    <a href="#gs-movimento">Movimento</a>
 
     <div class="gs-nav__group">Referência</div>
     <a href="#gs-trocas">Classes aposentadas</a>
@@ -566,6 +568,106 @@
               <button class="btn btn--danger">Confirmar</button>
             </div>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ MOVIMENTO ═══════════════════════════════════════════ -->
+    <section class="gs-section" id="gs-movimento">
+      <h2 class="t-title">Movimento</h2>
+      <p class="gs-desc">Movimento confirma o que a pessoa fez: aperto no toque,
+      aba que vem do lado certo, lista que chega em cascata, número que conta.
+      As animações moram em <code>css/motion.css</code> (único lugar com
+      <code>@keyframes</code>), os eventos em <code>js/motion.js</code>, ligado no
+      boot. Quem usa os componentes do guia ganha tudo de graça. "Reduzir
+      movimento" do sistema desliga tudo.</p>
+
+      <table class="gs-table">
+        <thead><tr><th>Token</th><th>Valor</th><th>Quando usar</th></tr></thead>
+        <tbody>
+          <tr><td><code>--dur-fast</code></td><td>120ms</td><td>Toque: aperto, hover.</td></tr>
+          <tr><td><code>--dur</code></td><td>220ms</td><td>Troca de estado, fade, indicador.</td></tr>
+          <tr><td><code>--dur-slow</code></td><td>380ms</td><td>Entrada de aba, tela, sheet, lista.</td></tr>
+          <tr><td><code>--stagger</code></td><td>45ms</td><td>Atraso entre itens de uma lista.</td></tr>
+          <tr><td><code>--ease-out</code></td><td>—</td><td>Entrar e parar suave (o padrão).</td></tr>
+          <tr><td><code>--ease-spring</code></td><td>—</td><td>Passa um pouco e volta: confirmação, indicador.</td></tr>
+          <tr><td><code>--ease-in-out</code></td><td>—</td><td>Ir e voltar (tremida, barras).</td></tr>
+        </tbody>
+      </table>
+
+      <h3 class="gs-h3">Toque</h3>
+      <p class="gs-desc">Botões, botões-ícone, linhas de lista, abas e segmentado
+      afundam e soltam uma onda no ponto tocado. No celular, as ações principais
+      vibram de leve. Toque para sentir.</p>
+      <div class="gs-example">
+        <div class="gs-demo">
+          <button class="btn btn--primary">Confirmar</button>
+          <button class="btn btn--secondary">Meus grupos</button>
+          <button class="btn-icon" aria-label="Copiar"><i data-icon="copy"></i></button>
+          <div class="list gs-grow">
+            <button class="list-item"><span class="t-body gs-grow">Linha de lista</span><i data-icon="chevron-right"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="gs-h3">Lista em cascata — <code>data-stagger</code></h3>
+      <p class="gs-desc">Ponha <code>data-stagger</code> no container que o JS
+      preenche: a cada troca de conteúdo os itens entram um atrás do outro.
+      <code>data-stagger=".list"</code> anima os filhos de um elemento interno;
+      <code>data-stagger-grid</code> é a versão rápida para grades;
+      <code>data-stagger-key="#id"</code> só anima quando o texto de
+      <code>#id</code> mudou (o mês do calendário).</p>
+      <div class="gs-example">
+        <div class="gs-demo gs-demo--stack">
+          <div class="list" id="gs-stagger-demo" data-stagger>
+            <div class="list-item"><span class="avatar avatar--sm">C</span><span class="t-body">Chico</span></div>
+            <div class="list-item"><span class="avatar avatar--sm">F</span><span class="t-body">Felipe Corrêa</span></div>
+            <div class="list-item"><span class="avatar avatar--sm">L</span><span class="t-body">Lipo</span></div>
+          </div>
+          <button class="btn btn--ghost btn--sm" data-gs-motion="stagger">Recarregar lista</button>
+        </div>
+      </div>
+
+      <h3 class="gs-h3">Número contando</h3>
+      <p class="gs-desc">Quando o JS escreve um número novo em
+      <code>.stat__value</code>, <code>.summary-hero__amount</code>,
+      <code>.received-card__value</code> ou <code>.stat-rate__num</code>, ele conta
+      até lá. O texto final é exatamente o que a tela escreveu.</p>
+      <div class="gs-example">
+        <div class="gs-demo gs-demo--stack">
+          <div class="stat-grid">
+            <div class="stat stat--paid stat--highlight">
+              <div class="stat__value" id="gs-count-demo">R$ 600,00</div>
+              <div class="stat__label">Recebido</div>
+            </div>
+            <div class="stat">
+              <div class="stat__value" id="gs-count-demo-2">68</div>
+              <div class="stat__label">Viagens</div>
+            </div>
+          </div>
+          <button class="btn btn--ghost btn--sm" data-gs-motion="count">Novo pagamento</button>
+        </div>
+      </div>
+
+      <h3 class="gs-h3">Erro e confirmação</h3>
+      <p class="gs-desc">Texto que aparece em <code>.auth-error</code> ou
+      <code>.error-msg</code> faz o formulário balançar "não". Favoritar,
+      selecionar um dia ou uma estrela dá uma batida (<code>.m-pop</code>). Toast
+      de sucesso solta um brilho dourado.</p>
+      <div class="gs-example">
+        <div class="gs-demo gs-demo--stack gs-demo--narrow">
+          <form class="card card--elevated gs-shake-demo" novalidate>
+            <div class="form-group">
+              <label class="form-label" for="gs-shake-input">Senha</label>
+              <input id="gs-shake-input" type="password" class="form-input" placeholder="••••••••" />
+            </div>
+            <p class="auth-error" id="gs-shake-error"></p>
+          </form>
+          <div class="btn-row">
+            <button class="btn btn--danger btn--sm" type="button" data-gs-motion="shake">Senha errada</button>
+            <button class="btn btn--soft btn--sm" type="button" data-gs-motion="pop">Favoritar</button>
+          </div>
+          <span class="badge badge--accent gs-pop-demo">★ favorito</span>
         </div>
       </div>
     </section>

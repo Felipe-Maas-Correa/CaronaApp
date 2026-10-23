@@ -34,6 +34,17 @@
   --ls-label: .1em;    /* labels em caixa-alta */
   --ls-tight: -.01em;  /* títulos em Playfair */
 
+  /* ── MOVIMENTO ───────────────────────────────────────────────
+     Duração e curva de toda transição/animação. As animações em si
+     moram em css/motion.css; "reduzir movimento" do sistema zera tudo. */
+  --dur-fast:  120ms;   /* toque: aperto do botão, hover */
+  --dur:       220ms;   /* padrão: troca de estado, fade */
+  --dur-slow:  380ms;   /* entrada de tela, sheet, número contando */
+  --stagger:   45ms;    /* atraso entre itens de uma lista entrando */
+  --ease-out:    cubic-bezier(.2, .8, .2, 1);      /* entrar e parar suave */
+  --ease-spring: cubic-bezier(.34, 1.56, .64, 1);  /* passa um pouco e volta */
+  --ease-in-out: cubic-bezier(.4, 0, .2, 1);       /* ir e voltar (barras) */
+
   /* ── ÍCONES ──────────────────────────────────────────────────
      Tamanho e traço por token; a cor é sempre currentColor (herda do
      texto) salvo quando o contexto define outra. */
