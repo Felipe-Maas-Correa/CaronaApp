@@ -14,10 +14,13 @@
       "**/node_modules/**",
       "*.rules",
       "README.md",
+      "DESIGN-SYSTEM.md",
+      "tools/**",
       "LICENSE",
       "js/config.example.js",
       "worker/**",
       "docs/**",
+      "guia/**",
       "**/*.log",
       "**/*.json.example",
       "package*.json"

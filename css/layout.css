@@ -44,29 +44,18 @@
 
 .app-header__title {
   font-family: var(--font-serif);
-  font-size: 1.1rem;
+  font-size: var(--fs-lg);
   color: var(--accent);
   font-weight: 700;
   letter-spacing: 0.02em;
 }
 
 .app-header__subtitle {
-  font-size: .65rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
   margin-top: 2px;
   font-family: var(--font-mono);
   letter-spacing: 0.06em;
-}
-
-.app-header__badge {
-  background: var(--accent-dim);
-  border: 1px solid var(--border-gold);
-  color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: .62rem;
-  padding: .25rem .65rem;
-  border-radius: 999px;
-  letter-spacing: 0.04em;
 }
 
 .app-header__user {
@@ -83,7 +72,7 @@
 }
 
 .header-user-name {
-  font-size: .8rem;
+  font-size: var(--fs-md);
   font-weight: 600;
   color: var(--text);
   max-width: 120px;
@@ -94,7 +83,7 @@
 
 .header-role {
   font-family: var(--font-mono);
-  font-size: .58rem;
+  font-size: var(--fs-2xs);
   color: var(--text-muted);
   letter-spacing: 0.06em;
 }
@@ -103,24 +92,6 @@
   color: var(--accent);
 }
 
-.btn-logout {
-  width: 34px;
-  height: 34px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-light);
-  border-radius: 50%;
-  color: var(--text-muted);
-  font-size: .85rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color .25s, border-color .25s, background .25s;
-}
-.btn-logout:hover {
-  color: var(--debt);
-  border-color: var(--debt);
-  background: var(--debt-dim);
-}
 
 /* ── TAB PANELS ──────────────────────────────────────────────── */
 .tab-panels {
@@ -165,7 +136,7 @@
   background: rgba(26, 26, 26, 0.80);
   border-top: 1px solid var(--border);
   display: flex;
-  z-index: 100;
+  z-index: var(--z-nav);
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
 }
@@ -179,6 +150,9 @@
   background: linear-gradient(90deg, transparent, var(--accent-border), transparent);
 }
 
+/* Marca da barra lateral — só aparece no computador (css/desktop.css) */
+.side-brand { display: none; }
+
 .nav-btn {
   flex: 1;
   display: flex;
@@ -190,7 +164,7 @@
   border: none;
   color: var(--text-muted);
   font-family: var(--font-display);
-  font-size: .6rem;
+  font-size: var(--fs-2xs);
   font-weight: 500;
   letter-spacing: .06em;
   text-transform: uppercase;
@@ -199,7 +173,7 @@
 }
 
 .nav-btn__icon {
-  font-size: 1.25rem;
+  font-size: var(--fs-xl);
   line-height: 1;
   transition: transform .25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -243,7 +217,7 @@
   CORREÇÃO: ".screen { display:none !important }" derrubava
   ".app.screen { display:flex }" pois !important vence qualquer especificidade.
   Isso fazia o .app sumir mesmo logado, e o bottom-nav (position:fixed)
-  ficava flutuando sobre a auth-screen que tem z-index:500.
+  ficava flutuando sobre a auth-screen (camada --z-auth).
   Solução: remover !important do seletor base — a cascata resolve corretamente.
 */
 .screen                     { display: none; }

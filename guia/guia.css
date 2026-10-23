@@ -1,0 +1,290 @@
+/* ============================================================
+   guia/guia.css — Moldura da página do guia de estilo
+   Só a página em volta dos exemplos (navegação, blocos de código,
+   amostras). Os componentes mostrados vêm de css/components.css,
+   sem nenhuma alteração aqui.
+   ============================================================ */
+
+html, body { overflow: auto; height: auto; }
+
+.gs {
+  --gs-nav-w: 236px;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ── NAVEGAÇÃO ───────────────────────────────────────────────── */
+.gs-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .25rem .4rem;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-card);
+}
+.gs-nav__brand {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  width: 100%;
+  font-family: var(--font-serif);
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
+  color: var(--accent);
+}
+.gs-nav__brand .lucide { width: var(--ic-xl); height: var(--ic-xl); stroke: var(--accent); stroke-width: var(--ic-stroke-light); }
+.gs-nav__sub {
+  width: 100%;
+  margin-bottom: .4rem;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.gs-nav__group { display: none; }
+.gs-nav a {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  padding: .3rem .55rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+  transition: color .2s, background .2s;
+}
+.gs-nav a:hover { color: var(--accent); background: var(--bg-hover); }
+
+/* ── CONTEÚDO ────────────────────────────────────────────────── */
+.gs-main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 4rem;
+}
+.gs-hero { display: flex; flex-direction: column; gap: .6rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border); }
+.gs-lead { font-size: var(--fs-base); color: var(--text-muted); line-height: 1.6; max-width: 62ch; }
+.gs-rules { display: grid; grid-template-columns: 1fr; gap: .7rem; margin-top: .8rem; }
+.gs-rules .card__title { margin-bottom: .4rem; color: var(--accent); }
+
+.gs-section {
+  padding: 2.4rem 0 1rem;
+  border-bottom: 1px solid var(--border);
+  scroll-margin-top: 1rem;
+}
+.gs-section > .t-title { margin-bottom: .5rem; }
+.gs-desc { font-size: var(--fs-md); color: var(--text-muted); line-height: 1.6; max-width: 68ch; margin-bottom: 1.1rem; }
+.gs-h3 {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 1.4rem 0 .6rem;
+  scroll-margin-top: 1rem;
+}
+.gs code {
+  font-family: var(--font-mono);
+  font-size: inherit;
+  color: var(--accent-soft);
+}
+
+/* ── EXEMPLO + CÓDIGO ────────────────────────────────────────── */
+.gs-example {
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+.gs-demo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .7rem;
+  padding: 1.25rem;
+  background:
+    radial-gradient(circle at 1px 1px, var(--border-light) 1px, transparent 0) 0 0 / 16px 16px,
+    var(--bg);
+}
+.gs-demo--stack  { flex-direction: column; align-items: stretch; }
+.gs-demo--narrow { max-width: 460px; }
+.gs-demo--grid   { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); align-items: stretch; }
+.gs-grow { flex: 1; min-width: 0; }
+
+.gs-code {
+  position: relative;
+  margin: 0;
+  padding: 1rem 1.1rem;
+  background: var(--bg-subtle);
+  border-top: 1px solid var(--border-light);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  line-height: 1.7;
+  color: var(--text-muted);
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 320px;
+  overflow: auto;
+}
+.gs-code code { color: var(--text-muted); font-size: inherit; }
+.gs-code__copy { position: sticky; float: right; top: 0; margin: -.2rem -.3rem .3rem .6rem; }
+.gs-code__copy.is-copied,
+.gs-icon.is-copied { color: var(--accent); border-color: var(--accent-border); }
+
+/* ── TABELAS ─────────────────────────────────────────────────── */
+.gs-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+  margin: .4rem 0 1rem;
+}
+.gs-table th {
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: var(--fw-medium);
+  padding: .5rem .6rem;
+  border-bottom: 1px solid var(--border-light);
+}
+.gs-table td {
+  padding: .55rem .6rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  vertical-align: top;
+  line-height: 1.5;
+}
+
+/* ── CORES ───────────────────────────────────────────────────── */
+.gs-swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: .6rem;
+  margin-bottom: .8rem;
+}
+.gs-swatch {
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+  padding: .55rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  min-width: 0;
+}
+.gs-swatch__chip {
+  height: 46px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+}
+.gs-swatch code { font-size: var(--fs-xs); }
+.gs-swatch__val {
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── TIPOGRAFIA ──────────────────────────────────────────────── */
+.gs-scale { display: flex; flex-direction: column; }
+.gs-scale__row {
+  display: grid;
+  grid-template-columns: 90px 64px 1fr;
+  align-items: baseline;
+  gap: .6rem;
+  padding: .45rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.gs-scale__row code { font-size: var(--fs-xs); }
+.gs-scale__val { font-family: var(--font-mono); font-size: var(--fs-2xs); color: var(--text-dim); }
+.gs-scale__sample { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ── ÍCONES ──────────────────────────────────────────────────── */
+.gs-icons {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: .5rem;
+}
+.gs-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .45rem;
+  padding: .8rem .3rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  cursor: pointer;
+  transition: border-color .2s, color .2s;
+}
+.gs-icon:hover { border-color: var(--accent-border); color: var(--accent); }
+.gs-icon span { color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+
+/* ── FORMA ───────────────────────────────────────────────────── */
+.gs-shape {
+  width: 110px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold);
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  color: var(--text-muted);
+}
+.gs-shape--sm { border-radius: var(--radius-sm); }
+.gs-shape--md { border-radius: var(--radius); }
+.gs-shape--lg { border-radius: var(--radius-lg); }
+.gs-shape--xl { border-radius: var(--radius-xl); }
+
+/* ── EXEMPLOS PARADOS (normalmente fixos/animados no app) ────── */
+.gs-demo--toasts .toast {
+  position: static;
+  transform: none;
+  opacity: 1;
+}
+.gs-demo--toasts .loading-spinner { margin: 0 .5rem; }
+.gs-static-sheet {
+  transform: none;
+  max-width: 440px;
+  margin: 0;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
+  padding-bottom: 1.35rem;
+}
+
+/* ── COMPUTADOR: navegação lateral fixa ──────────────────────── */
+@media (min-width: 1024px) {
+  .gs-nav {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    width: var(--gs-nav-w);
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: .1rem;
+    padding: 1.4rem .9rem;
+    border-bottom: none;
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+  }
+  .gs-nav__group {
+    display: block;
+    margin: 1rem 0 .3rem;
+    padding: 0 .55rem;
+    font-family: var(--font-mono);
+    font-size: var(--fs-2xs);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .gs-nav a { border: none; }
+  .gs-main { margin-left: var(--gs-nav-w); padding: 2.5rem 3rem 5rem; max-width: calc(960px + 6rem); }
+  .gs-rules { grid-template-columns: repeat(2, 1fr); }
+}

@@ -1,0 +1,257 @@
+/* ============================================================
+   desktop.css — Layout de computador (janela ≥ 1024px)
+   Premium Dark Gold — CaronaApp
+
+   O app nasceu para celular: tudo fora deste arquivo continua sendo a
+   versão de telefone (coluna única). Aqui, só dentro do @media, a
+   navegação inferior vira barra lateral e cada aba aproveita a largura
+   com colunas. Abaixo de 1024px nada daqui se aplica.
+
+   Carregado depois de design-system.css para vencer na cascata.
+   ============================================================ */
+
+@media (min-width: 1024px) {
+
+  :root {
+    --side-w: 232px;
+    /* Sem barra inferior: zera a reserva de espaço dela (rolagem, toast) */
+    --nav-h: 0px;
+    --nav-safe: 0px;
+  }
+
+  /* ── SHELL ─────────────────────────────────────────────────── */
+  .app {
+    max-width: none;
+    margin: 0;
+    padding-left: var(--side-w);
+  }
+
+  .app-header {
+    padding: 1.1rem 2.5rem;
+  }
+  .app-header::before { left: 2.5rem; right: 2.5rem; }
+  /* A marca vai para a barra lateral; no topo fica o grupo atual */
+  .app-header__title { display: none; }
+  .app-header__subtitle {
+    font-size: var(--fs-sm);
+    margin-top: 0;
+  }
+  .header-user-name { max-width: 260px; }
+
+  .tab-panel {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 1.25rem 2rem;
+  }
+
+  /* ── BARRA LATERAL (era a bottom-nav) ──────────────────────── */
+  .bottom-nav {
+    top: 0;
+    left: 0;
+    bottom: 0;
+    transform: none;
+    width: var(--side-w);
+    max-width: none;
+    height: auto;
+    padding: 1.4rem .9rem;
+    flex-direction: column;
+    gap: .3rem;
+    background: var(--bg-card);
+    border-top: none;
+    border-right: 1px solid var(--border);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .bottom-nav::before {
+    top: 10%; bottom: 10%;
+    left: auto; right: -1px;
+    width: 1px; height: auto;
+    background: linear-gradient(180deg, transparent, var(--accent-border), transparent);
+  }
+
+  .side-brand {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: 0 .75rem 1.4rem;
+    margin-bottom: .6rem;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-serif);
+    font-size: var(--fs-xl);
+    font-weight: var(--fw-bold);
+    color: var(--accent);
+    letter-spacing: .02em;
+  }
+  .side-brand .lucide {
+    width: var(--ic-xl);
+    height: var(--ic-xl);
+    stroke: var(--accent);
+    stroke-width: var(--ic-stroke-light);
+  }
+
+  .nav-btn {
+    flex: 0 0 auto;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: .8rem;
+    padding: .75rem .9rem;
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-md);
+    letter-spacing: .02em;
+    text-transform: none;
+    cursor: pointer;
+    transition: color .25s, background .25s;
+  }
+  .nav-btn:hover { color: var(--text); background: var(--bg-hover); }
+  .nav-btn__icon { display: flex; }
+  .nav-btn--active,
+  .nav-btn--active:hover {
+    color: var(--accent);
+    background: var(--accent-dim);
+  }
+  .nav-btn--active .nav-btn__icon { transform: none; }
+  /* Indicador dourado: do topo do botão para a borda esquerda */
+  .nav-btn--active::before {
+    top: 50%; left: 0;
+    transform: translateY(-50%);
+    width: 3px; height: 20px;
+    border-radius: 0 3px 3px 0;
+  }
+  .nav-btn--active::after { display: none; }
+
+  /* ── RESUMO: números à esquerda, atividade à direita ───────── */
+  #tab-summary > div {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    grid-template-rows: auto auto auto auto 1fr;
+    grid-template-areas:
+      "seg   act"
+      "hero  act"
+      "stats act"
+      "recv  act"
+      ".     act";
+    column-gap: .5rem;
+  }
+  #tab-summary .sum-seg       { grid-area: seg; }
+  #tab-summary .summary-hero  { grid-area: hero; }
+  #tab-summary .stats-grid    { grid-area: stats; }
+  #tab-summary .received-card { grid-area: recv; }
+  #tab-summary .activity-section {
+    grid-area: act;
+    align-self: start;
+    padding: 1.25rem 1.4rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+  }
+
+  /* ── CALENDÁRIO: mês à esquerda, números do mês à direita ──── */
+  #tab-calendar {
+    display: none;
+    grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr);
+    grid-template-rows: auto auto auto 1fr auto;
+    grid-template-areas:
+      "head   head"
+      "multi  multi"
+      "cal    stats"
+      "cal    hint"
+      "legend .";
+  }
+  #tab-calendar.tab-panel--active { display: grid; }
+  #tab-calendar .calendar-header { grid-area: head; }
+  #tab-calendar .multi-bar       { grid-area: multi; }
+  #tab-calendar .calendar-wrap   { grid-area: cal; margin-bottom: .85rem; }
+  #tab-calendar .calendar-legend { grid-area: legend; }
+  #tab-calendar .month-stats     { grid-area: stats; margin-left: 0; }
+  #tab-calendar .cal-hint {
+    grid-area: hint;
+    align-self: start;
+    margin: 0 1.25rem 0 0;
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+  }
+  .cal-day { cursor: pointer; }
+  .cal-day__number { font-size: var(--fs-base); }
+
+  /* ── PAGAMENTOS: cartões em grade ──────────────────────────── */
+  .payments-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: .9rem;
+    align-items: start;
+  }
+  .payments-list .payment-card { margin-bottom: 0; }
+  .payments-list > :not(.payment-card) { grid-column: 1 / -1; }
+
+  /* ── ADMIN DO GRUPO: visão geral | pessoas ─────────────────── */
+  .adm2 {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    gap: 1.25rem 2rem;
+    align-items: start;
+    max-width: none;
+    padding: 1.25rem 1.25rem 2rem;
+  }
+  .adm2-head { grid-column: 1 / -1; }
+  .adm2-col {
+    display: flex;
+    flex-direction: column;
+    gap: 1.6rem;
+    min-width: 0;
+  }
+  .adm2-col .danger2 { margin-top: 0; }
+
+  /* ── ADMIN DO SISTEMA: grupos e contas em grade ────────────── */
+  .sys2 {
+    max-width: none;
+    padding: 1.25rem 1.25rem 2rem;
+  }
+  #sys-groups,
+  #sys-users {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: .75rem;
+    align-items: start;
+  }
+  #sys-groups > *,
+  #sys-users > * { margin-bottom: 0; }
+  #sys-groups > .empty-state,
+  #sys-users > .empty-state { grid-column: 1 / -1; }
+  #btn-new-user {
+    width: auto;
+    align-self: flex-start;
+    padding-left: 1.6rem;
+    padding-right: 1.6rem;
+  }
+
+  /* ── SHEETS E MODAIS: viram janelas centralizadas ──────────── */
+  .modal { align-items: center; }
+  .modal-sheet {
+    max-width: 520px;
+    max-height: 85dvh;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-xl);
+    transform: translateY(24px);
+    padding-bottom: 1.35rem;
+  }
+  .modal-handle { display: none; }
+
+  .hub-sheet__panel {
+    top: 0;
+    margin: auto;
+    height: fit-content;
+    max-height: 85dvh;
+    max-width: 500px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-xl);
+    transform: translateY(24px);
+    padding-bottom: 1.4rem;
+  }
+  .hub-sheet__handle { display: none; }
+}
+
+/* Os 4 KPIs do Admin numa linha só quando a coluna é larga o bastante
+   para "R$ 1.234,00" caber sem quebrar. */
+@media (min-width: 1280px) {
+  .adm2-kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}

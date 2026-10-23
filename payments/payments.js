@@ -3,13 +3,15 @@
 // Registro e listagem de pagamentos com comprovantes
 // ============================================================
 
-import { getUserPayments, getAllPayments, getAllUsers, getUserUnpaidTrips, getTripValue, toMillis } from "../js/db.js";
-import { createPayment, deletePayment } from "../js/worker-api.js";
-import { showToast, formatCurrency, formatDate, formatDateTime, icon, todayISO, escapeHtml, safeImageSrc, safeReceiptSrc, copyToClipboard, readFileAsDataURL } from "../js/utils.js";
+import { getUserPayments, getGroupPayments, getGroupUsers, getUserUnpaidTrips, getTripValue, tripAmount, toMillis } from "../js/db.js";
+import { createPayment, deletePayment, approvePayment, rejectPayment } from "../js/worker-api.js";
+import { showToast, formatCurrency, formatDate, formatDateTime, icon, todayISO, escapeHtml, safeReceiptSrc, copyToClipboard, readFileAsDataURL } from "../js/utils.js";
+import { avatar, emptyState } from "../js/ui.js";
 import { readPdfReceipt, valuesMatch } from "../js/receipt-parser.js";
 import { loadAndRender } from "../calendar/calendar.js";
 import { refreshSummary } from "../summary/summary.js";
-import { currentProfile } from "../auth/auth.js";
+import { currentProfile, isAdmin, myGroupId } from "../auth/auth.js";
+import { groupPixKey } from "../groups/groups.js";
 import { PIX_KEY } from "../js/config.js";
 
 let unpaidTrips   = [];
@@ -57,31 +59,30 @@ export async function loadPaymentsList() {
   const container = document.getElementById("payments-list");
   container.innerHTML = `<div class="loading-spinner"></div>`;
 
-  // Admin vê os pagamentos de TODOS os usuários; usuário comum vê só os seus.
-  const isAdmin = currentProfile?.role === "admin";
+  // Quem administra o grupo vê os pagamentos de TODO o grupo (é ele que
+  // confere os comprovantes); o passageiro vê só os dele, no grupo ativo.
+  const admin = isAdmin();
+  const gid   = myGroupId();
 
   try {
     let usersByUid = {};
     let payments;
-    if (isAdmin) {
-      const [pays, users] = await Promise.all([getAllPayments(), getAllUsers()]);
+    if (admin) {
+      const [pays, users] = await Promise.all([getGroupPayments(gid), getGroupUsers(gid)]);
       payments = pays.sort((a, b) => toMillis(b.createdAt) - toMillis(a.createdAt));
       users.forEach(u => { usersByUid[u.uid] = u; });
     } else {
-      payments = await getUserPayments(currentProfile.uid);
+      payments = (await getUserPayments(currentProfile.uid))
+        .filter(p => !gid || !p.groupId || p.groupId === gid);
     }
     loadedPayments = payments; // cache p/ abrir o comprovante sem recarregar
 
     if (payments.length === 0) {
-      container.innerHTML = `
-        <div class="empty-state">
-          <div class="empty-state__icon">${icon("wallet")}</div>
-          <p>Nenhum pagamento registrado ainda.</p>
-        </div>`;
+      container.innerHTML = emptyState("wallet", "Nenhum pagamento registrado ainda.");
       return;
     }
 
-    container.innerHTML = payments.map(p => renderPaymentCard(p, isAdmin, usersByUid[p.uid])).join("");
+    container.innerHTML = payments.map(p => renderPaymentCard(p, admin, usersByUid[p.uid])).join("");
 
     container.querySelectorAll("[data-view-receipt-id]").forEach(btn => {
       btn.addEventListener("click", () => openReceiptModalById(btn.dataset.viewReceiptId));
@@ -89,16 +90,30 @@ export async function loadPaymentsList() {
     container.querySelectorAll("[data-delete-payment]").forEach(btn => {
       btn.addEventListener("click", () => confirmDeletePayment(btn.dataset.deletePayment));
     });
+    container.querySelectorAll("[data-approve-payment]").forEach(btn => {
+      btn.addEventListener("click", () => reviewPayment(btn.dataset.approvePayment, "approve"));
+    });
+    container.querySelectorAll("[data-reject-payment]").forEach(btn => {
+      btn.addEventListener("click", () => reviewPayment(btn.dataset.rejectPayment, "reject"));
+    });
 
   } catch (e) {
     container.innerHTML = `<p class="error-msg">Erro ao carregar pagamentos.</p>`;
   }
 }
 
+// Metadados de cada status. `status` ausente = pagamento antigo (legado),
+// já quitado antes do fluxo de aprovação — tratado como "aprovado".
+const STATUS_META = {
+  pending:  { label: "Em análise", cls: "badge--accent", ic: "clock" },
+  approved: { label: "Aprovado",   cls: "badge--outline", ic: "check" },
+  rejected: { label: "Rejeitado",  cls: "badge--debt", ic: "alert" },
+};
+
 function renderPaymentCard(payment, showUser = false, profile = null) {
   const datesList = payment.tripDates
     .slice(0, 4)
-    .map(d => `<span class="date-chip">${formatDate(d, "short")}</span>`)
+    .map(d => `<span class="badge badge--muted">${formatDate(d, "short")}</span>`)
     .join("");
   const moreCount = payment.tripDates.length - 4;
 
@@ -109,46 +124,55 @@ function renderPaymentCard(payment, showUser = false, profile = null) {
   // manter o escape evita que um id manipulado quebre o atributo).
   const pid = escapeHtml(payment.id);
 
+  const status = payment.status || "approved";
+  const meta   = STATUS_META[status] || STATUS_META.approved;
+  // Quem confere o comprovante é quem recebe o PIX: o dono do grupo (o ADM
+  // SUPREMO também, como suporte). E só enquanto está pendente.
+  const canReview = isAdmin();
+
+  const adminActions = (canReview && status === "pending") ? `
+    <div class="btn-row payment-card__review">
+      <button class="btn btn--sm btn--soft" data-approve-payment="${pid}">Aprovar</button>
+      <button class="btn btn--sm btn--danger" data-reject-payment="${pid}">Rejeitar</button>
+    </div>` : "";
+
   return `
-    <div class="payment-card" data-id="${pid}">
+    <div class="card payment-card payment-card--${status}" data-id="${pid}">
       <div class="payment-card__header">
         <div>
           ${showUser ? `
             <div class="payment-card__user">
-              <span class="payment-card__avatar" style="background:${avatarColor(name)}">${avatarInner(name, photo)}</span>
+              ${avatar({ name, photo, size: "sm" })}
               <span>${escapeHtml(name)}</span>
             </div>` : ""}
           <div class="payment-card__amount">${formatCurrency(payment.totalAmount)}</div>
           <div class="payment-card__meta">${payment.tripDates.length} viagem(ns) • ${formatDateTime(payment.createdAt)}</div>
+          <span class="badge ${meta.cls} payment-card__status">${icon(meta.ic)} ${meta.label}</span>
         </div>
         <div class="payment-card__actions">
           ${(payment.receiptData || payment.receiptUrl)
-            ? `<button class="btn-icon btn-icon--receipt" data-view-receipt-id="${pid}" title="Ver comprovante">${icon("fileText")}</button>`
+            ? `<button class="btn-icon" data-view-receipt-id="${pid}" title="Ver comprovante">${icon("file-text")}</button>`
             : `<span class="no-receipt" title="Sem comprovante">${icon("file")}</span>`
           }
-          <button class="btn-icon btn-icon--delete" data-delete-payment="${pid}" title="Excluir pagamento">${icon("trash")}</button>
+          <button class="btn-icon btn-icon--danger" data-delete-payment="${pid}" title="Excluir pagamento">${icon("trash")}</button>
         </div>
       </div>
       <div class="payment-card__dates">
         ${datesList}
-        ${moreCount > 0 ? `<span class="date-chip date-chip--more">+${moreCount}</span>` : ""}
+        ${moreCount > 0 ? `<span class="badge badge--accent">+${moreCount}</span>` : ""}
       </div>
+      ${adminActions}
     </div>
   `;
 }
 
-// ── AVATAR (foto do usuário ou inicial) ───────────────────────
-
-function avatarInner(name, photo) {
-  const safe = safeImageSrc(photo);
-  if (safe) return `<img src="${safe}" alt="" class="avatar-img">`;
-  return escapeHtml((name || "?").charAt(0).toUpperCase());
-}
-
-function avatarColor(name = "") {
-  const colors = ["#00e676","#ff6b6b","#ffd60a","#74b9ff","#a29bfe","#fd79a8","#00cec9"];
-  const code = name && name.length ? name.charCodeAt(0) : "?".charCodeAt(0);
-  return colors[code % colors.length] + "33";
+// ── CHAVE PIX ─────────────────────────────────────────────────
+//
+// A chave é de QUEM RECEBE — ou seja, do dono do grupo, e por isso mora no
+// documento do grupo. A do config.js fica como reserva para instalações que
+// vinham de antes dos grupos e ainda não cadastraram a do grupo.
+function activePixKey() {
+  return groupPixKey() || PIX_KEY || "";
 }
 
 // ── BIND MODAL ────────────────────────────────────────────────
@@ -163,22 +187,18 @@ function bindNewPaymentModal() {
   document.getElementById("btn-confirm-payment").addEventListener("click", handleConfirmPayment);
   document.getElementById("receipt-input").addEventListener("change", handleReceiptPreview);
 
-  // Preenche a chave PIX (vem do config, fora do versionamento)
-  const pixKeyEl = document.getElementById("pix-key");
-  if (pixKeyEl) pixKeyEl.textContent = PIX_KEY;
-
   // Copiar chave PIX
   document.getElementById("btn-copy-pix")?.addEventListener("click", async () => {
     const btn = document.getElementById("btn-copy-pix");
-    const ok  = await copyToClipboard(PIX_KEY);
+    const ok  = await copyToClipboard(activePixKey());
     if (ok) {
       const original = btn.textContent;
       btn.textContent = "Copiado!";
-      btn.classList.add("pix-copy-btn--done");
+      btn.classList.replace("btn--primary", "btn--soft");
       showToast("Chave PIX copiada!", "success");
       setTimeout(() => {
         btn.textContent = original;
-        btn.classList.remove("pix-copy-btn--done");
+        btn.classList.replace("btn--soft", "btn--primary");
       }, 2000);
     } else {
       showToast("Não foi possível copiar. Copie manualmente.", "error");
@@ -220,7 +240,7 @@ async function openNewPaymentModal() {
   selectedDates  = new Set();
   unpaidDatesSet = new Set(unpaidTrips.map(t => t.date));
   amountByDate   = {};
-  unpaidTrips.forEach(t => { amountByDate[t.date] = t.amount ?? getTripValue(); });
+  unpaidTrips.forEach(t => { amountByDate[t.date] = tripAmount(t); });
 
   // Navega para o mês mais antigo com viagem em aberto
   if (unpaidTrips.length > 0) {
@@ -230,6 +250,14 @@ async function openNewPaymentModal() {
   } else {
     payCalYear  = new Date().getFullYear();
     payCalMonth = new Date().getMonth() + 1;
+  }
+
+  // A chave é preenchida na ABERTURA, não no bind: ela muda quando o
+  // usuário troca de grupo, e o bind acontece uma vez só.
+  const pixKeyEl = document.getElementById("pix-key");
+  if (pixKeyEl) {
+    const key = activePixKey();
+    pixKeyEl.textContent = key || "o dono do grupo ainda não cadastrou a chave";
   }
 
   renderPaymentCalendar();
@@ -411,7 +439,7 @@ async function handleReceiptPreview(e) {
 
   // Mostra o arquivo e o estado "lendo..."
   document.getElementById("receipt-preview").innerHTML =
-    `<div class="receipt-file-icon">${icon("fileText")} ${escapeHtml(file.name)}</div>`;
+    `<div class="receipt-file-icon">${icon("file-text")} ${escapeHtml(file.name)}</div>`;
   receiptState = { file, data: null, value: null, status: "reading" };
   showReceiptCheck("reading", "Lendo o comprovante…");
   updateConfirmState();
@@ -501,9 +529,11 @@ async function handleConfirmPayment() {
   try {
     // O Worker recalcula o total a partir das viagens reais — `total` daqui
     // é só para a UI. Se o cliente tentasse forjar, o servidor ignoraria.
+    // O pagamento entra como PENDENTE: as viagens só são quitadas quando um
+    // admin conferir o comprovante e aprovar (F-01).
     const r = await createPayment([...selectedDates], receiptState.data);
     document.getElementById("modal-payment").classList.remove("modal--open");
-    showToast(`Pagamento de ${formatCurrency(r.total)} registrado!`, "success");
+    showToast(`Comprovante de ${formatCurrency(r.total)} enviado para aprovação.`, "success");
     await loadPaymentsList();
     await loadAndRender();
     await refreshSummary();
@@ -539,9 +569,13 @@ function openReceiptModalById(paymentId) {
 
   const modal   = document.getElementById("modal-receipt");
   const content = document.getElementById("receipt-modal-content");
+  // F-05: `sandbox` (sem allow-scripts) impede que JavaScript embutido no PDF
+  // rode ao abrir o comprovante. O visualizador nativo do navegador ainda
+  // renderiza o PDF; só o script do documento fica neutralizado. Defesa a mais
+  // além da CSP (object-src 'none', frame-src restrito) e do safeReceiptSrc.
   content.innerHTML = isImage
     ? `<img src="${src}" alt="Comprovante" class="receipt-full-img">`
-    : `<iframe src="${src}" class="receipt-iframe" title="Comprovante"></iframe>`;
+    : `<iframe src="${src}" class="receipt-iframe" title="Comprovante" sandbox></iframe>`;
 
   modal.classList.add("modal--open");
 
@@ -588,6 +622,47 @@ function confirmDeletePayment(paymentId) {
       await refreshSummary();
     } catch (e) {
       showToast("Erro ao excluir pagamento", "error");
+    }
+  };
+  btnNo.onclick = () => modal.classList.remove("modal--open");
+}
+
+// ── APROVAR / REJEITAR (admin) ────────────────────────────────
+// É aqui que o F-01 se fecha: o admin confere o comprovante × valor e só
+// então o pagamento quita a dívida (aprovar marca as viagens como pagas).
+// Rejeitar reabre as viagens em análise.
+
+function reviewPayment(paymentId, action) {
+  const modal  = document.getElementById("modal-confirm");
+  const msg    = document.getElementById("confirm-message");
+  const btnYes = document.getElementById("btn-confirm-yes");
+  const btnNo  = document.getElementById("btn-confirm-no");
+
+  const isApprove = action === "approve";
+  msg.textContent = isApprove
+    ? "Confirme que o comprovante confere com o valor devido. As viagens serão marcadas como pagas."
+    : "Rejeitar este comprovante? As viagens voltam a ficar em aberto.";
+  modal.classList.add("modal--open");
+
+  btnYes.onclick = async () => {
+    modal.classList.remove("modal--open");
+    btnYes.disabled = true;
+    try {
+      if (isApprove) {
+        await approvePayment(paymentId);
+        showToast("Pagamento aprovado.", "success");
+      } else {
+        await rejectPayment(paymentId);
+        showToast("Pagamento rejeitado.", "info");
+      }
+      await loadPaymentsList();
+      await loadAndRender();
+      await refreshSummary();
+    } catch (e) {
+      showToast((isApprove ? "Erro ao aprovar: " : "Erro ao rejeitar: ") + e.message, "error");
+      console.error(e);
+    } finally {
+      btnYes.disabled = false;
     }
   };
   btnNo.onclick = () => modal.classList.remove("modal--open");

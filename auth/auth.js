@@ -44,15 +44,25 @@ export function setAuthCallbacks({ onReady, onChanged }) {
 // do fluxo de inicialização do app.
 let authReadyFired = false;
 
+// O auto-cadastro cria a conta de login ANTES do documento de perfil, e
+// createUserWithEmailAndPassword já dispara este listener no meio do
+// caminho. Sem esperar, o listener leria um perfil que ainda não existe e
+// mandaria o recém-cadastrado de volta para a tela de login.
+let signupGate = null;
+
 export function startAuthListener() {
   onAuthStateChanged(auth, async (firebaseUser) => {
     if (firebaseUser) {
+      if (signupGate) await signupGate;
+
       currentUser    = firebaseUser;
       currentProfile = await fetchProfile(firebaseUser.uid);
 
-      // Se não tem perfil ainda (primeiro login OAuth), cria como "user"
+      // Sem perfil (conta criada fora do app): cria um perfil comum,
+      // ativo e sem grupo — que é o mesmo ponto de partida de quem se
+      // cadastra pela tela de login.
       if (!currentProfile) {
-        currentProfile = await createProfile(firebaseUser, "user");
+        currentProfile = await createProfile(firebaseUser);
       }
 
       // Registra o próprio nome para login-por-nome (via Worker). Cada
@@ -125,19 +135,61 @@ export async function fetchProfile(uid) {
   return snap.exists() ? snap.data() : null;
 }
 
-export async function createProfile(firebaseUser, role = "user") {
+/**
+ * Cria o perfil do PRÓPRIO usuário recém-autenticado.
+ *
+ * Nasce ATIVO e SEM GRUPO. Parece contraditório com o cuidado anterior
+ * (tudo nascia inativo), mas o portão mudou de lugar: o que dá acesso a
+ * dados agora é PERTENCER A UM GRUPO, não o campo `active`. Uma conta sem
+ * grupo enxerga exatamente nada — as rules negam viagem, pagamento e perfil
+ * de terceiro. `active:false` continua existindo como bloqueio manual do
+ * ADM SUPREMO para banir alguém.
+ */
+export async function createProfile(firebaseUser, name = null) {
   const profile = {
     uid:       firebaseUser.uid,
-    name:      firebaseUser.displayName || firebaseUser.email.split("@")[0],
+    name:      name || firebaseUser.displayName || firebaseUser.email.split("@")[0],
     email:     firebaseUser.email,
-    role,                         // "admin" | "user"
-    // Nasce INATIVO — inclusive quem se auto-cadastra. Só um admin que
-    // acabou de redigitar a senha consegue ativar.
-    active:    false,
+    role:      "user",            // "admin" (ADM SUPREMO) | "user"
+    active:    true,
+    groupId:   null,              // grupo de carona ativo
+    groupRole: null,              // "owner" | "member" | null
+    groupIds:  [],                // todos os grupos de que participa
+    groups:    [],                // [{ id, name, role }] — espelho p/ a tela
     createdAt: serverTimestamp()
   };
   await setDoc(doc(db, "users", firebaseUser.uid), profile);
   return profile;
+}
+
+// ── AUTO-CADASTRO ─────────────────────────────────────────────
+
+/**
+ * Cria conta e perfil para quem chegou sozinho na tela de login.
+ *
+ * Diferente de registerUser (que é o ADM SUPREMO cadastrando outra pessoa),
+ * aqui o próprio usuário fica logado no fim — é ele que está no navegador.
+ * Ele cai no app sem grupo e escolhe: criar o seu ou usar um convite.
+ */
+export async function signUpUser(name, email, password) {
+  let release;
+  signupGate = new Promise(resolve => { release = resolve; });
+
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    await updateProfile(cred.user, { displayName: name });
+
+    currentUser    = cred.user;
+    currentProfile = await createProfile(cred.user, name);
+    registerMyName(name);
+
+    return currentProfile;
+  } finally {
+    // Libera o listener mesmo se algo falhar no meio — senão um erro
+    // deixaria o app travado esperando um portão que nunca abre.
+    signupGate = null;
+    release();
+  }
 }
 
 // ── REGISTRAR ─────────────────────────────────────────────────
@@ -170,6 +222,10 @@ export async function registerUser(name, email, password, role = "user") {
       // Nasce INATIVO. Ativar é um passo separado, no painel, e exige que
       // o admin redigite a senha — as rules conferem isso pelo auth_time.
       active:    false,
+      groupId:   null,
+      groupRole: null,
+      groupIds:  [],
+      groups:    [],
       createdAt: serverTimestamp()
     };
     // Gravado pelo db do app PRIMÁRIO (sessão do admin)
@@ -280,10 +336,65 @@ export async function reauthenticate(password) {
   return true;
 }
 
+// ── GRUPO ATIVO ───────────────────────────────────────────────
+
+/**
+ * Recarrega o perfil do Firestore. Chamada depois de toda operação de
+ * grupo — quem escreveu foi o Worker, então o objeto em memória está velho.
+ */
+export async function refreshProfile() {
+  if (!currentUser) return null;
+  currentProfile = await fetchProfile(currentUser.uid);
+  return currentProfile;
+}
+
+/**
+ * Troca o grupo ativo. Escrita direta do cliente, e mesmo assim segura: as
+ * rules só aceitam um groupId que já esteja em `groupIds` (lista escrita
+ * apenas pelo Worker, ao aceitar o convite) e recalculam o papel a partir
+ * do dono do grupo. Dizer "sou owner" aqui não adianta nada.
+ */
+export async function setActiveGroup(groupId) {
+  if (!currentUser) throw new Error("Não autenticado.");
+
+  const entry = (currentProfile?.groups || []).find(g => g.id === groupId);
+  const data  = groupId
+    ? { groupId, groupRole: entry?.role || "member" }
+    : { groupId: null, groupRole: null };
+
+  await updateDoc(doc(db, "users", currentUser.uid), data);
+  currentProfile = { ...currentProfile, ...data };
+  return currentProfile;
+}
+
 // ── HELPERS ───────────────────────────────────────────────────
 
+/** ADM SUPREMO: dono do software, enxerga e gerencia todos os grupos. */
+export function isSuperAdmin() {
+  return currentProfile?.role === "admin" && currentProfile?.active !== false;
+}
+
+/** Dono do grupo ATIVO: manda neste grupo e em mais nenhum. */
+export function isGroupOwner() {
+  return currentProfile?.groupRole === "owner" && !!currentProfile?.groupId;
+}
+
+/**
+ * "Administra a tela que está vendo" — dono do grupo ou ADM SUPREMO.
+ * É o teste que as abas usam para decidir entre a visão de passageiro e a
+ * visão de quem gerencia. Os poderes de verdade continuam nas rules e no
+ * Worker; aqui só se decide o que desenhar.
+ */
 export function isAdmin() {
-  return currentProfile?.role === "admin";
+  return isGroupOwner() || isSuperAdmin();
+}
+
+export function myGroupId() {
+  return currentProfile?.groupId || null;
+}
+
+export function hasGroup() {
+  return !!currentProfile?.groupId;
 }
 
 export function isLoggedIn() {

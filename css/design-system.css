@@ -1,0 +1,120 @@
+/* ============================================================
+   design-system.css — TOKENS E PADRÕES DO CARONAAPP
+   Fonte única de tipografia, ícones e camadas. Regras e exemplos em
+   DESIGN-SYSTEM.md; o linter tools/audit-ui.js verifica o uso.
+
+   Carregado POR ÚLTIMO (depois dos CSS de componente), na posição em que
+   ficava o <style> embutido do index.html — assim as regras de contexto
+   abaixo mantêm a mesma precedência de antes.
+
+   Cores, raios e sombras continuam em base.css (:root).
+   ============================================================ */
+
+:root {
+  /* ── ESCALA TIPOGRÁFICA ──────────────────────────────────────
+     Todo font-size do app usa um destes degraus. Nada de valor solto. */
+  --fs-3xs:  .5rem;    /* selo dentro do dia do calendário */
+  --fs-2xs:  .6rem;    /* labels em caixa-alta (DM Mono), badges */
+  --fs-xs:   .68rem;   /* legendas, metadados */
+  --fs-sm:   .75rem;   /* texto secundário */
+  --fs-md:   .85rem;   /* corpo padrão */
+  --fs-base: .92rem;   /* títulos de card, nomes */
+  --fs-lg:   1.05rem;  /* destaque, inputs grandes */
+  --fs-xl:   1.2rem;   /* títulos de sheet/modal */
+  --fs-2xl:  1.45rem;  /* títulos de tela, valores de KPI */
+  --fs-3xl:  1.7rem;   /* título de página (Playfair) */
+  --fs-4xl:  2.25rem;  /* números de destaque */
+  --fs-5xl:  3rem;     /* número-herói (resumo, login) */
+
+  --fw-regular:  400;
+  --fw-medium:   500;
+  --fw-semibold: 600;
+  --fw-bold:     700;
+
+  --ls-label: .1em;    /* labels em caixa-alta */
+  --ls-tight: -.01em;  /* títulos em Playfair */
+
+  /* ── ÍCONES ──────────────────────────────────────────────────
+     Tamanho e traço por token; a cor é sempre currentColor (herda do
+     texto) salvo quando o contexto define outra. */
+  --ic-xs:   12px;
+  --ic-sm:   14px;
+  --ic-md:   16px;     /* padrão */
+  --ic-lg:   18px;
+  --ic-xl:   22px;     /* navegação inferior */
+  --ic-2xl:  28px;
+  --ic-3xl:  40px;     /* estados vazios */
+  --ic-hero: 52px;     /* logo das telas de entrada */
+
+  --ic-stroke-bold:  2.4;   /* ícones pequenos que precisam de peso (+, setas) */
+  --ic-stroke:       2;     /* padrão */
+  --ic-stroke-light: 1.75;  /* ícones médios */
+  --ic-stroke-thin:  1.5;   /* ícones grandes */
+
+  /* ── CAMADAS (z-index) ───────────────────────────────────────
+     Ordem fixa: o modal (confirmação) fica acima de sheet e drawer, para
+     que uma confirmação aberta de dentro deles nunca apareça por trás. */
+  --z-raised:  10;    /* overlay local dentro de um card */
+  --z-nav:     100;
+  --z-screen:  190;   /* tela de grupos sobre o app */
+  --z-sheet:   200;
+  --z-auth:    200;   /* tela de login (nunca convive com sheet/modal) */
+  --z-drawer:  210;
+  --z-modal:   220;
+  --z-toast:   9000;
+  --z-loading: 9999;
+
+  /* ── COR SOBRE COR ───────────────────────────────────────────── */
+  --on-accent: #0f0f0f;  /* texto/ícone sobre fundo dourado */
+  --on-debt:   #fff;     /* texto/ícone sobre fundo vermelho */
+}
+
+/* ═══ ÍCONE BASE ═══════════════════════════════════════════════
+   :where() zera a especificidade: qualquer regra de componente ganha
+   desta, então o default nunca briga com o contexto. */
+:where(.lucide) {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+  width: var(--ic-md);
+  height: var(--ic-md);
+  stroke: currentColor;
+  stroke-width: var(--ic-stroke);
+  fill: none;
+}
+
+/* Tamanhos utilitários — use nos componentes novos em vez de px soltos. */
+.ic-xs  { width: var(--ic-xs);  height: var(--ic-xs); }
+.ic-sm  { width: var(--ic-sm);  height: var(--ic-sm); }
+.ic-md  { width: var(--ic-md);  height: var(--ic-md); }
+.ic-lg  { width: var(--ic-lg);  height: var(--ic-lg); }
+.ic-xl  { width: var(--ic-xl);  height: var(--ic-xl);  stroke-width: var(--ic-stroke-thin); }
+.ic-2xl { width: var(--ic-2xl); height: var(--ic-2xl); stroke-width: var(--ic-stroke-thin); }
+.ic-3xl { width: var(--ic-3xl); height: var(--ic-3xl); stroke-width: var(--ic-stroke-thin); }
+
+/* ═══ PAPÉIS TIPOGRÁFICOS ══════════════════════════════════════
+   Combinação pronta de família + tamanho + peso. Componente novo usa um
+   destes em vez de redefinir fonte. */
+.t-display { font-family: var(--font-serif);   font-size: var(--fs-3xl); font-weight: var(--fw-bold); letter-spacing: var(--ls-tight); line-height: 1.1; }
+.t-title   { font-family: var(--font-serif);   font-size: var(--fs-2xl); font-weight: var(--fw-bold); letter-spacing: var(--ls-tight); line-height: 1.15; }
+.t-value   { font-family: var(--font-serif);   font-size: var(--fs-2xl); font-weight: var(--fw-bold); line-height: 1.05; }
+.t-heading { font-family: var(--font-display); font-size: var(--fs-base); font-weight: var(--fw-semibold); }
+.t-body    { font-family: var(--font-display); font-size: var(--fs-md); }
+.t-small   { font-family: var(--font-display); font-size: var(--fs-sm); color: var(--text-muted); }
+.t-label   { font-family: var(--font-mono);    font-size: var(--fs-2xs); letter-spacing: var(--ls-label); text-transform: uppercase; color: var(--text-muted); }
+.t-mono    { font-family: var(--font-mono);    font-size: var(--fs-sm); }
+
+/* ═══ ÍCONES POR CONTEXTO (componentes existentes) ═════════════
+   Vieram do <style> embutido do index.html, agora em tokens. Componente
+   NOVO não acrescenta regra aqui: usa .ic-* ou define no próprio CSS. */
+.modal-hint .lucide                        { width: var(--ic-sm); height: var(--ic-sm); vertical-align: -2px; margin-right: 2px; }
+.nav-btn__icon .lucide                     { width: var(--ic-xl); height: var(--ic-xl); stroke-width: var(--ic-stroke-thin); }
+.app-header__title .lucide                 { width: var(--ic-lg); height: var(--ic-lg); stroke: var(--accent); stroke-width: var(--ic-stroke-light); margin-right: 4px; }
+.loading-screen__logo .lucide,
+.auth-logo__icon .lucide                   { width: var(--ic-hero); height: var(--ic-hero); stroke: var(--accent); stroke-width: var(--ic-stroke-thin); }
+.receipt-upload-icon .lucide               { width: var(--ic-2xl); height: var(--ic-2xl); stroke: var(--text-muted); stroke-width: var(--ic-stroke-thin); }
+.activity-item__icon .lucide               { width: var(--ic-md); height: var(--ic-md); stroke-width: var(--ic-stroke-light); }
+.header-role .lucide                       { width: var(--ic-xs); height: var(--ic-xs); margin-right: 3px; vertical-align: -1px; }
+.receipt-file-icon .lucide                 { width: var(--ic-md); height: var(--ic-md); stroke-width: var(--ic-stroke-light); vertical-align: -3px; margin-right: 3px; }
+.no-receipt .lucide                        { width: var(--ic-md); height: var(--ic-md); stroke-width: var(--ic-stroke-light); stroke: var(--text-muted); }
+

@@ -6,15 +6,16 @@
 //    contagem por dia (visão de todos os usuários).
 // ============================================================
 
-import { setTrip, deleteTrip, getUserTrips, getAllTrips, getAllUsers, getTripValue, rateTrip } from "../js/db.js";
-import { showToast, formatCurrency, formatDate, icon, todayISO, escapeHtml, safeImageSrc } from "../js/utils.js";
+import { setTrip, deleteTrip, getUserTrips, getGroupTrips, getGroupUsers, getTripValue, tripAmount, rateTrip } from "../js/db.js";
+import { showToast, formatCurrency, formatDate, icon, todayISO, escapeHtml } from "../js/utils.js";
+import { avatar } from "../js/ui.js";
 import { refreshSummary } from "../summary/summary.js";
-import { currentProfile, isAdmin } from "../auth/auth.js";
+import { currentProfile, isAdmin, myGroupId } from "../auth/auth.js";
 
 // Opções de velocidade (avaliação)
 const SPEEDS = [
-  { key: "slow", emoji: "🐢", label: "Devagar" },
-  { key: "mid",  emoji: "🚗", label: "Mais ou menos" },
+  { key: "slow", emoji: "🐢", label: "Devagar" },        // ui-audit: allow — glifo monocromático via Noto Emoji
+  { key: "mid",  emoji: "🚗", label: "Mais ou menos" },  // ui-audit: allow — idem
   // U+1F3CE sem o seletor FE0F: o mesmo carro de corrida, mas em
   // apresentação de texto — assim a fonte Noto Emoji o renderiza
   // monocromático (com FE0F o sistema forçava a versão colorida).
@@ -33,15 +34,6 @@ let tripsMap  = {};   // usuário: { "YYYY-MM-DD": trip }
 let dayTrips  = {};   // admin:   { "YYYY-MM-DD": [trip, ...] }
 let allUsers  = [];   // admin: lista de usuários (passageiros)
 
-// Avatar do passageiro: foto (só se for data URL de imagem válida) ou inicial.
-// safeImageSrc fecha o XSS do campo `photo`, editável pelo próprio usuário.
-function paxAvatar(u) {
-  const safe = safeImageSrc(u.photo);
-  return safe
-    ? `<img src="${safe}" alt="" class="avatar-img">`
-    : escapeHtml((u.name || "?").charAt(0).toUpperCase());
-}
-
 const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 const MONTHS   = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
@@ -52,8 +44,6 @@ const MONTHS   = [
 
 export async function initCalendar() {
   bindNavigation();
-  // O modo "vários dias" é exclusivo do admin.
-  if (isAdmin()) document.getElementById("btn-multi-toggle")?.classList.remove("hidden");
   await loadAndRender();
 }
 
@@ -87,7 +77,7 @@ function toggleMultiMode(force) {
   selectedDays.clear();
   const toggleBtn = document.getElementById("btn-multi-toggle");
   const bar       = document.getElementById("multi-bar");
-  toggleBtn?.classList.toggle("btn-multi--on", multiMode);
+  toggleBtn?.classList.toggle("is-active", multiMode);
   if (toggleBtn) toggleBtn.textContent = multiMode ? "Sair" : "Vários dias";
   bar?.classList.toggle("hidden", !multiMode);
   updateMultiCount();
@@ -112,11 +102,22 @@ function toggleDaySelection(dateStr) {
 
 export async function loadAndRender() {
   showCalendarLoading(true);
+
+  // O modo "vários dias" é de quem administra o GRUPO ATIVO — e isso muda
+  // quando o usuário troca de grupo, então a decisão fica aqui, no recarregar,
+  // e não no init (que roda uma vez só).
+  document.getElementById("btn-multi-toggle")?.classList.toggle("hidden", !isAdmin());
+  if (!isAdmin() && multiMode) toggleMultiMode(false);
+
   try {
     const prefix = `${currentYear}-${String(currentMonth).padStart(2, "0")}-`;
 
+    // A visão de quem administra é sempre a DO GRUPO ATIVO — inclusive para
+    // o ADM SUPREMO. Um calendário misturando passageiros de grupos
+    // diferentes não diria nada a ninguém; a visão global fica no painel.
     if (isAdmin()) {
-      const [all, users] = await Promise.all([getAllTrips(), getAllUsers()]);
+      const gid = myGroupId();
+      const [all, users] = await Promise.all([getGroupTrips(gid), getGroupUsers(gid)]);
       allUsers = users;
       dayTrips = {};
       all.forEach(t => {
@@ -124,9 +125,17 @@ export async function loadAndRender() {
         (dayTrips[t.date] = dayTrips[t.date] || []).push(t);
       });
     } else {
+      // Só as viagens do grupo ativo: o passageiro pode estar em mais de um
+      // grupo, e misturar os dias de dois grupos no mesmo calendário faria
+      // uma marcação sumir por cima da outra (o mapa é por data).
+      const gid = myGroupId();
       const all = await getUserTrips(currentProfile.uid);
       tripsMap = {};
-      all.forEach(t => { if (t.date.startsWith(prefix)) tripsMap[t.date] = t; });
+      all.forEach(t => {
+        if (!t.date.startsWith(prefix)) return;
+        if (gid && t.groupId && t.groupId !== gid) return;
+        tripsMap[t.date] = t;
+      });
     }
 
     renderCalendar();
@@ -229,7 +238,7 @@ function renderMonthStats() {
   let debt = 0;
   const today = todayISO();
   const lists = isAdmin() ? Object.values(dayTrips) : [Object.values(tripsMap)];
-  lists.forEach(list => list.forEach(t => { if (!t.paid && t.date <= today) debt += (t.amount ?? 15); }));
+  lists.forEach(list => list.forEach(t => { if (!t.paid && t.date <= today) debt += tripAmount(t); }));
 
   document.getElementById("month-total-trips").textContent  = total;
   document.getElementById("month-paid-trips").textContent   = paid;
@@ -270,10 +279,13 @@ function openDayModalUser(dateStr, isWeekend) {
     return;
   }
 
-  // Dia com viagem: mostra status + AVALIAÇÃO (estrelas + velocidade)
+  // Dia com viagem: mostra status + AVALIAÇÃO (estrelas + velocidade).
+  // "Em análise" = já há um comprovante enviado aguardando aprovação do admin.
   const statusHtml = trip.paid
     ? `<div class="info-row"><span>Status</span><strong class="text-paid">Pago</strong></div>`
-    : `<div class="info-row"><span>Status</span><strong class="text-debt">Em aberto</strong></div>`;
+    : trip.pendingPaymentId
+      ? `<div class="info-row"><span>Status</span><strong class="text-pending">Em análise</strong></div>`
+      : `<div class="info-row"><span>Status</span><strong class="text-debt">Em aberto</strong></div>`;
 
   content.innerHTML = `
     <div class="modal-trip-info">
@@ -296,7 +308,8 @@ function openDayModalUser(dateStr, isWeekend) {
     <button class="btn btn--primary btn--full mt-sm" id="btn-save-rating" data-date="${dateStr}">
       ${icon("check")} Salvar avaliação
     </button>
-    ${trip.paid ? `<p class="modal-hint">Pagamento já registrado.</p>` : ""}
+    ${trip.paid ? `<p class="modal-hint">Pagamento já registrado.</p>`
+      : trip.pendingPaymentId ? `<p class="modal-hint">${icon("clock")} Comprovante em análise. Aguarde a aprovação.</p>` : ""}
   `;
   modal.classList.add("modal--open");
 
@@ -332,7 +345,7 @@ function openDayModalUser(dateStr, isWeekend) {
 
 // Helpers de pintura da avaliação
 function starSvg() {
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="lucide"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+  return icon("star");
 }
 function paintStars(n) {
   document.querySelectorAll("#rate-stars .rate-star").forEach(b => {
@@ -365,7 +378,7 @@ function openDayModalAdmin(dateStr, isWeekend) {
     const checked = !!trip;
     // Só admin, e só quando o passageiro JÁ tem viagem no dia, mostra a lixeira.
     const removeBtn = checked
-      ? `<button type="button" class="pax-item__remove" title="Remover viagem"
+      ? `<button type="button" class="btn-icon btn-icon--danger-solid" title="Remover viagem" aria-label="Remover viagem"
            data-remove-uid="${u.uid}" data-remove-name="${escapeHtml(u.name || "")}" data-remove-paid="${paid}">
            ${icon("trash")}
          </button>`
@@ -374,7 +387,7 @@ function openDayModalAdmin(dateStr, isWeekend) {
       <label class="pax-item ${paid ? "pax-item--locked" : ""}">
         <input type="checkbox" class="pax-check" data-uid="${u.uid}" data-name="${escapeHtml(u.name || "")}"
           ${checked ? "checked" : ""} ${paid ? "disabled" : ""}>
-        <span class="pax-item__avatar">${paxAvatar(u)}</span>
+        ${avatar({ name: u.name, photo: u.photo, size: "sm", tint: false })}
         <span class="pax-item__name">${escapeHtml(u.name || "—")}</span>
         <span class="pax-item__tag">${paid ? "pago" : (checked ? "em aberto" : "")}</span>
         ${removeBtn}
@@ -398,7 +411,7 @@ function openDayModalAdmin(dateStr, isWeekend) {
   });
 
   // Remover viagem individual (admin) — inclusive se já estiver paga.
-  content.querySelectorAll(".pax-item__remove").forEach(btn => {
+  content.querySelectorAll("[data-remove-uid]").forEach(btn => {
     btn.addEventListener("click", (e) => {
       // Não deixa o clique marcar/desmarcar o checkbox do label.
       e.preventDefault();
@@ -454,7 +467,7 @@ function openMultiPassengerModal() {
   const itemsHtml = selectable.map(u => `
     <label class="pax-item">
       <input type="checkbox" class="pax-check-multi" data-uid="${u.uid}" data-name="${escapeHtml(u.name || "")}">
-      <span class="pax-item__avatar">${paxAvatar(u)}</span>
+      ${avatar({ name: u.name, photo: u.photo, size: "sm", tint: false })}
       <span class="pax-item__name">${escapeHtml(u.name || "—")}</span>
     </label>
   `).join("");
@@ -481,7 +494,7 @@ async function applyMultiPassengers() {
 
   try {
     // Evita sobrescrever viagens já existentes (inclusive pagas).
-    const existing = new Set((await getAllTrips()).map(t => `${t.uid}_${t.date}`));
+    const existing = new Set((await getGroupTrips(myGroupId())).map(t => `${t.uid}_${t.date}`));
 
     const ops = [];
     for (const date of selectedDays) {

@@ -3,9 +3,9 @@
 // Painel de resumo geral (dashboard)
 // ============================================================
 
-import { getUserTrips, getUserPayments } from "../js/db.js";
+import { getUserTrips, getUserPayments, tripAmount } from "../js/db.js";
 import { formatCurrency, formatDate, formatDateTime, icon, todayISO } from "../js/utils.js";
-import { currentProfile } from "../auth/auth.js";
+import { currentProfile, myGroupId } from "../auth/auth.js";
 
 // Filtro de período ativo: "week" | "semester" | "total"
 let currentPeriod = "total";
@@ -24,11 +24,11 @@ function bindPeriodFilter() {
   const seg = document.getElementById("sum-period");
   if (!seg || seg.dataset.bound) return;
   seg.dataset.bound = "1";
-  seg.querySelectorAll(".adm-seg__btn").forEach(btn => {
+  seg.querySelectorAll(".seg__btn").forEach(btn => {
     btn.addEventListener("click", () => {
       currentPeriod = btn.dataset.period;
-      seg.querySelectorAll(".adm-seg__btn")
-        .forEach(b => b.classList.toggle("adm-seg__btn--active", b === btn));
+      seg.querySelectorAll(".seg__btn")
+        .forEach(b => b.classList.toggle("seg__btn--active", b === btn));
       renderSummaryCards(cache.trips, cache.payments);
     });
   });
@@ -36,10 +36,21 @@ function bindPeriodFilter() {
 
 export async function refreshSummary() {
   try {
-    const [trips, payments] = await Promise.all([
+    const [allTrips, allPayments] = await Promise.all([
       getUserTrips(currentProfile.uid),
       getUserPayments(currentProfile.uid)
     ]);
+
+    // O resumo é do GRUPO ATIVO. Somar as dívidas de todos os grupos daria
+    // um número que não corresponde a nenhuma cobrança real — cada grupo
+    // tem o seu dono e a sua chave PIX.
+    // Documento sem groupId é de antes dos grupos: entra, para não sumir
+    // com histórico de quem já usava o app.
+    const gid   = myGroupId();
+    const mine  = (d) => !gid || !d.groupId || d.groupId === gid;
+    const trips    = allTrips.filter(mine);
+    const payments = allPayments.filter(mine);
+
     cache = { trips, payments };
     renderSummaryCards(trips, payments);
     renderRecentActivity(trips, payments);
@@ -92,9 +103,9 @@ function renderSummaryCards(trips, payments) {
   const totalTrips  = relevant.length;
   const paidTrips   = relevant.filter(t => t.paid).length;
   const unpaidTrips = relevant.filter(t => !t.paid).length;
-  const totalDebt   = relevant.filter(t => !t.paid).reduce((s, t) => s + (t.amount ?? 15), 0);
+  const totalDebt   = relevant.filter(t => !t.paid).reduce((s, t) => s + tripAmount(t), 0);
   // Valor já pago no período = soma das viagens pagas cujo dia cai no período.
-  const totalPaid   = relevant.filter(t => t.paid).reduce((s, t) => s + (t.amount ?? 15), 0);
+  const totalPaid   = relevant.filter(t => t.paid).reduce((s, t) => s + tripAmount(t), 0);
   // Pagamentos que cobrem ao menos uma viagem do período.
   const payCount    = payments.filter(p => (p.tripDates || []).some(d => inRange(d, range))).length;
 
@@ -157,7 +168,7 @@ function renderRecentActivity(trips, payments) {
     .slice(0, 10);
 
   if (activities.length === 0) {
-    container.innerHTML = `<p class="empty-msg">Nenhuma atividade ainda.</p>`;
+    container.innerHTML = `<p class="empty-state empty-state--compact">Nenhuma atividade ainda.</p>`;
     return;
   }
 
