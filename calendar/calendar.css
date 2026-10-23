@@ -271,6 +271,20 @@
 /* ── STATS DO MÊS ── compõe .stat-grid / .stat ─────────────── */
 .month-stats { margin: 0 1.25rem 1.25rem; }
 
+/* ── DICA DE USO ── texto secundário discreto, abaixo dos números ─ */
+.cal-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  margin: 0 1.25rem 1.25rem;
+  font-size: var(--fs-xs);
+  line-height: 1.4;
+  color: var(--text-muted);
+  text-align: center;
+}
+.cal-hint .lucide { flex-shrink: 0; color: var(--text-dim); }
+
 /* ── LEGENDA ─────────────────────────────────────────────────── */
 .calendar-legend {
   display: flex;
