@@ -35,7 +35,7 @@ import {
   deleteGroup
 } from "../js/worker-api.js";
 import { showToast, formatCurrency, icon, escapeHtml, todayISO, copyToClipboard } from "../js/utils.js";
-import { avatar, avatarInner, avatarColor, emptyState } from "../js/ui.js";
+import { avatar, avatarInner, avatarColor, emptyState, setHTML } from "../js/ui.js";
 
 // Valor de cada viagem (respeita preços diferentes ao longo do tempo)
 const amt = t => tripAmount(t);
@@ -324,7 +324,7 @@ export async function loadUsersList() {
   } catch (e) {
     console.error("Erro ao carregar painel admin:", e);
     const c = document.getElementById("users-list");
-    if (c) c.innerHTML = `<p class="error-msg">Erro ao carregar dados.</p>`;
+    setHTML(c, `<p class="error-msg">Erro ao carregar dados.</p>`);
   }
 }
 
@@ -522,7 +522,7 @@ function renderManageUsers() {
   if (!container) return;
 
   if (cache.users.length === 0) {
-    container.innerHTML = emptyState("users", "Nenhum passageiro no grupo. Use o + para convidar.");
+    setHTML(container, emptyState("users", "Nenhum passageiro no grupo. Use o + para convidar."));
     return;
   }
 
@@ -561,7 +561,9 @@ function renderManageUsers() {
       </button>`;
   };
 
-  container.innerHTML = `<div class="list">${rows.map(rowHtml).join("")}</div>`;
+  // Mesmo conteúdo de antes (reabriu a aba, nada mudou): não redesenha —
+  // é o que evita a piscada das fotos e mantém o "Ver todos" como estava.
+  if (!setHTML(container, `<div class="list">${rows.map(rowHtml).join("")}</div>`)) return;
 
   // "Ver todos": só aparece quando há mais passageiros que o preview.
   const seeAll = document.getElementById("btn-pax-all");
@@ -616,19 +618,19 @@ function renderAttention() {
   }
 
   if (items.length === 0) {
-    box.innerHTML = `
+    setHTML(box, `
       <div class="attn attn--ok">
         <span class="attn__ico">${icon("check")}</span>
         <span class="attn__txt">
           <span class="attn__title">Tudo em ordem</span>
           <span class="attn__desc">Nenhuma ação pendente no momento.</span>
         </span>
-      </div>`;
+      </div>`);
     return;
   }
 
   const chev = icon("chevron-right", "attn__chev");
-  box.innerHTML = items.map(it => `
+  const html = items.map(it => `
     <button class="attn attn--${it.tone}" data-attn="${escapeHtml(it.action)}">
       <span class="attn__ico">${it.ico}</span>
       <span class="attn__txt">
@@ -637,6 +639,7 @@ function renderAttention() {
       </span>
       ${chev}
     </button>`).join("");
+  if (!setHTML(box, html)) return;
 
   box.querySelectorAll("[data-attn]").forEach(b => b.addEventListener("click", () => {
     const a = b.dataset.attn;
@@ -660,7 +663,7 @@ function renderActivity() {
   }
   const dates = [...byDate.keys()].sort().reverse().slice(0, 8);
   if (dates.length === 0) {
-    box.innerHTML = emptyState("clock", "Nenhuma viagem registrada ainda.");
+    setHTML(box, emptyState("clock", "Nenhuma viagem registrada ainda."));
     return;
   }
 
@@ -680,7 +683,7 @@ function renderActivity() {
       </div>`;
   }
   html += `</div>`;
-  box.innerHTML = html;
+  setHTML(box, html);
 }
 
 // ── ESTATÍSTICAS ─────────────────────────────────────────────
@@ -707,7 +710,7 @@ function renderStats() {
   const paid  = cache.trips.filter(t => t.paid).length;
   const rate  = total ? Math.round((paid / total) * 100) : 0;
 
-  box.innerHTML = `
+  setHTML(box, `
     <div class="card">
       <div class="card__title">Viagens por mês</div>
       <div class="barchart">${bars}</div>
@@ -718,7 +721,7 @@ function renderStats() {
         <span class="stat-rate__num">${rate}%</span>
         <span class="stat-rate__track"><span class="stat-rate__fill" style="width:${rate}%"></span></span>
       </div>
-    </div>`;
+    </div>`);
 }
 
 // Últimos N meses como {key:'2026-09', label:'set'}, do mais antigo ao atual.
@@ -809,7 +812,7 @@ export async function loadSystemPanel() {
   } catch (e) {
     console.error("Erro no painel do sistema:", e);
     const c = document.getElementById("sys-groups");
-    if (c) c.innerHTML = `<p class="error-msg">Erro ao carregar os grupos.</p>`;
+    setHTML(c, `<p class="error-msg">Erro ao carregar os grupos.</p>`);
   }
 }
 
@@ -840,9 +843,9 @@ function renderSystemGroups() {
       </div>`;
   });
 
-  box.innerHTML = rows.length
+  setHTML(box, rows.length
     ? rows.join("")
-    : emptyState("users", "Nenhum grupo criado ainda.");
+    : emptyState("users", "Nenhum grupo criado ainda."));
 }
 
 function renderSystemUsers() {
@@ -850,13 +853,13 @@ function renderSystemUsers() {
   if (!box) return;
 
   if (system.users.length === 0) {
-    box.innerHTML = emptyState("users", "Nenhum usuário cadastrado.");
+    setHTML(box, emptyState("users", "Nenhum usuário cadastrado."));
     return;
   }
 
   const groupNameById = new Map(system.groups.map(g => [g.id, g.name]));
 
-  box.innerHTML = system.users.map(u => renderSystemUserCard(u, groupNameById)).join("");
+  if (!setHTML(box, system.users.map(u => renderSystemUserCard(u, groupNameById)).join(""))) return;
 
   box.querySelectorAll("[data-toggle-role]").forEach(btn => {
     btn.addEventListener("click", () => toggleUserRole(btn.dataset.toggleRole, btn.dataset.currentRole));

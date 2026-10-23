@@ -78,8 +78,19 @@ function initTabDirection() {
 //   data-stagger-key="#id"    → só anima quando o texto de #id mudou
 //                               (ex.: o mês do calendário), não a cada
 //                               redesenho do mesmo mês
+//
+// A cascata só roda quando faz sentido, senão a tela "pisca":
+//   • o conteúdo mudou de verdade (a tela redesenha o mesmo HTML a cada
+//     vez que a aba abre — o Admin redesenha 4 blocos de uma vez);
+//   • o container está visível (aba escondida não anima; a entrada da
+//     própria aba já dá o movimento quando ela aparecer);
+//   • e a marca .m-stagger sai ao terminar, para a cascata não voltar a
+//     rodar sozinha quando a aba é escondida e mostrada de novo.
 const MAX_STAGGER = 12;
 const MAX_STAGGER_GRID = 42;
+const STAGGER_MS = 45;       // = --stagger
+const STAGGER_GRID_MS = 8;   // = atraso da grade em motion.css
+const ENTER_MS = 380;        // = --dur-slow
 
 function playStagger(box) {
   if (still()) return;
@@ -88,15 +99,24 @@ function playStagger(box) {
     if (key === box._mKey) return;
     box._mKey = key;
   }
+  const sig = box.innerHTML;
+  if (sig === box._mSig) return;
+  box._mSig = sig;
+  if (!box.offsetParent && getComputedStyle(box).position !== "fixed") return;
+
   const host = box.dataset.stagger ? (box.querySelector(box.dataset.stagger) || box) : box;
-  const max = box.hasAttribute("data-stagger-grid") ? MAX_STAGGER_GRID : MAX_STAGGER;
+  const grid = box.hasAttribute("data-stagger-grid");
+  const max = grid ? MAX_STAGGER_GRID : MAX_STAGGER;
   const items = [...host.children].filter(c => !c.classList.contains("loading-spinner"));
   if (!items.length) return;
-  if (box.hasAttribute("data-stagger-grid")) host.setAttribute("data-stagger-grid", "");
+  if (grid) host.setAttribute("data-stagger-grid", "");
+  clearTimeout(host._mDone);
   host.classList.remove("m-stagger");
   void host.offsetWidth; // reinicia a animação
   items.forEach((c, i) => c.style.setProperty("--i", Math.min(i, max)));
   host.classList.add("m-stagger");
+  const total = Math.min(items.length, max) * (grid ? STAGGER_GRID_MS : STAGGER_MS) + ENTER_MS + 80;
+  host._mDone = setTimeout(() => host.classList.remove("m-stagger"), total);
 }
 
 function initStagger() {
