@@ -322,7 +322,7 @@
     <!-- ═══ FORMULÁRIO ══════════════════════════════════════════ -->
     <section class="gs-section" id="gs-formulario">
       <h2 class="t-title">Formulário</h2>
-      <p class="gs-desc">Campo comum em <code>.form-group</code>. Campo com
+      <p class="gs-desc">Caixa de seleção: <code>&lt;input type=&quot;checkbox&quot; class=&quot;check&quot;&gt;</code> — nunca o checkbox nativo. Campo comum em <code>.form-group</code>. Campo com
       prefixo, ícone ou botão embutido em <code>.input-group</code>
       (<code>--lg</code> para valor grande nos editores).</p>
       <div class="gs-example">
@@ -348,6 +348,11 @@
           <div class="form-group">
             <label class="form-label" for="gs-f-code">Código do convite</label>
             <input id="gs-f-code" type="text" class="form-input form-input--code" placeholder="ABCD2345" />
+          </div>
+          <div class="gs-checks">
+            <label class="gs-check-row"><input type="checkbox" class="check" checked /> Felipe Corrêa</label>
+            <label class="gs-check-row"><input type="checkbox" class="check" /> Lipo</label>
+            <label class="gs-check-row"><input type="checkbox" class="check" checked disabled /> Chico (já pago)</label>
           </div>
           <div class="input-group">
             <i data-icon="search" class="input-group__affix"></i>

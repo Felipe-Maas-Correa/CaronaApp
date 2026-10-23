@@ -146,9 +146,15 @@
   }
 
   /* ── CALENDÁRIO: mês à esquerda, números do mês à direita ──── */
+  /* O mês ocupa a tela: no computador os dias deixam de ser círculos
+     (presos a largura = altura) e viram retângulos arredondados que
+     esticam na largura; a altura de cada semana acompanha a janela para
+     as 6 semanas caberem sem rolar. */
   #tab-calendar {
     display: none;
-    grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr);
+    max-width: 1440px;
+    grid-template-columns: minmax(0, 2.6fr) minmax(280px, 1fr);
+    column-gap: .5rem;
     grid-template-rows: auto auto auto 1fr auto;
     grid-template-areas:
       "head   head"
@@ -170,8 +176,26 @@
     font-size: var(--fs-sm);
     color: var(--text-muted);
   }
-  .cal-day { cursor: pointer; }
-  .cal-day__number { font-size: var(--fs-base); }
+  #tab-calendar .calendar-grid { gap: 6px; }
+  .cal-day {
+    cursor: pointer;
+    aspect-ratio: auto;
+    height: clamp(58px, calc((100dvh - 300px) / 6), 116px);
+    border-radius: var(--radius);
+  }
+  .cal-day:not(.cal-day--empty):hover { border-color: var(--border-gold); }
+  .cal-day__number { font-size: var(--fs-lg); }
+  .cal-day__badge  { font-size: var(--fs-2xs); }
+  .cal-weekday     { font-size: var(--fs-xs); }
+  /* Rodapé do mês legível (era o menor texto da tela) */
+  #tab-calendar .calendar-legend {
+    justify-content: flex-start;
+    gap: 1.6rem;
+    padding-top: .2rem;
+  }
+  #tab-calendar .legend-item { font-size: var(--fs-sm); gap: .5rem; }
+  #tab-calendar .legend-dot  { width: 10px; height: 10px; }
+  #tab-calendar .month-stats .stat { padding: 1.1rem 1.2rem; }
 
   /* ── PAGAMENTOS: cartões em grade ──────────────────────────── */
   .payments-list {
@@ -254,4 +278,10 @@
    para "R$ 1.234,00" caber sem quebrar. */
 @media (min-width: 1280px) {
   .adm2-kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+/* Números do mês em tamanho grande só quando a coluna da direita tem
+   largura para "R$ 150,00" numa linha. */
+@media (min-width: 1440px) {
+  #tab-calendar .month-stats .stat__value { font-size: var(--fs-2xl); }
 }

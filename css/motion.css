@@ -82,10 +82,10 @@
 /* Login, grupos e app entram com fade; o conteúdo sobe junto. */
 .screen--visible:not(.loading-screen) { animation: m-fade var(--dur-slow) var(--ease-out); }
 .auth-container,
-.group-container { animation: m-enter var(--dur-slow) var(--ease-out) both; }
+.group-container { animation: m-enter var(--dur-slow) var(--ease-out) backwards; }
 
 /* Aba: vem do lado para onde a pessoa navegou (data-dir em js/motion.js) */
-.tab-panel--active { animation: m-enter var(--dur-slow) var(--ease-out) both; }
+.tab-panel--active { animation: m-enter var(--dur-slow) var(--ease-out) backwards; }
 .tab-panel--active[data-dir="next"] { animation-name: m-enter-next; }
 .tab-panel--active[data-dir="prev"] { animation-name: m-enter-prev; }
 
@@ -170,7 +170,7 @@ button.attn:active, .danger2__item:active, .pax-item:active, .group-item:active 
 /* Lista em cascata: o container com data-stagger ganha .m-stagger a
    cada vez que o JS troca os itens; cada filho tem --i (posição). */
 .m-stagger > * {
-  animation: m-enter var(--dur-slow) var(--ease-out) both;
+  animation: m-enter var(--dur-slow) var(--ease-out) backwards;
   animation-delay: calc(var(--i, 0) * var(--stagger));
 }
 /* Grade (calendário): cada dia surge crescendo, bem rápido */
@@ -181,9 +181,9 @@ button.attn:active, .danger2__item:active, .pax-item:active, .group-item:active 
 }
 
 /* Barras e progresso crescem ao aparecer */
-.bar__fill      { transform-origin: bottom; animation: m-grow-y var(--dur-slow) var(--ease-out) both; }
+.bar__fill      { transform-origin: bottom; animation: m-grow-y var(--dur-slow) var(--ease-out) backwards; }
 .stat-rate__fill,
-.progress-bar   { transform-origin: left;   animation: m-grow-x var(--dur-slow) var(--ease-out) both; }
+.progress-bar   { transform-origin: left;   animation: m-grow-x var(--dur-slow) var(--ease-out) backwards; }
 .bar:nth-child(2) .bar__fill { animation-delay: calc(1 * var(--stagger)); }
 .bar:nth-child(3) .bar__fill { animation-delay: calc(2 * var(--stagger)); }
 .bar:nth-child(4) .bar__fill { animation-delay: calc(3 * var(--stagger)); }
@@ -198,18 +198,22 @@ button.attn:active, .danger2__item:active, .pax-item:active, .group-item:active 
 /* Escolhas que viram "ligadas" batem uma vez */
 .cal-day--selected, .pcal-day--selected,
 .gcard__fav--on, .hub-hero__fav--on, .rate-star.is-on, .rate-speed.is-on,
-.hub-swatch--on { animation: m-pop var(--dur-slow) var(--ease-spring); }
+.hub-swatch--on, .check:checked { animation: m-pop var(--dur-slow) var(--ease-spring); }
 
 /* Selo e contagem chegando */
-.badge--solid { animation: m-pop-in var(--dur) var(--ease-spring) both; }
+.badge--solid { animation: m-pop-in var(--dur) var(--ease-spring) backwards; }
 
 /* Toast de sucesso solta um brilho dourado */
 .toast--visible.toast--success { animation: m-glow 900ms var(--ease-out) 120ms; }
 
-/* Sheet e modal: o conteúdo sobe um tiquinho depois do painel */
+/* Sheet e modal: o conteúdo sobe um tiquinho depois do painel.
+   Toda entrada usa preenchimento `backwards` (nunca `both`): terminada a
+   animação, não sobra `translate` no elemento. Com `both` cada item ficava
+   como camada própria para sempre e o título passava por cima do X do
+   modal, que deixava de fechar. */
 .modal--open .modal-sheet > *,
 .hub-sheet--open .hub-sheet__panel > * {
-  animation: m-enter var(--dur-slow) var(--ease-out) both;
+  animation: m-enter var(--dur-slow) var(--ease-out) backwards;
   animation-delay: 60ms;
 }
 

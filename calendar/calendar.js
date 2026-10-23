@@ -385,7 +385,7 @@ function openDayModalAdmin(dateStr, isWeekend) {
       : "";
     return `
       <label class="pax-item ${paid ? "pax-item--locked" : ""}">
-        <input type="checkbox" class="pax-check" data-uid="${u.uid}" data-name="${escapeHtml(u.name || "")}"
+        <input type="checkbox" class="check pax-check" data-uid="${u.uid}" data-name="${escapeHtml(u.name || "")}"
           ${checked ? "checked" : ""} ${paid ? "disabled" : ""}>
         ${avatar({ name: u.name, photo: u.photo, size: "sm", tint: false })}
         <span class="pax-item__name">${escapeHtml(u.name || "—")}</span>
@@ -466,7 +466,7 @@ function openMultiPassengerModal() {
   const selectable = allUsers.filter(u => u.active !== false);
   const itemsHtml = selectable.map(u => `
     <label class="pax-item">
-      <input type="checkbox" class="pax-check-multi" data-uid="${u.uid}" data-name="${escapeHtml(u.name || "")}">
+      <input type="checkbox" class="check pax-check-multi" data-uid="${u.uid}" data-name="${escapeHtml(u.name || "")}">
       ${avatar({ name: u.name, photo: u.photo, size: "sm", tint: false })}
       <span class="pax-item__name">${escapeHtml(u.name || "—")}</span>
     </label>
