@@ -1,0 +1,236 @@
+/* ============================================================
+   motion.css — MOVIMENTO DO CARONAAPP
+   Premium Dark Gold — CaronaApp
+
+   Toda animação do app mora aqui (@keyframes só neste arquivo), com
+   duração e curva dos tokens --dur-* / --ease-* (design-system.css).
+   Os eventos que disparam parte delas (ripple, lista em cascata,
+   número contando, tremida de erro, indicador do segmentado) estão em
+   js/motion.js. Catálogo com exemplos: guia/index.html › Movimento.
+
+   Regra de ouro: movimento confirma o que a pessoa fez. Nada se mexe
+   sozinho sem motivo, e "reduzir movimento" do sistema desliga tudo
+   (fim do arquivo).
+   ============================================================ */
+
+/* ══ KEYFRAMES ════════════════════════════════════════════════ */
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@keyframes dot-pulse {
+  0%, 80%, 100% { opacity: .3; transform: scale(0.85); }
+  40%           { opacity: 1;  transform: scale(1.15); }
+}
+
+/* Entrada: sobe um pouco e aparece (aba, tela, item de lista) */
+@keyframes m-enter {
+  from { opacity: 0; translate: 0 10px; }
+  to   { opacity: 1; translate: 0 0; }
+}
+/* Entrada com direção: a aba vem do lado para onde a pessoa foi */
+@keyframes m-enter-next {
+  from { opacity: 0; translate: 28px 0; }
+  to   { opacity: 1; translate: 0 0; }
+}
+@keyframes m-enter-prev {
+  from { opacity: 0; translate: -28px 0; }
+  to   { opacity: 1; translate: 0 0; }
+}
+@keyframes m-fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* Surge crescendo (dia do calendário, selo novo) */
+@keyframes m-pop-in {
+  from { opacity: 0; scale: .82; }
+  to   { opacity: 1; scale: 1; }
+}
+/* Batida: confirma uma escolha (favoritar, selecionar) */
+@keyframes m-pop {
+  0%   { scale: 1; }
+  40%  { scale: 1.18; }
+  100% { scale: 1; }
+}
+/* Ícone da navegação ao virar a aba ativa */
+@keyframes m-hop {
+  0%   { translate: 0 0;    scale: 1; }
+  35%  { translate: 0 -4px; scale: 1.12; }
+  70%  { translate: 0 0;    scale: .96; }
+  100% { translate: 0 0;    scale: 1; }
+}
+/* Indicador que "abre" a partir do centro */
+@keyframes m-grow-x { from { scale: 0 1; } to { scale: 1 1; } }
+@keyframes m-grow-y { from { scale: 1 0; } to { scale: 1 1; } }
+
+/* Erro: o formulário balança "não" */
+@keyframes m-shake {
+  10%, 90%      { translate: -1px 0; }
+  20%, 80%      { translate: 3px 0; }
+  30%, 50%, 70% { translate: -5px 0; }
+  40%, 60%      { translate: 5px 0; }
+}
+/* Onda do toque (js/motion.js cria o .m-ripple no ponto tocado) */
+@keyframes m-ripple {
+  from { scale: 0; opacity: .32; }
+  to   { scale: 1; opacity: 0; }
+}
+/* Brilho dourado que se espalha (sucesso) */
+@keyframes m-glow {
+  from { box-shadow: var(--shadow), 0 0 0 0 rgba(212, 175, 55, .45); }
+  to   { box-shadow: var(--shadow), 0 0 0 14px rgba(212, 175, 55, 0); }
+}
+
+
+/* ══ TELAS E ABAS ═════════════════════════════════════════════ */
+/* Login, grupos e app entram com fade; o conteúdo sobe junto. */
+.screen--visible:not(.loading-screen) { animation: m-fade var(--dur-slow) var(--ease-out); }
+.auth-container,
+.group-container { animation: m-enter var(--dur-slow) var(--ease-out) backwards; }
+
+/* Aba: vem do lado para onde a pessoa navegou (data-dir em js/motion.js) */
+.tab-panel--active { animation: m-enter var(--dur-slow) var(--ease-out) backwards; }
+.tab-panel--active[data-dir="next"] { animation-name: m-enter-next; }
+.tab-panel--active[data-dir="prev"] { animation-name: m-enter-prev; }
+
+/* Navegação: o ícone dá um pulinho e o indicador abre do centro */
+.nav-btn__icon { transition: color var(--dur) var(--ease-out); }
+.nav-btn--active .nav-btn__icon { animation: m-hop var(--dur-slow) var(--ease-spring); }
+.nav-btn--active::before { animation: m-grow-x var(--dur) var(--ease-out); }
+
+
+/* ══ TOQUE ════════════════════════════════════════════════════ */
+/* Tudo que é clicável afunda um pouco ao ser apertado. Usa a
+   propriedade `scale` (não `transform`) para não brigar com o
+   transform que o componente já tenha. */
+.list-item, .card--interactive, .nav-btn, .seg__btn, .cal-day, .pcal-day,
+.gcard, .hub-tile, button.attn, .danger2__item, .pax-item, .group-item,
+.hub-swatch, .rate-star, .rate-speed {
+  transition-property: scale, background, border-color, color, box-shadow, opacity, transform;
+  transition-duration: var(--dur-fast);
+  transition-timing-function: var(--ease-out);
+}
+.list-item:active, .card--interactive:active, .gcard:active, .hub-tile:active,
+button.attn:active, .danger2__item:active, .pax-item:active, .group-item:active { scale: .98; }
+.nav-btn:active, .seg__btn:active, .cal-day:active, .pcal-day:active { scale: .92; }
+
+/* Onda do toque: o elemento precisa conter a onda. :where() não
+   ganha de ninguém, então quem já é absolute/fixed continua assim. */
+:where(.btn, .btn-icon, .list-item, .nav-btn, .seg__btn, .hub-tile, .gcard) {
+  position: relative;
+  overflow: hidden;
+}
+.m-ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: currentColor;
+  pointer-events: none;
+  scale: 0;
+  animation: m-ripple 560ms var(--ease-out) forwards;
+}
+.btn--primary .m-ripple { background: var(--on-accent); }
+
+
+/* ══ COMPUTADOR (mouse): pequenas respostas ao passar por cima ══ */
+@media (hover: hover) and (pointer: fine) {
+  .btn--primary:hover { translate: 0 -1px; }
+  .btn:active, .btn--primary:active { translate: 0 0; }
+  .list-item .set-item__chev,
+  .attn__chev, .danger2__chev { transition: translate var(--dur) var(--ease-out), stroke var(--dur); }
+  .list-item:hover .set-item__chev,
+  button.attn:hover .attn__chev,
+  .danger2__item:hover .danger2__chev { translate: 3px 0; }
+  .stat { transition: border-color var(--dur) var(--ease-out), translate var(--dur) var(--ease-out); }
+  .stat:hover { border-color: var(--border-gold); translate: 0 -2px; }
+  /* Engrenagem gira um pouco: "isto abre configurações" */
+  #btn-adm-settings .lucide { transition: rotate var(--dur-slow) var(--ease-spring); }
+  #btn-adm-settings:hover .lucide { rotate: 60deg; }
+  .btn-icon .lucide { transition: scale var(--dur-fast) var(--ease-out); }
+  .btn-icon:hover .lucide { scale: 1.1; }
+}
+
+
+/* ══ SEGMENTADO: indicador que desliza até a opção ═══════════ */
+/* js/motion.js põe um .seg__ind atrás das opções e marca .has-ind;
+   sem JS, vale o fundo do próprio botão ativo (components.css). */
+.seg { position: relative; isolation: isolate; }
+.seg__ind {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 0;
+  z-index: -1;
+  border-radius: 999px;
+  background: var(--accent);
+  transition: translate var(--dur) var(--ease-spring), width var(--dur) var(--ease-out);
+}
+.seg__ind.is-instant { transition: none; }
+.seg--soft .seg__ind { background: var(--accent-dim); box-shadow: inset 0 0 0 1px var(--border-gold); }
+.seg.has-ind .seg__btn--active { background: transparent; box-shadow: none; }
+.seg__btn { transition: color var(--dur) var(--ease-out), scale var(--dur-fast) var(--ease-out); }
+
+
+/* ══ CONTEÚDO CHEGANDO ════════════════════════════════════════ */
+/* Lista em cascata: o container com data-stagger ganha .m-stagger a
+   cada vez que o JS troca os itens; cada filho tem --i (posição). */
+.m-stagger > * {
+  animation: m-enter var(--dur-slow) var(--ease-out) backwards;
+  animation-delay: calc(var(--i, 0) * var(--stagger));
+}
+/* Grade (calendário): cada dia surge crescendo, bem rápido */
+.m-stagger[data-stagger-grid] > * {
+  animation-name: m-pop-in;
+  animation-duration: var(--dur);
+  animation-delay: calc(var(--i, 0) * 8ms);
+}
+
+/* Barras e progresso crescem ao aparecer */
+.bar__fill      { transform-origin: bottom; animation: m-grow-y var(--dur-slow) var(--ease-out) backwards; }
+.stat-rate__fill,
+.progress-bar   { transform-origin: left;   animation: m-grow-x var(--dur-slow) var(--ease-out) backwards; }
+.bar:nth-child(2) .bar__fill { animation-delay: calc(1 * var(--stagger)); }
+.bar:nth-child(3) .bar__fill { animation-delay: calc(2 * var(--stagger)); }
+.bar:nth-child(4) .bar__fill { animation-delay: calc(3 * var(--stagger)); }
+.bar:nth-child(5) .bar__fill { animation-delay: calc(4 * var(--stagger)); }
+.bar:nth-child(6) .bar__fill { animation-delay: calc(5 * var(--stagger)); }
+
+
+/* ══ RESPOSTAS ════════════════════════════════════════════════ */
+.m-shake { animation: m-shake 420ms var(--ease-in-out); }
+.m-pop   { animation: m-pop var(--dur-slow) var(--ease-spring); }
+
+/* Escolhas que viram "ligadas" batem uma vez */
+.cal-day--selected, .pcal-day--selected,
+.gcard__fav--on, .hub-hero__fav--on, .rate-star.is-on, .rate-speed.is-on,
+.hub-swatch--on, .check:checked { animation: m-pop var(--dur-slow) var(--ease-spring); }
+
+/* Selo e contagem chegando */
+.badge--solid { animation: m-pop-in var(--dur) var(--ease-spring) backwards; }
+
+/* Toast de sucesso solta um brilho dourado */
+.toast--visible.toast--success { animation: m-glow 900ms var(--ease-out) 120ms; }
+
+/* Sheet e modal: o conteúdo sobe um tiquinho depois do painel.
+   Toda entrada usa preenchimento `backwards` (nunca `both`): terminada a
+   animação, não sobra `translate` no elemento. Com `both` cada item ficava
+   como camada própria para sempre e o título passava por cima do X do
+   modal, que deixava de fechar. */
+.modal--open .modal-sheet > *,
+.hub-sheet--open .hub-sheet__panel > * {
+  animation: m-enter var(--dur-slow) var(--ease-out) backwards;
+  animation-delay: 60ms;
+}
+
+
+/* ══ REDUZIR MOVIMENTO ════════════════════════════════════════ */
+/* Quem pede "reduzir movimento" no sistema vê tudo instantâneo.
+   Só o carregando continua girando: parado, parece travado. */
+@media (prefers-reduced-motion: reduce) {
+  *:not(.loading-spinner):not(.loading-dots span),
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+  .m-ripple { display: none; }
+}

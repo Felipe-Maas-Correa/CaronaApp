@@ -75,6 +75,10 @@
   position: absolute;
   top: 1.1rem;
   right: 1.25rem;
+  /* Sempre por cima do conteúdo do modal: enquanto o conteúdo anima a
+     entrada (css/motion.css), cada item vira uma camada própria e o
+     título, que vem depois no HTML, cobria o X e engolia o clique. */
+  z-index: var(--z-raised);
 }
 
 /* Título de seção dentro de modal: respiro embaixo (o de cima vem inline) */

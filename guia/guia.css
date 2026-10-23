@@ -109,6 +109,8 @@ html, body { overflow: auto; height: auto; }
 .gs-demo--narrow { max-width: 460px; }
 .gs-demo--grid   { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); align-items: stretch; }
 .gs-grow { flex: 1; min-width: 0; }
+.gs-checks { display: flex; flex-direction: column; gap: .55rem; }
+.gs-check-row { display: flex; align-items: center; gap: .7rem; font-size: var(--fs-md); color: var(--text); cursor: pointer; }
 
 .gs-code {
   position: relative;

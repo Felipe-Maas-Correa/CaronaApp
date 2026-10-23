@@ -35,6 +35,9 @@
        (ver o cabeçalho de css/design-system.css). -->
   <link rel="stylesheet" href="css/design-system.css" />
 
+  <!-- Movimento: animações e respostas ao toque (tokens --dur-*/--ease-*) -->
+  <link rel="stylesheet" href="css/motion.css" />
+
   <!-- Layout de computador (≥ 1024px): sobrescreve os anteriores só
        dentro do @media, então vem depois de tudo. -->
   <link rel="stylesheet" href="css/desktop.css" />
@@ -210,7 +213,7 @@
             <i data-icon="search" class="input-group__affix"></i>
             <input type="text" id="group-search" class="input-group__input" placeholder="Buscar grupo…" autocomplete="off" />
           </div>
-          <div class="hub-grid" id="group-list"></div>
+          <div class="hub-grid" id="group-list" data-stagger></div>
         </section>
 
         <!-- Ações: dois tiles que abrem bottom-sheets. -->
@@ -231,7 +234,7 @@
             <span class="section-title">Convites</span>
             <span class="badge badge--solid" id="group-invites-count"></span>
           </div>
-          <div class="hub-invites" id="group-invites"></div>
+          <div class="hub-invites" id="group-invites" data-stagger></div>
         </section>
 
         <button id="btn-group-back" class="btn btn--ghost btn--full hidden">Voltar ao app</button>
@@ -389,7 +392,7 @@
             </div>
             <div class="activity-section">
               <div class="section-title">Atividade recente</div>
-              <div id="sum-recent-activity"><div class="loading-spinner"></div></div>
+              <div id="sum-recent-activity" data-stagger><div class="loading-spinner"></div></div>
             </div>
           </div>
         </div>
@@ -416,7 +419,7 @@
             <div id="calendar-loading" class="calendar-loading" style="display:none">
               <div class="loading-spinner"></div>
             </div>
-            <div id="calendar-grid" class="calendar-grid"></div>
+            <div id="calendar-grid" class="calendar-grid" data-stagger data-stagger-grid data-stagger-key="#calendar-month-label"></div>
           </div>
           <div class="calendar-legend">
             <div class="legend-item"><div class="legend-dot legend-dot--paid"></div><span>Pago</span></div>
@@ -456,7 +459,7 @@
               Registrar
             </button>
           </div>
-          <div id="payments-list" class="payments-list">
+          <div id="payments-list" class="payments-list" data-stagger>
             <div class="loading-spinner"></div>
           </div>
         </div>
@@ -484,7 +487,7 @@
 
             <!-- ═══ PRECISA DA SUA ATENÇÃO ═══ pendências dinâmicas. -->
             <div class="section-head"><span class="section-title">Precisa da sua atenção</span></div>
-            <div id="adm-attention"></div>
+            <div id="adm-attention" data-stagger></div>
 
             <!-- ═══ RESUMO ═══ 4 KPIs + seletor de período. -->
             <div class="section-head"><span class="section-title">Resumo</span></div>
@@ -521,7 +524,7 @@
             <div class="adm2-grp adm2-grp--stats">
             <!-- ═══ ESTATÍSTICAS ═══ gráfico SVG simples. -->
             <div class="section-head"><span class="section-title">Estatísticas</span></div>
-            <div id="adm-stats">
+            <div id="adm-stats" data-stagger>
               <div class="loading-spinner"></div>
             </div>
             </div><!-- /adm2-grp--stats -->
@@ -538,14 +541,14 @@
                 <i data-icon="plus"></i>
               </button>
             </div>
-            <div id="users-list">
+            <div id="users-list" data-stagger=".list">
               <div class="loading-spinner"></div>
             </div>
             <button id="btn-pax-all" class="btn btn--ghost btn--full hidden">Ver todos</button>
 
             <!-- ═══ ATIVIDADE ═══ viagens por dia (derivado das viagens). -->
             <div class="section-head"><span class="section-title">Atividade</span></div>
-            <div id="adm-activity">
+            <div id="adm-activity" data-stagger=".act">
               <div class="loading-spinner"></div>
             </div>
             </div><!-- /adm2-grp--people -->
@@ -596,7 +599,7 @@
               <span class="section-title">Grupos</span>
               <span class="section-hint">todos da plataforma</span>
             </div>
-            <div id="sys-groups">
+            <div id="sys-groups" data-stagger>
               <div class="loading-spinner"></div>
             </div>
 
@@ -604,7 +607,7 @@
               <span class="section-title">Contas</span>
               <span class="section-hint">permissões &amp; acesso</span>
             </div>
-            <div id="sys-users">
+            <div id="sys-users" data-stagger>
               <div class="loading-spinner"></div>
             </div>
 
@@ -851,7 +854,7 @@
         </div>
 
         <!-- Grid do calendário -->
-        <div id="pay-cal-grid" class="pay-cal-grid"></div>
+        <div id="pay-cal-grid" class="pay-cal-grid" data-stagger data-stagger-grid data-stagger-key="#pay-cal-label"></div>
 
         <!-- Legenda -->
         <div class="pay-cal-legend">
@@ -1068,7 +1071,7 @@
         </div>
 
         <div class="section-title" style="margin-top:1.6rem">Convites em aberto</div>
-        <div id="invite-list"></div>
+        <div id="invite-list" data-stagger></div>
       </div>
     </div>
 

@@ -8,6 +8,8 @@
 
 import { ICONS, hydrateIcons } from "../js/icons.js";
 import { avatar, emptyState, badge } from "../js/ui.js";
+import { initMotion } from "../js/motion.js";
+import { formatCurrency } from "../js/utils.js";
 
 const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
@@ -122,6 +124,36 @@ async function renderRetired() {
   }
 }
 
+// ── Demos de movimento ─────────────────────────────────────────
+// Só disparam o que o app faria; o efeito vem de js/motion.js.
+function wireMotionDemos() {
+  let paid = 600, trips = 68;
+  const actions = {
+    stagger: () => {
+      const list = document.getElementById("gs-stagger-demo");
+      list.innerHTML = list.innerHTML; // troca os filhos, como um render do app
+    },
+    count: () => {
+      paid += 150; trips += 10;
+      document.getElementById("gs-count-demo").textContent = formatCurrency(paid);
+      document.getElementById("gs-count-demo-2").textContent = String(trips);
+    },
+    shake: () => {
+      const err = document.getElementById("gs-shake-error");
+      err.textContent = "";
+      requestAnimationFrame(() => { err.textContent = "Senha incorreta."; });
+    },
+    pop: () => {
+      const b = document.querySelector(".gs-pop-demo");
+      b.classList.remove("m-pop");
+      void b.offsetWidth;
+      b.classList.add("m-pop");
+    },
+  };
+  document.querySelectorAll("[data-gs-motion]").forEach(btn =>
+    btn.addEventListener("click", () => actions[btn.dataset.gsMotion]?.()));
+}
+
 // ── Segmentado de exemplo: alterna como no app ────────────────
 function wireSegs() {
   document.querySelectorAll("[data-gs-seg]").forEach(seg => {
@@ -141,4 +173,6 @@ renderScale();
 renderIcons();
 hydrateIcons(document);
 wireSegs();
+wireMotionDemos();
+initMotion();
 renderRetired();

@@ -7,7 +7,7 @@ import { getUserPayments, getGroupPayments, getGroupUsers, getUserUnpaidTrips, g
 import { createPayment, deletePayment, approvePayment, rejectPayment } from "../js/worker-api.js";
 import { showToast, formatCurrency, formatDate, formatDateTime, icon, todayISO, escapeHtml, safeReceiptSrc, copyToClipboard, readFileAsDataURL } from "../js/utils.js";
 import { avatar, emptyState } from "../js/ui.js";
-import { readPdfReceipt, valuesMatch } from "../js/receipt-parser.js";
+import { readPdfReceipt, valuesMatch, renderPdfPages } from "../js/receipt-parser.js";
 import { loadAndRender } from "../calendar/calendar.js";
 import { refreshSummary } from "../summary/summary.js";
 import { currentProfile, isAdmin, myGroupId } from "../auth/auth.js";
@@ -569,15 +569,22 @@ function openReceiptModalById(paymentId) {
 
   const modal   = document.getElementById("modal-receipt");
   const content = document.getElementById("receipt-modal-content");
-  // F-05: `sandbox` (sem allow-scripts) impede que JavaScript embutido no PDF
-  // rode ao abrir o comprovante. O visualizador nativo do navegador ainda
-  // renderiza o PDF; só o script do documento fica neutralizado. Defesa a mais
-  // além da CSP (object-src 'none', frame-src restrito) e do safeReceiptSrc.
+  // PDF: desenhado pelo pdf.js como imagem (renderPdfPages). O antigo
+  // <iframe sandbox> deixava o Chrome sem visualizador (ícone de documento
+  // quebrado). Continua sem rodar nenhum script do PDF (F-05).
   content.innerHTML = isImage
     ? `<img src="${src}" alt="Comprovante" class="receipt-full-img">`
-    : `<iframe src="${src}" class="receipt-iframe" title="Comprovante" sandbox></iframe>`;
+    : `<div class="receipt-pdf" role="img" aria-label="Comprovante em PDF"><div class="loading-spinner"></div></div>`;
 
   modal.classList.add("modal--open");
+
+  if (!isImage) {
+    const box = content.querySelector(".receipt-pdf");
+    renderPdfPages(src, box).catch(err => {
+      console.error("Erro ao desenhar o comprovante:", err);
+      box.innerHTML = `<p class="error-msg">Não foi possível mostrar o PDF aqui. Use "Abrir em nova aba".</p>`;
+    });
+  }
 
   // "Abrir em nova aba": navegadores bloqueiam abrir data: URL no topo,
   // então convertemos Base64 para um blob URL temporário. src já é seguro.

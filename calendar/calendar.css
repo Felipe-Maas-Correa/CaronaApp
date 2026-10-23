@@ -249,7 +249,9 @@
   transition: border-color .2s, background .2s;
 }
 .pax-item:active { background: var(--bg-hover); }
-.pax-item input { width: 18px; height: 18px; accent-color: var(--accent); flex-shrink: 0; }
+/* Caixa = .check do guia; aqui só a linha acompanhando a marcação */
+.pax-item:has(.check:checked) { border-color: var(--accent-border); background: var(--accent-dim); }
+.pax-item:hover .check:not(:disabled) { border-color: var(--accent-border); }
 .pax-item--locked { opacity: .7; cursor: default; }
 .pax-item__name {
   flex: 1;
@@ -268,6 +270,20 @@
 
 /* ── STATS DO MÊS ── compõe .stat-grid / .stat ─────────────── */
 .month-stats { margin: 0 1.25rem 1.25rem; }
+
+/* ── DICA DE USO ── texto secundário discreto, abaixo dos números ─ */
+.cal-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  margin: 0 1.25rem 1.25rem;
+  font-size: var(--fs-xs);
+  line-height: 1.4;
+  color: var(--text-muted);
+  text-align: center;
+}
+.cal-hint .lucide { flex-shrink: 0; color: var(--text-dim); }
 
 /* ── LEGENDA ─────────────────────────────────────────────────── */
 .calendar-legend {

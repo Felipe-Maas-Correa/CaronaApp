@@ -40,6 +40,25 @@ export function avatar({ name = "", photo = "", size = "", tint = true, cls = ""
   return `<span class="${classes}"${style}>${avatarInner(name, photo)}</span>`;
 }
 
+/**
+ * Troca o conteúdo de um bloco SÓ se o HTML mudou. Redesenhar o mesmo HTML
+ * faz a tela piscar: fotos são decodificadas de novo, barras e cascatas
+ * reanimam. Devolve true quando trocou — quem liga cliques nos elementos
+ * novos faz isso só nesse caso (senão os antigos ganham clique duplicado):
+ *
+ *   if (!setHTML(box, html)) return;
+ *   box.querySelectorAll("[data-x]").forEach(b => b.addEventListener(...));
+ *
+ * Toda escrita num bloco que usa setHTML deve passar por ele (inclusive a
+ * mensagem de erro), para a comparação valer.
+ */
+export function setHTML(el, html) {
+  if (!el || el._uiHTML === html) return false;
+  el._uiHTML = html;
+  el.innerHTML = html;
+  return true;
+}
+
 /** Estado vazio de lista: ícone grande + texto. compact = sem ícone. */
 export function emptyState(ic, text, { compact = false } = {}) {
   if (compact) return `<p class="empty-state empty-state--compact">${escapeHtml(text)}</p>`;

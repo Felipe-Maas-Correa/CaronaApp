@@ -222,11 +222,13 @@ for (const f of [...HTML, ...JS]) {
 const CANON = new Set([
   "btn", "btn-icon", "btn-row", "seg", "section-head", "section-title", "section-hint", "section-count",
   "badge", "form-group", "form-label", "form-input", "form-select", "form-opt", "input-group", "input-wrap",
-  "input-eye", "card", "stat", "stat-grid", "avatar", "avatar-img", "list", "list-item", "empty-state",
+  "input-eye", "check", "card", "stat", "stat-grid", "avatar", "avatar-img", "list", "list-item", "empty-state",
   "error-msg", "toast", "loading-spinner",
 ]);
+// css/motion.css é a camada de movimento DOS componentes (toque, entrada):
+// pode citá-los na raiz, mas só para animar.
 for (const f of CSS) {
-  if (f === "css/components.css") continue;
+  if (f === "css/components.css" || f === "css/motion.css") continue;
   const src = stripCssComments(read(f));
   for (const m of src.matchAll(/([^{}]+)\{/g)) {
     const prelude = m[1].trim();
@@ -240,6 +242,25 @@ for (const f of CSS) {
           `".${first[1]}" redefine um componente do guia — mude em css/components.css (ou use contexto: ".minha-tela .${base}")`);
       }
     }
+  }
+}
+
+// c) Caixa de seleção sempre com .check (o checkbox nativo é um quadrado
+//    branco do sistema, fora do tema).
+for (const f of [...HTML, ...JS]) {
+  lines(read(f)).forEach((line, i) => {
+    if (allowed(line) || !/type=["']checkbox["']/.test(line)) return;
+    if (!/class=["'][^"']*\bcheck\b/.test(line)) err(`${f}:${i + 1}`, `checkbox sem class="check" — use a caixa de seleção do guia`);
+  });
+}
+
+// d) Animação nova só em css/motion.css, para o app ter um vocabulário
+//    único de movimento (e "reduzir movimento" valer para todas).
+for (const f of CSS) {
+  if (f === "css/motion.css") continue;
+  const src = stripCssComments(read(f));
+  for (const m of src.matchAll(/@keyframes\s+([\w-]+)/g)) {
+    err(`${f}:${lineAt(src, m.index)}`, `@keyframes ${m[1]} fora de css/motion.css — animação mora lá (guia › Movimento)`);
   }
 }
 

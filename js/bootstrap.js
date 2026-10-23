@@ -17,6 +17,16 @@ document.addEventListener("click", (e) => {
 });
 
 async function bootstrap() {
+  // Movimento primeiro: ripple, cascata e afins observam o DOM desde o
+  // início, então já pegam a tela de login e o primeiro desenho do app.
+  // Movimento é enfeite: se falhar, o app abre parado, mas abre.
+  try {
+    const { initMotion } = await import("./motion.js");
+    initMotion();
+  } catch (err) {
+    console.warn("[CaronaApp] Movimento desligado:", err);
+  }
+
   // Abas e modais estão embutidos no index.html; ícones são SVG inline
   // (utils.js). Nenhuma biblioteca externa é necessária no boot.
   const appModule = await import("./app.js");

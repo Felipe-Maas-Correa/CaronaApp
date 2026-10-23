@@ -396,6 +396,44 @@
 .input-eye:hover { color: var(--text); }
 .input-eye .lucide { stroke-width: var(--ic-stroke-light); }
 
+/* Caixa de seleção: <input type="checkbox" class="check">. Nunca o
+   checkbox nativo (quadrado branco do sistema, fora do tema). */
+.check {
+  -webkit-appearance: none;
+  appearance: none;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 6px;
+  border: 1.5px solid var(--border-light);
+  background: var(--bg-elevated);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out),
+              box-shadow var(--dur-fast) var(--ease-out);
+}
+/* O "✓" é desenhado com bordas: segue a cor do tema, sem imagem */
+.check::after {
+  content: "";
+  width: 5px;
+  height: 10px;
+  border: solid var(--on-accent);
+  border-width: 0 2.2px 2.2px 0;
+  rotate: 45deg;
+  translate: 0 -1px;
+  scale: 0;
+  transition: scale var(--dur) var(--ease-spring);
+}
+.check:hover { border-color: var(--accent-border); }
+.check:checked { background: var(--accent); border-color: var(--accent); }
+.check:checked::after { scale: 1; }
+.check:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--accent-dim); }
+.check:disabled { opacity: .5; cursor: default; }
+.check:disabled:checked { background: var(--accent-dim); border-color: var(--accent-border); }
+.check:disabled:checked::after { border-color: var(--accent); }
+
 .input-group {
   display: flex;
   align-items: center;
@@ -629,7 +667,7 @@ button.list-item:hover { background: var(--bg-hover); }
   animation: spin .75s linear infinite;
   margin: 2rem auto;
 }
-@keyframes spin { to { transform: rotate(360deg); } }
+/* @keyframes spin: css/motion.css */
 
 /* ── SCROLLBAR ───────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 3px; }

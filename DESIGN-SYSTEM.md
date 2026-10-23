@@ -232,6 +232,43 @@ Nada de hex solto (`#fff`, `#0f0f0f`…) fora desses arquivos.
 
 ---
 
+## Movimento
+
+Movimento **confirma o que a pessoa fez**: aperto no toque, aba que entra do
+lado para onde se navegou, lista que chega em cascata, número que conta até o
+valor novo, formulário que balança no erro. Nada se mexe sozinho sem motivo.
+
+| O quê | Onde |
+|---|---|
+| Duração e curva: `--dur-fast` 120ms · `--dur` 220ms · `--dur-slow` 380ms · `--stagger` 45ms · `--ease-out` · `--ease-spring` · `--ease-in-out` | `css/design-system.css` |
+| Todas as animações (`@keyframes` **só aqui**) e as respostas ao toque | `css/motion.css` |
+| Eventos: onda do toque, direção da aba, cascata, segmentado, contagem, tremida, vibração | `js/motion.js` (ligado no boot) |
+
+Quem usa os componentes do guia já ganha o movimento. A tela só precisa de:
+
+- `data-stagger` no container que o JS preenche (lista em cascata).
+  `data-stagger=".list"` anima os filhos de um elemento interno;
+  `data-stagger-grid` é a versão rápida para grades; `data-stagger-key="#id"`
+  só anima quando o texto de `#id` mudou (ex.: o mês do calendário).
+- Números em `.stat__value` (ou `.summary-hero__amount`,
+  `.received-card__value`, `.stat-rate__num`) contam sozinhos. O texto final é
+  sempre o que a tela escreveu, mesmo com a aba em segundo plano.
+- Erro escrito em `.auth-error` / `.error-msg` faz o formulário balançar.
+- `.m-pop` para uma batida de confirmação pontual.
+
+**Reduzir movimento:** com a opção do sistema ligada, tudo fica instantâneo
+(só o carregando continua girando).
+
+**Observador de DOM sem laço:** dentro de um `MutationObserver`, só escreva no
+DOM o que mudou. `classList.add()` regrava o atributo mesmo quando a classe já
+existe e dispara o observador de novo (foi assim que o segmentado travou a
+página durante o desenvolvimento).
+
+O linter reprova `@keyframes` fora de `css/motion.css`. Exemplos funcionando:
+guia de estilo › Movimento.
+
+---
+
 ## Camadas (z-index)
 
 Ordem fixa — use o token, nunca um número:
@@ -256,6 +293,8 @@ Ordem fixa — use o token, nunca um número:
       (`css/components.css`); o CSS da tela só faz layout
 - [ ] Avatar e estado vazio no JS por `avatar()` / `emptyState()` de `js/ui.js`
 - [ ] Componente novo também aparece em `guia/index.html`
+- [ ] Lista preenchida por JS tem `data-stagger`; animação nova só em `css/motion.css`
+      com os tokens `--dur-*` / `--ease-*`
 - [ ] Fontes por `--font-*` e tamanhos por `--fs-*` (ou classe `.t-*`)
 - [ ] Ícones por `icon()` / `data-icon`, tamanho por `.ic-*` ou `--ic-*`
 - [ ] Cores e camadas por token
